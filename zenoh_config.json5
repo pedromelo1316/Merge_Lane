@@ -1,0 +1,11 @@
+{
+  mode: "client",
+  connect: {
+    endpoints: ["tcp/192.168.98.5:7447"]
+  },
+  scouting: {
+    multicast: {
+      enabled: false
+    }
+  }
+}
