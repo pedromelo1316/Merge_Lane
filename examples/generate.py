@@ -1,5 +1,6 @@
 import argparse
 import json
+import math
 import threading
 from pathlib import Path
 from time import sleep
@@ -28,6 +29,7 @@ with _scenario_path.open("r", encoding="utf-8") as _f:
 DEFAULT_HOST = "mc"
 PUBLISH_CAM_INTERVAL_SEC = 1.0
 PUBLISH_MCM_INTERVAL_SEC = 5.0
+MOVEMENT_TICK_SEC = 0.1
 
 MESSAGE_ID_TO_TYPE = {
     1: "DENM",
@@ -51,6 +53,58 @@ MESSAGE_ID_TO_TYPE = {
     19: "MVM",
     20: "MCM",
 }
+
+
+# Bearing em graus (0=N, 90=E) de ponto 1 para ponto 2.
+def compute_bearing(lat1, lon1, lat2, lon2):
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    x = math.sin(lon2 - lon1) * math.cos(lat2)
+    y = math.cos(lat1) * math.sin(lat2) - math.sin(lat1) * math.cos(lat2) * math.cos(lon2 - lon1)
+    return (math.degrees(math.atan2(x, y)) + 360) % 360
+
+
+# Distância em metros entre dois pontos (Haversine).
+def haversine_distance(lat1, lon1, lat2, lon2):
+    R = 6_371_000
+    lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
+    dlat, dlon = lat2 - lat1, lon2 - lon1
+    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    return R * 2 * math.asin(math.sqrt(a))
+
+
+# Avança a posição do veículo um tick de dt segundos ao longo do seu path.
+def step_vehicle(state, dt):
+    path = state.get("path", [])
+    idx = state["_waypoint_idx"]
+    if idx >= len(path):
+        return
+    wp_lat, wp_lon = path[idx]
+    dist = haversine_distance(state["lat"], state["lon"], wp_lat, wp_lon)
+    step_dist = state["speed"] * dt
+    if dist <= step_dist:
+        state["lat"], state["lon"] = wp_lat, wp_lon
+        state["_waypoint_idx"] = idx + 1
+        if idx + 1 < len(path):
+            nwp = path[idx + 1]
+            state["heading"] = compute_bearing(wp_lat, wp_lon, nwp[0], nwp[1])
+    else:
+        bearing = compute_bearing(state["lat"], state["lon"], wp_lat, wp_lon)
+        state["heading"] = bearing
+        br = math.radians(bearing)
+        state["lat"] += (step_dist * math.cos(br)) / 111_000
+        state["lon"] += (step_dist * math.sin(br)) / (111_000 * math.cos(math.radians(state["lat"])))
+
+
+# Atualiza a posição do veículo ao longo do seu path a MOVEMENT_TICK_SEC.
+def movement_loop(stop_event, host):
+    state = VEHICLE_STATE.get(host, VEHICLE_STATE["mc"])
+    path = state.get("path", [])
+    state["_waypoint_idx"] = 1
+    if len(path) >= 2:
+        state["heading"] = compute_bearing(path[0][0], path[0][1], path[1][0], path[1][1])
+    while not stop_event.is_set():
+        step_vehicle(state, MOVEMENT_TICK_SEC)
+        stop_event.wait(MOVEMENT_TICK_SEC)
 
 
 # Resolve o endpoint Zenoh a partir de um alias conhecido ou host bruto.
@@ -216,6 +270,15 @@ def main():
     session.declare_subscriber("vanetza/out/**", on_sample)
 
     stop_event = threading.Event()
+
+    movement_thread = threading.Thread(
+        target=movement_loop,
+        args=(stop_event, args.host),
+        name="movement",
+        daemon=True,
+    )
+    movement_thread.start()
+
     cam_thread = threading.Thread(
         target=cam_publisher_loop,
         args=(session, stop_event, args.host),
@@ -241,6 +304,7 @@ def main():
             sleep(1.0)
     except KeyboardInterrupt:
         stop_event.set()
+        movement_thread.join()
         cam_thread.join()
         if mcm_thread is not None:
             mcm_thread.join()
