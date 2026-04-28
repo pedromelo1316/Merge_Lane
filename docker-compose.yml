@@ -1,242 +1,52 @@
-version: '3.8'
+services:
+    rsu:
+        hostname: rsu
+        restart: always
+        image: ghcr.io/nap-it/vanetza-nap:latest
+        cap_add:
+            - "NET_ADMIN"
+        environment:
+            - VANETZA_STATION_ID=1
+            - VANETZA_STATION_TYPE=15
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:01
+            - VANETZA_INTERFACE=br0
+            - START_EMBEDDED_MOSQUITTO=false
+            - SUPPORT_MAC_BLOCKING=true
+            - VANETZA_CAM_ENABLED=true
+            - VANETZA_ZENOH_LOCAL_ONLY=false
+            - VANETZA_ZENOH_INTERFACES=br0
+            - VANETZA_CPM_MQTT_ENABLED=false
+            - VANETZA_CPM_MQTT_TIME_ENABLED=false
+            - VANETZA_CPM_ZENOH_ENABLED=true
+            - VANETZA_CAM_PERIODICITY=0
+        networks:
+            vanetzalan0:
+                ipv4_address: 192.168.98.10
 
+    obu:
+        hostname: obu
+        restart: always
+        image: ghcr.io/nap-it/vanetza-nap:latest
+        cap_add:
+            - "NET_ADMIN"
+        environment:
+            - VANETZA_STATION_ID=2
+            - VANETZA_STATION_TYPE=5
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:02
+            - VANETZA_INTERFACE=br0
+            - START_EMBEDDED_MOSQUITTO=false
+            - SUPPORT_MAC_BLOCKING=true
+            - VANETZA_CAM_ENABLED=true
+            - VANETZA_ZENOH_LOCAL_ONLY=false
+            - VANETZA_ZENOH_INTERFACES=br0
+            - VANETZA_CPM_MQTT_ENABLED=false
+            - VANETZA_CPM_MQTT_TIME_ENABLED=false
+            - VANETZA_CPM_ZENOH_ENABLED=true
+            - VANETZA_CAM_PERIODICITY=0
+        networks:
+            vanetzalan0:
+                ipv4_address: 192.168.98.20
+            
 networks:
   vanetzalan0:
-    external: true  # criar manualmente: docker network create vanetzalan0 --subnet 192.168.98.0/24
-
-services:
-  zenoh-router:
-    image: eclipse/zenoh:latest
-    container_name: zenoh-router
-    networks:
-      vanetzalan0:
-        ipv4_address: 192.168.98.5
-    ports:
-      - "7447:7447"      # TCP (ligações dos clientes)
-      - "7447:7447/udp"  # UDP (scouting multicast)
-    command: ["--listen", "tcp/0.0.0.0:7447", "--rest-http-port", "8080"]
-    restart: unless-stopped
-  
-  mc:
-    build: ./vehicles   # Dockerfile estende vanetza-nap com Python 3 + zenoh
-    container_name: mc
-    volumes:
-      - ./zenoh_config.json5:/zenoh_config.json5
-      - ./vehicles/vehicle_sim.py:/vehicle_sim.py
-    depends_on:
-      - zenoh-router
-    networks:
-      vanetzalan0:
-        ipv4_address: 192.168.98.10
-    cap_add:
-      - NET_ADMIN   # necessário para o Vanetza gerir a interface de rede
-      - NET_RAW     # necessário para frames Ethernet raw (GeoNetworking)
-    environment:
-      # --- interface de rede ---
-      VANETZA_INTERFACE: eth0
-      VANETZA_ZENOH: "tcp/192.168.98.5:7447"
-      VANETZA_MAC_ADDRESS: "6e:06:e0:03:00:10"
-
-      # --- identificação da estação ---
-      VANETZA_STATION_ID: 10
-      VANETZA_STATION_TYPE: 5          # 5 = passenger car (ETSI)
-
-      # --- Estado Inicial (simulação) ---
-      VANETZA_USE_HARDCODED_GPS: "true"
-      VEHICLE_ID: "mc"
-      VEHICLE_ROLE: "merge_car"
-
-      VEHICLE_INITIAL_X: "20.0"
-      VEHICLE_INITIAL_Y: "-60.0"
-      VEHICLE_INITIAL_SPEED: "10.0"
-      VEHICLE_INITIAL_HEADING: "45.0"
-
-
-
-      # --- mensagens a activar ---
-      VANETZA_CAM_ENABLED: "false"
-      VANETZA_CAM_ZENOH_ENABLED: "true"
-      VANETZA_CAM_MQTT_ENABLED: "false"
-      VANETZA_MCM_ZENOH_ENABLED: "true"
-      VANETZA_MCM_MQTT_ENABLED: "false"
-
-      # --- Zenoh: ligar ao router externo ---
-      VANETZA_ZENOH_LOCAL_ONLY: "false"
-      VANETZA_ZENOH_INTERFACES: eth0
-
-      # --- desactivar MAC blocking (desnecessário em simulação) ---
-      SUPPORT_MAC_BLOCKING: "false"
-    entrypoint: ""
-    command: >
-      sh -c "/entrypoint.sh &
-             sleep 3 &&
-             python3 /vehicle_sim.py"
-    restart: unless-stopped
-
-  # --- Veículos na via principal ---
-  # vehicle-a, vehicle-b e vehicle-c circulam na via principal (y=0, heading=90°).
-  # São os alvos do MERGE_REQUEST enviado pelo MC: verificam conflito temporal,
-  # propagam SLOWDOWN_REQUEST ao veículo atrás se necessário, e respondem com MERGE_GRANT.
-
-  vehicle-a:
-    build: ./vehicles
-    container_name: vehicle-a
-    volumes:
-      - ./zenoh_config.json5:/zenoh_config.json5
-      - ./vehicles/vehicle_sim.py:/vehicle_sim.py
-    depends_on:
-      - zenoh-router
-    networks:
-      vanetzalan0:
-        ipv4_address: 192.168.98.11
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    environment:
-      # --- interface de rede ---
-      VANETZA_INTERFACE: eth0
-      VANETZA_ZENOH: "tcp/192.168.98.5:7447"
-      VANETZA_MAC_ADDRESS: "6e:06:e0:03:00:11"
-
-      # --- identificação da estação ---
-      VANETZA_STATION_ID: 11
-      VANETZA_STATION_TYPE: 5
-
-      # --- Estado Inicial (simulação) ---
-      VANETZA_USE_HARDCODED_GPS: "true"
-      VEHICLE_ID: "vehicle_a"
-      VEHICLE_ROLE: "main_road"
-
-      VEHICLE_INITIAL_X: "130.0"
-      VEHICLE_INITIAL_Y: "0.0"
-      VEHICLE_INITIAL_SPEED: "14.0"
-      VEHICLE_INITIAL_HEADING: "90.0"
-
-      # --- mensagens a activar ---
-      VANETZA_CAM_ENABLED: "false"
-      VANETZA_CAM_ZENOH_ENABLED: "true"
-      VANETZA_CAM_MQTT_ENABLED: "false"
-      VANETZA_MCM_ZENOH_ENABLED: "true"
-      VANETZA_MCM_MQTT_ENABLED: "false"
-
-      # --- Zenoh: ligar ao router externo ---
-      VANETZA_ZENOH_LOCAL_ONLY: "false"
-      VANETZA_ZENOH_INTERFACES: eth0
-
-      # --- desactivar MAC blocking (desnecessário em simulação) ---
-      SUPPORT_MAC_BLOCKING: "false"
-    entrypoint: ""
-    command: >
-      sh -c "/entrypoint.sh &
-             sleep 3 &&
-             python3 /vehicle_sim.py"
-    restart: unless-stopped
-
-  vehicle-b:
-    build: ./vehicles
-    container_name: vehicle-b
-    volumes:
-      - ./zenoh_config.json5:/zenoh_config.json5
-      - ./vehicles/vehicle_sim.py:/vehicle_sim.py
-    depends_on:
-      - zenoh-router
-    networks:
-      vanetzalan0:
-        ipv4_address: 192.168.98.12
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    environment:
-      # --- interface de rede ---
-      VANETZA_INTERFACE: eth0
-      VANETZA_ZENOH: "tcp/192.168.98.5:7447"
-      VANETZA_MAC_ADDRESS: "6e:06:e0:03:00:12"
-
-      # --- identificação da estação ---
-      VANETZA_STATION_ID: 12
-      VANETZA_STATION_TYPE: 5
-
-      # --- Estado Inicial (simulação) ---
-      VANETZA_USE_HARDCODED_GPS: "true"
-      VEHICLE_ID: "vehicle_b"
-      VEHICLE_ROLE: "main_road"
-
-      VEHICLE_INITIAL_X: "160.0"
-      VEHICLE_INITIAL_Y: "0.0"
-      VEHICLE_INITIAL_SPEED: "14.0"
-      VEHICLE_INITIAL_HEADING: "90.0"
-
-      # --- mensagens a activar ---
-      VANETZA_CAM_ENABLED: "false"
-      VANETZA_CAM_ZENOH_ENABLED: "true"
-      VANETZA_CAM_MQTT_ENABLED: "false"
-      VANETZA_MCM_ZENOH_ENABLED: "true"
-      VANETZA_MCM_MQTT_ENABLED: "false"
-
-      # --- Zenoh: ligar ao router externo ---
-      VANETZA_ZENOH_LOCAL_ONLY: "false"
-      VANETZA_ZENOH_INTERFACES: eth0
-
-      # --- desactivar MAC blocking (desnecessário em simulação) ---
-      SUPPORT_MAC_BLOCKING: "false"
-    entrypoint: ""
-    command: >
-      sh -c "/entrypoint.sh &
-             sleep 3 &&
-             python3 /vehicle_sim.py"
-    restart: unless-stopped
-
-  vehicle-c:
-    build: ./vehicles
-    container_name: vehicle-c
-    volumes:
-      - ./zenoh_config.json5:/zenoh_config.json5
-      - ./vehicles/vehicle_sim.py:/vehicle_sim.py
-    depends_on:
-      - zenoh-router
-    networks:
-      vanetzalan0:
-        ipv4_address: 192.168.98.13
-    cap_add:
-      - NET_ADMIN
-      - NET_RAW
-    environment:
-      # --- interface de rede ---
-      VANETZA_INTERFACE: eth0
-      VANETZA_ZENOH: "tcp/192.168.98.5:7447"
-      VANETZA_MAC_ADDRESS: "6e:06:e0:03:00:13"
-
-      # --- identificação da estação ---
-      VANETZA_STATION_ID: 13
-      VANETZA_STATION_TYPE: 5
-
-      # --- Estado Inicial (simulação) ---
-      VANETZA_USE_HARDCODED_GPS: "true"
-      VEHICLE_ID: "vehicle_c"
-      VEHICLE_ROLE: "main_road"
-
-      VEHICLE_INITIAL_X: "190.0"
-      VEHICLE_INITIAL_Y: "0.0"
-      VEHICLE_INITIAL_SPEED: "14.0"
-      VEHICLE_INITIAL_HEADING: "90.0"
-
-      # --- mensagens a activar ---
-      VANETZA_CAM_ENABLED: "false"
-      VANETZA_CAM_ZENOH_ENABLED: "true"
-      VANETZA_CAM_MQTT_ENABLED: "false"
-      VANETZA_MCM_ZENOH_ENABLED: "true"
-      VANETZA_MCM_MQTT_ENABLED: "false"
-
-      # --- Zenoh: ligar ao router externo ---
-      VANETZA_ZENOH_LOCAL_ONLY: "false"
-      VANETZA_ZENOH_INTERFACES: eth0
-
-      # --- desactivar MAC blocking (desnecessário em simulação) ---
-      SUPPORT_MAC_BLOCKING: "false"
-    entrypoint: ""
-    command: >
-      sh -c "/entrypoint.sh &
-             sleep 3 &&
-             python3 /vehicle_sim.py"
-    restart: unless-stopped
-
+    external: true
