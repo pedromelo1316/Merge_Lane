@@ -21,6 +21,10 @@ STATION_ID_TO_HOST = {
     13: "c",
 }
 
+_scenario_path = Path(__file__).resolve().parent / "scenario.json"
+with _scenario_path.open("r", encoding="utf-8") as _f:
+    VEHICLE_STATE = json.load(_f)
+
 DEFAULT_HOST = "mc"
 PUBLISH_CAM_INTERVAL_SEC = 1.0
 PUBLISH_MCM_INTERVAL_SEC = 5.0
@@ -66,12 +70,17 @@ def build_session(endpoint):
 
 
 # Carrega e prepara o payload CAM a partir do JSON de exemplo.
-def load_cam_payload():
+def load_cam_payload(host):
     cam_path = Path(__file__).resolve().parent / "in_cam.json"
     with cam_path.open("r", encoding="utf-8") as source:
         message = json.load(source)
-    message["latitude"] = 0
-    message["longitude"] = 0
+    state = VEHICLE_STATE.get(host, VEHICLE_STATE["mc"])
+    ref = message["camParameters"]["basicContainer"]["referencePosition"]
+    ref["latitude"] = state["lat"]
+    ref["longitude"] = state["lon"]
+    hfc = message["camParameters"]["highFrequencyContainer"]["basicVehicleContainerHighFrequency"]
+    hfc["heading"]["headingValue"] = state["heading"]
+    hfc["speed"]["speedValue"] = state["speed"]
     return json.dumps(message).encode("utf-8")
 
 
@@ -150,7 +159,17 @@ def on_sample(sample):
         station_id = resolve_station_id(payload)
         hostname = STATION_ID_TO_HOST.get(station_id, "unknown")
         station_label = station_id if station_id is not None else "unknown"
-        print(f"{hostname}-{station_label}-{message_type}")
+        print(f"{hostname}-{station_label}-{message_type}:")
+        if message_type == "CAM":
+            #print(json.dumps(payload, indent=2))
+            ref = payload["fields"]["cam"]["camParameters"]["basicContainer"]["referencePosition"]
+            lat = ref["latitude"]
+            lon = ref["longitude"]
+            ref = payload["fields"]["cam"]["camParameters"]["highFrequencyContainer"]["basicVehicleContainerHighFrequency"]
+            heading = ref["heading"]["headingValue"]
+            speed = ref["speed"]["speedValue"]
+            print(f"  position: {lat:.6f}, {lon:.6f}")
+            print(f"  heading: {heading}, speed: {speed}")
     except json.JSONDecodeError:
         print("invalid_json")
 
@@ -174,11 +193,10 @@ def parse_args():
 
 
 # Publica periodicamente mensagens CAM ate parar.
-def cam_publisher_loop(session, stop_event):
+def cam_publisher_loop(session, stop_event, host):
     while not stop_event.is_set():
-        cam_payload = load_cam_payload()
+        cam_payload = load_cam_payload(host)
         generate_cam(session, cam_payload)
-        # Use Event.wait to support responsive shutdown.
         stop_event.wait(PUBLISH_CAM_INTERVAL_SEC)
 
 
@@ -200,7 +218,7 @@ def main():
     stop_event = threading.Event()
     cam_thread = threading.Thread(
         target=cam_publisher_loop,
-        args=(session, stop_event),
+        args=(session, stop_event, args.host),
         name="cam-publisher",
         daemon=True,
     )
