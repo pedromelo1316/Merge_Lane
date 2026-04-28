@@ -1,14 +1,14 @@
 services:
-    rsu:
-        hostname: rsu
+    mc:
+        hostname: mc
         restart: always
         image: ghcr.io/nap-it/vanetza-nap:latest
         cap_add:
             - "NET_ADMIN"
         environment:
-            - VANETZA_STATION_ID=1
-            - VANETZA_STATION_TYPE=15
-            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:01
+            - VANETZA_STATION_ID=10
+            - VANETZA_STATION_TYPE=5
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:10
             - VANETZA_INTERFACE=br0
             - START_EMBEDDED_MOSQUITTO=false
             - SUPPORT_MAC_BLOCKING=true
@@ -23,16 +23,16 @@ services:
             vanetzalan0:
                 ipv4_address: 192.168.98.10
 
-    obu:
-        hostname: obu
+    vehicle-a:
+        hostname: vehicle-a
         restart: always
         image: ghcr.io/nap-it/vanetza-nap:latest
         cap_add:
             - "NET_ADMIN"
         environment:
-            - VANETZA_STATION_ID=2
+            - VANETZA_STATION_ID=11
             - VANETZA_STATION_TYPE=5
-            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:02
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:11
             - VANETZA_INTERFACE=br0
             - START_EMBEDDED_MOSQUITTO=false
             - SUPPORT_MAC_BLOCKING=true
@@ -45,7 +45,55 @@ services:
             - VANETZA_CAM_PERIODICITY=0
         networks:
             vanetzalan0:
-                ipv4_address: 192.168.98.20
+                ipv4_address: 192.168.98.11
+
+    vehicle-b:
+        hostname: vehicle-b
+        restart: always
+        image: ghcr.io/nap-it/vanetza-nap:latest
+        cap_add:
+            - "NET_ADMIN"
+        environment:
+            - VANETZA_STATION_ID=12
+            - VANETZA_STATION_TYPE=5
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:12
+            - VANETZA_INTERFACE=br0
+            - START_EMBEDDED_MOSQUITTO=false
+            - SUPPORT_MAC_BLOCKING=true
+            - VANETZA_CAM_ENABLED=true
+            - VANETZA_ZENOH_LOCAL_ONLY=false
+            - VANETZA_ZENOH_INTERFACES=br0
+            - VANETZA_CPM_MQTT_ENABLED=false
+            - VANETZA_CPM_MQTT_TIME_ENABLED=false
+            - VANETZA_CPM_ZENOH_ENABLED=true
+            - VANETZA_CAM_PERIODICITY=0
+        networks:
+            vanetzalan0:
+                ipv4_address: 192.168.98.12
+
+    vehicle-c:
+        hostname: vehicle-c
+        restart: always
+        image: ghcr.io/nap-it/vanetza-nap:latest
+        cap_add:
+            - "NET_ADMIN"
+        environment:
+            - VANETZA_STATION_ID=13
+            - VANETZA_STATION_TYPE=5
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:13
+            - VANETZA_INTERFACE=br0
+            - START_EMBEDDED_MOSQUITTO=false
+            - SUPPORT_MAC_BLOCKING=true
+            - VANETZA_CAM_ENABLED=true
+            - VANETZA_ZENOH_LOCAL_ONLY=false
+            - VANETZA_ZENOH_INTERFACES=br0
+            - VANETZA_CPM_MQTT_ENABLED=false
+            - VANETZA_CPM_MQTT_TIME_ENABLED=false
+            - VANETZA_CPM_ZENOH_ENABLED=true
+            - VANETZA_CAM_PERIODICITY=0
+        networks:
+            vanetzalan0:
+                ipv4_address: 192.168.98.13
             
 networks:
   vanetzalan0:
