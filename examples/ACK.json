@@ -1,0 +1,27 @@
+{
+  "basicContainer": {
+    "generationDeltaTime": 1120.0,
+    "stationID": 30,
+    "stationType": 1,
+    "itssRole": 3,
+    "position": {
+      "latitude": 40.638600,
+      "longitude": -8.649700,
+      "positionConfidenceEllipse": {
+        "semiMajorAxisLength": 0,
+        "semiMinorAxisLength": 0,
+        "semiMajorAxisOrientation": 0
+      },
+      "altitude": { "altitudeValue": 2, "altitudeConfidence": 1 }
+    },
+    "mcmType": 9,
+    "manoeuvreId": 42,
+    "concept": 0
+  },
+  "mcmContainer": {
+    "acknowledgmentContainer": {
+      "acknowledgedType": 1,
+      "generationDeltaTime": 1050.0
+    }
+  }
+}

@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <title>Cooperative Lane Merge — Dashboard</title>
+  <style>
+    body {
+      margin: 0;
+      background: #1a1a2e;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      font-family: monospace;
+      color: #e0e0e0;
+    }
+    h1 {
+      font-size: 1rem;
+      letter-spacing: 0.1em;
+      margin-bottom: 1rem;
+      color: #aaa;
+    }
+    canvas {
+      background: #0f0f1a;
+      border: 1px solid #333;
+      border-radius: 4px;
+    }
+    #info {
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      color: #666;
+    }
+  </style>
+</head>
+<body>
+  <h1>COOPERATIVE LANE MERGE</h1>
+  <canvas id="canvas" width="800" height="400"></canvas>
+  <div id="info"></div>
+
+  <script>
+    const PADDING = 60;
+
+    function gpsToCanvas(lat, lon, bounds, w, h) {
+      const latCenter = (bounds.minLat + bounds.maxLat) / 2;
+      const cosLat = Math.cos(latCenter * Math.PI / 180);
+
+      const scaledMinLon = bounds.minLon * cosLat;
+      const scaledMaxLon = bounds.maxLon * cosLat;
+      const scaledLon    = lon * cosLat;
+
+      const drawW = w - 2 * PADDING;
+      const drawH = h - 2 * PADDING;
+
+      const x = PADDING + (scaledLon - scaledMinLon) / (scaledMaxLon - scaledMinLon) * drawW;
+      const y = PADDING + (bounds.maxLat - lat) / (bounds.maxLat - bounds.minLat) * drawH;
+      return {x, y};
+    }
+
+    function computeBounds(roads) {
+      let minLat = Infinity, maxLat = -Infinity;
+      let minLon = Infinity, maxLon = -Infinity;
+      for (const road of roads) {
+        for (const pt of [road.start, road.end]) {
+          minLat = Math.min(minLat, pt.lat);
+          maxLat = Math.max(maxLat, pt.lat);
+          minLon = Math.min(minLon, pt.lon);
+          maxLon = Math.max(maxLon, pt.lon);
+        }
+      }
+      // small margin so segments don't touch the edge
+      const mLat = (maxLat - minLat) * 0.15;
+      const mLon = (maxLon - minLon) * 0.15;
+      return {
+        minLat: minLat - mLat, maxLat: maxLat + mLat,
+        minLon: minLon - mLon, maxLon: maxLon + mLon
+      };
+    }
+
+    async function main() {
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width;
+      const H = canvas.height;
+
+      const response = await fetch('roads.json');
+      const data = await response.json();
+      const roads = data.roads;
+
+      const bounds = computeBounds(roads);
+
+      function toCanvas(lat, lon) {
+        return gpsToCanvas(lat, lon, bounds, W, H);
+      }
+
+      const roadStyles = {
+        main: {color: '#888888', width: 10, label: 'Via Principal'},
+        ramp: {color: '#e6a817', width: 7,  label: 'Rampa'},
+      };
+
+      // draw roads
+      for (const road of roads) {
+        const s = toCanvas(road.start.lat, road.start.lon);
+        const e = toCanvas(road.end.lat, road.end.lon);
+        const style = roadStyles[road.type] || {color: '#ffffff', width: 6};
+
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(e.x, e.y);
+        ctx.strokeStyle = style.color;
+        ctx.lineWidth = style.width;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // endpoint dots
+        for (const pt of [s, e]) {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = style.color;
+          ctx.fill();
+        }
+
+        // label at midpoint
+        const mid = {x: (s.x + e.x) / 2, y: (s.y + e.y) / 2};
+        ctx.fillStyle = style.color;
+        ctx.font = '11px monospace';
+        ctx.fillText(style.label + ' (' + road.speed_limit_kmh + ' km/h)', mid.x + 30, mid.y - 8);
+      }
+
+      // draw vehicles
+      const vRes = await fetch('vehicles.json');
+      const vData = await vRes.json();
+
+      const vehicleColor = {MC: '#00bcd4'};
+
+      for (const v of vData.vehicles) {
+        const pt = toCanvas(v.lat, v.lon);
+        const color = vehicleColor[v.id] || '#ffffff';
+
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 10, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        ctx.font = 'bold 10px monospace';
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(v.id, pt.x, pt.y);
+      }
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'alphabetic';
+    }
+
+    main().catch(err => {
+      document.getElementById('info').textContent = 'Erro: ' + err.message;
+      console.error(err);
+    });
+  </script>
+</body>
+</html>

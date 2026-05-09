@@ -1,0 +1,117 @@
+{
+  "basicContainer": {
+    "generationDeltaTime": 1050.0,     // 50ms depois da mensagem anterior
+    "stationID": 20,                    // quem envia: VehicleA
+    "stationType": 1,
+    "itssRole": 3,                      // targetVehicle — VehicleA é um dos visados pelo merge
+    "position": {
+      "latitude": 40.638800,            // posição atual do VehicleA na via principal
+      "longitude": -8.649700,
+      "positionConfidenceEllipse": {
+        "semiMajorAxisLength": 0,
+        "semiMinorAxisLength": 0,
+        "semiMajorAxisOrientation": 0
+      },
+      "altitude": { "altitudeValue": 2, "altitudeConfidence": 1 }
+    },
+    "mcmType": 1,                       // request — VehicleA está a pedir a VehicleB que abrande
+    "manoeuvreId": 42,                  // mesmo ID de sessão do MERGE_REQUEST original
+    "concept": 0,
+    "rational": { "manoeuvreCooperationCost": 0 }
+  },
+  "mcmContainer": {
+    "vehicleManoeuvreContainer": {
+
+      "vehicleCurrentStateContainer": {
+        "vehicleSpeed": {
+          "speedValue": 222,            // velocidade atual do VehicleA: 80 km/h
+          "speedConfidence": 1
+        },
+        "vehicleHeading": {
+          "value": 0,                   // direção: 0° (Norte), a seguir em frente na via
+          "confidence": 1
+        },
+        "vehicleSize": {
+          "vehicleType": 0,
+          "vehicleLenth": {
+            "vehicleLengthValue": 45,
+            "vehicleLengthConfidenceIndication": 4
+          },
+          "vehicleWidth": 18,
+          "vehicleHeight": 15
+        }
+      },
+
+      "submaneuvres": [
+        {
+          "submanoeuvreID": 0,
+          "submanoeuvreStrategy": {
+            "stayInLane": null          // VehicleA vai ficar na sua faixa, sem mudar nada
+          },
+          "referenceTrajectory": {
+            "wayPointType": 2,
+            "wayPoints": [
+              {
+                "pathPosition": {
+                  "deltaLatitude": 0,   // posição atual do VehicleA
+                  "deltaLongitude": 0,
+                  "deltaAltitude": 0
+                }
+              },
+              {
+                "pathPosition": {
+                  "deltaLatitude": 2400, // VehicleA vai continuar 240m em frente sem abrandar
+                  "deltaLongitude": 0,
+                  "deltaAltitude": 0
+                }
+              }
+            ],
+            "speed": [
+              { "speedValue": 222, "speedConfidence": 1 },  // mantém 80 km/h
+              { "speedValue": 222, "speedConfidence": 1 }
+            ]
+          },
+          "temporalCharateristics": {
+            "tRROccupancyStartTime": 0,    // VehicleA ocupa este espaço já agora
+            "tRROccupancyEndTime": 5000
+          }
+        }
+      ],
+
+      "manoeuvreAdvice": [
+        {
+          "executantID": 30,            // a quem se destina: VehicleB (o de trás)
+          "submaneuvres": [
+            {
+              "submanoeuvreId": 0,
+              "advisedTrajectory": {
+                "wayPointType": 2,
+                "wayPoints": [
+                  {
+                    "pathPosition": {
+                      "deltaLatitude": 0,
+                      "deltaLongitude": 0,
+                      "deltaAltitude": 0
+                    }
+                  },
+                  {
+                    "pathPosition": {
+                      "deltaLatitude": 1500, // VehicleB deve ficar 150m à frente (menos que os 240m do VehicleA = abre espaço)
+                      "deltaLongitude": 0,
+                      "deltaAltitude": 0
+                    }
+                  }
+                ],
+                "speed": [
+                  { "speedValue": 222, "speedConfidence": 1 },  // velocidade atual do VehicleB: 80 km/h
+                  { "speedValue": 167, "speedConfidence": 1 }   // velocidade aconselhada: ~60 km/h (abranda para abrir espaço)
+                ]
+              }
+            }
+          ]
+        }
+      ]
+
+    }
+  }
+}
