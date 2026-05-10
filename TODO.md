@@ -85,16 +85,12 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ## Etapa 9 — Módulo de builders de mensagens MCM
 
-- [ ] Criar `mcm_builder.py` com funções puras para cada tipo de mensagem:
-  - `build_cam()`
+- [x] Criar `mcm_builder.py` com funções puras para cada tipo de mensagem:
   - `build_merge_request()`
   - `build_slowdown_request()`
   - `build_ack()`
   - `build_merge_grant()`
   - `build_execution_status()`
-- [ ] Escrever `test_builders.py` que chama cada função e imprime o JSON resultante
-
-**Teste:** `python test_builders.py` imprime todos os JSONs válidos sem erros.
 
 ---
 
