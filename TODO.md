@@ -75,10 +75,9 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ## Etapa 8 — Deteção do ponto de merge e cálculo de conflito
 
-- [ ] Cada veículo calcula continuamente a distância ao ponto de merge do seu segmento
-- [ ] O veículo na rampa deteta quando está a X segundos do ponto de merge
-- [ ] Identifica quais os veículos da via principal em conflito nesse timestamp (com base nos CAMs recebidos)
-- [ ] Logar no terminal "detetei conflito com veículo X" sem enviar nada ainda
+- [x] O veículo na rampa deteta quando está a X segundos do ponto de merge
+- [x] Identifica quais os veículos da via principal em conflito nesse timestamp (com base nos CAMs recebidos)
+- [x] Logar no terminal "detetei conflito com veículo X" sem enviar nada ainda
 
 **Teste:** log do veículo na rampa a identificar corretamente os veículos em conflito com base nas posições reais.
 

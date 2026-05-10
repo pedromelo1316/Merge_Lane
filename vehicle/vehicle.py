@@ -41,23 +41,68 @@ def open_zenoh_session(broker):
     return zenoh.open(config)
 
 
-def make_cam_callback(vehicle_id, own_station_id):
+def make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_states):
     def on_cam(sample):
         try:
             payload = json.loads(bytes(sample.payload).decode())
             station_id = payload.get("stationID") or payload.get("stationId")
             if station_id == own_station_id:
                 return
-            ref = payload["fields"]["cam"]["camParameters"]["basicContainer"]["referencePosition"]
+            cam_params = payload["fields"]["cam"]["camParameters"]
+            ref = cam_params["basicContainer"]["referencePosition"]
             lat = ref["latitude"]
             lon = ref["longitude"]
+            hfc = (cam_params
+                   .get("highFrequencyContainer", {})
+                   .get("basicVehicleContainerHighFrequency", {}))
+            speed_ms = hfc.get("speed", {}).get("speedValue")
+            with neighbour_lock:
+                neighbour_states[station_id] = {
+                    "lat": lat, "lon": lon, "speed_ms": speed_ms, "ts": time.time()
+                }
             print(f"[{vehicle_id}] CAM recebido de stationID={station_id} pos=({lat:.5f}, {lon:.5f})")
         except Exception:
             pass
     return on_cam
 
 
+def detect_conflicts(vehicle_id, t_mc, L_ramp, speed_mc_ms,
+                     merge_lat, merge_lon, main_road, L_main,
+                     neighbour_lock, neighbour_states, last_conflict_set):
+    eta_s = (1.0 - t_mc) * L_ramp / speed_mc_ms
+    if eta_s > CONFLICT_HORIZON_S:
+        return last_conflict_set
+
+    with neighbour_lock:
+        snapshot = dict(neighbour_states)
+
+    current_conflicts = set()
+    s, e = main_road["start"], main_road["end"]
+    dlat, dlon = e["lat"] - s["lat"], e["lon"] - s["lon"]
+    L2 = dlat ** 2 + dlon ** 2
+
+    for station_id, state in snapshot.items():
+        if state["speed_ms"] is None:
+            continue
+        t_now = ((state["lat"] - s["lat"]) * dlat + (state["lon"] - s["lon"]) * dlon) / L2
+        t_pred = min(t_now + state["speed_ms"] * eta_s / L_main, 1.0)
+        pred_lat = s["lat"] + t_pred * dlat
+        pred_lon = s["lon"] + t_pred * dlon
+        if haversine(pred_lat, pred_lon, merge_lat, merge_lon) <= CONFLICT_ZONE_M:
+            current_conflicts.add(station_id)
+
+    current_set = frozenset(current_conflicts)
+    if current_set != last_conflict_set:
+        for sid in sorted(current_set - last_conflict_set):
+            print(f"[{vehicle_id}] detetei conflito com veículo stationID={sid} (ETA={eta_s:.1f}s)")
+        for sid in sorted(last_conflict_set - current_set):
+            print(f"[{vehicle_id}] conflito resolvido com veículo stationID={sid}")
+    return current_set
+
+
 STATION_IDS = {"MC": 10, "A": 11, "B": 12, "C": 13}
+CONFLICT_ZONE_M    = 50.0
+CONFLICT_HORIZON_S = 2.0
 
 
 def parse_args():
@@ -103,6 +148,22 @@ def main():
     dt_t = speed_ms * DT / L_m
     t = project_t(vehicle["lat"], vehicle["lon"], road)
 
+    is_ramp = road.get("type") == "ramp"
+    if is_ramp and road.get("merges_into"):
+        main_road = roads[road["merges_into"]]
+        merge_lat = road["end"]["lat"]
+        merge_lon = road["end"]["lon"]
+        L_main = haversine(
+            main_road["start"]["lat"], main_road["start"]["lon"],
+            main_road["end"]["lat"],   main_road["end"]["lon"],
+        )
+    else:
+        main_road = merge_lat = merge_lon = L_main = None
+
+    neighbour_lock    = threading.Lock()
+    neighbour_states  = {}
+    last_conflict_set = frozenset()
+
     session = None
     if args.broker:
         try:
@@ -111,7 +172,7 @@ def main():
             own_station_id = STATION_IDS.get(vehicle_id)
             session.declare_subscriber(
                 "vanetza/out/cam",
-                make_cam_callback(vehicle_id, own_station_id),
+                make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_states),
             )
         except Exception as e:
             print(f"[{vehicle_id}] Aviso: não foi possível ligar ao broker ({e})")
@@ -127,6 +188,15 @@ def main():
         if session is not None:
             cam = build_cam(lat, lon, bearing, speed_ms, road.get("lane_position"))
             session.put("vanetza/in/cam", json.dumps(cam).encode())
+
+        if is_ramp and session is not None and main_road is not None:
+            last_conflict_set = detect_conflicts(
+                vehicle_id, t, L_m, speed_ms,
+                merge_lat, merge_lon,
+                main_road, L_main,
+                neighbour_lock, neighbour_states,
+                last_conflict_set,
+            )
 
         t += dt_t
         elapsed += DT
