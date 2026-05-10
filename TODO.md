@@ -96,13 +96,23 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ## Etapa 10 — Protocolo completo: MERGE_REQUEST → ACK → GRANT
 
-- [ ] Integrar os builders na lógica dos containers
-- [ ] Veículo na rampa envia `MERGE_REQUEST` quando deteta conflito
+### Etapa 10.1
+
+- [x] Integrar os builders na lógica dos containers
+- [x] Veículo na rampa envia `MERGE_REQUEST` quando deteta conflito
+  
+**Nota:** Para já veiculos que recebem o `MERGE_REQUEST` apenas logam que receberam, sem reagir.
+
+### Etapa 10.2
+
 - [ ] Veículos em conflito propagam `SLOWDOWN_REQUEST` para o veículo atrás (inferido pelos CAMs)
 - [ ] Último veículo da cadeia envia `ACK`
 - [ ] `ACK` propaga para a frente
-- [ ] Primeiro veículo conflituoso envia `MERGE_GRANT`
-- [ ] Veículo na rampa valida e executa o merge (ou fallback se timeout)
+
+### Etapa 10.3
+
+- [ ] Veiculos que receberam MCM respodnem com `MERGE_GRANT`
+- [ ] Veículo na rampa valida e executa o merge (ou fallback se timeout ou negações)
 - [ ] Logar cada passo com timestamp
 
 **Teste:** nos logs do `docker compose up` ver a sequência completa de mensagens com timings corretos.

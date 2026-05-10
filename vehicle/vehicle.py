@@ -7,6 +7,7 @@ import threading
 import time
 
 from cam_builder import build_cam
+from mcm_builder import build_merge_request
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -66,6 +67,21 @@ def make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_stat
     return on_cam
 
 
+def make_mcm_callback(vehicle_id, own_station_id):
+    def on_mcm(sample):
+        try:
+            payload = json.loads(bytes(sample.payload).decode())
+            bc = payload.get("basicContainer", {})
+            sender_id = bc.get("stationID")
+            mcm_type  = bc.get("mcmType")
+            if sender_id == own_station_id:
+                return
+            print(f"[{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={mcm_type}")
+        except Exception:
+            pass
+    return on_mcm
+
+
 def detect_conflicts(vehicle_id, t_mc, L_ramp, speed_mc_ms,
                      merge_lat, merge_lon, main_road, L_main,
                      neighbour_lock, neighbour_states, last_conflict_set):
@@ -98,6 +114,54 @@ def detect_conflicts(vehicle_id, t_mc, L_ramp, speed_mc_ms,
         for sid in sorted(last_conflict_set - current_set):
             print(f"[{vehicle_id}] conflito resolvido com veículo stationID={sid}")
     return current_set
+
+
+def send_merge_request(session, vehicle_id, own_station_id,
+                       lat, lon, bearing, speed_ms,
+                       conflict_set, neighbour_lock, neighbour_states,
+                       manoeuvre_state):
+    RESEND_INTERVAL_S      = 2.0
+    SUGGESTED_SPEED_FACTOR = 0.7
+
+    if not conflict_set:
+        return
+
+    now = time.time()
+    set_changed  = conflict_set != manoeuvre_state["last_conflict_set"]
+    time_elapsed = (now - manoeuvre_state["last_send_time"]) >= RESEND_INTERVAL_S
+
+    if not set_changed and not time_elapsed:
+        return
+
+    if set_changed:
+        manoeuvre_state["manoeuvre_id"]     += 1
+        manoeuvre_state["last_conflict_set"] = conflict_set
+
+    manoeuvre_state["last_send_time"] = now
+
+    with neighbour_lock:
+        snapshot = dict(neighbour_states)
+
+    conflict_vehicles = [
+        (sid, (snapshot.get(sid, {}).get("speed_ms") or speed_ms) * SUGGESTED_SPEED_FACTOR)
+        for sid in sorted(conflict_set)
+    ]
+
+    mcm = build_merge_request(
+        station_id        = own_station_id,
+        lat               = lat,
+        lon               = lon,
+        heading           = bearing,
+        speed_ms          = speed_ms,
+        manoeuvre_id      = manoeuvre_state["manoeuvre_id"],
+        conflict_vehicles = conflict_vehicles,
+    )
+    session.put("vanetza/in/mcm", json.dumps(mcm).encode())
+    print(
+        f"[{vehicle_id}] MERGE_REQUEST enviado "
+        f"manoeuvre_id={manoeuvre_state['manoeuvre_id']} "
+        f"conflitos={sorted(conflict_set)}"
+    )
 
 
 STATION_IDS = {"MC": 10, "A": 11, "B": 12, "C": 13}
@@ -163,6 +227,11 @@ def main():
     neighbour_lock    = threading.Lock()
     neighbour_states  = {}
     last_conflict_set = frozenset()
+    manoeuvre_state = {
+        "last_conflict_set": frozenset(),
+        "manoeuvre_id":      0,
+        "last_send_time":    0.0,
+    }
 
     session = None
     if args.broker:
@@ -173,6 +242,10 @@ def main():
             session.declare_subscriber(
                 "vanetza/out/cam",
                 make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_states),
+            )
+            session.declare_subscriber(
+                "vanetza/out/mcm",
+                make_mcm_callback(vehicle_id, own_station_id),
             )
         except Exception as e:
             print(f"[{vehicle_id}] Aviso: não foi possível ligar ao broker ({e})")
@@ -196,6 +269,13 @@ def main():
                 main_road, L_main,
                 neighbour_lock, neighbour_states,
                 last_conflict_set,
+            )
+            send_merge_request(
+                session, vehicle_id, own_station_id,
+                lat, lon, bearing, speed_ms,
+                last_conflict_set,
+                neighbour_lock, neighbour_states,
+                manoeuvre_state,
             )
 
         t += dt_t
