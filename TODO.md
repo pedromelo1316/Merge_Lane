@@ -42,27 +42,38 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ---
 
-## Etapa 5 — Docker com Vanetza-NAP e CAM beaconing
+## Etapa 5  — Código individual do veículo
 
-- [ ] Criar `Dockerfile.vehicle` para o container Python
-- [ ] Atualizar `docker-compose.yml` com os containers Python por veículo
-- [ ] Cada container Python publica CAMs via Zenoh com a posição simulada
-- [ ] Confirmar que os CAMs chegam entre containers
-
-**Teste:** `docker compose up`, ver nos logs de cada container os CAMs dos outros veículos a chegar.
+- [x] Extrair a lógica de movimento da etapa 3 para um ficheiro vehicle.py que gere um único veículo
+- [x] O veículo lê roads.json, sabe em que estrada começa (via env var ou argumento), e avança sozinho
+- [x] Corre 4 instâncias do mesmo ficheiro em terminais separados, cada uma com configuração diferente, e confirmas que cada uma se move independentemente
 
 ---
 
-## Etapa 6 — Dashboard recebe CAMs dos containers
+## Etapa 6 — Vanetza-NAP + CAM beaconing via Zenoh
 
-- [ ] O servidor WebSocket passa a subscrever os CAMs do Zenoh em vez de simular localmente
-- [ ] Canvas mostra os veículos com posições vindas dos containers Docker
+- [x] Criar `vehicle/cam_builder.py` com função pura `build_cam(lat, lon, heading, speed_ms)`
+- [x] `vehicle/vehicle.py` publica CAMs via Zenoh (`vanetza/in/cam`) e subscreve CAMs recebidos (`vanetza/out/cam`)
+- [x] `vehicle/vehicle.py` aceita `VEHICLE_ID` por env var (para Docker) ou argumento CLI
+- [x] Criar `run_vehicles.py` que lança os 4 veículos localmente, cada um ligado ao seu broker Zenoh
+- [x] `docker-compose.yml` contém apenas os 4 containers Vanetza-NAP (Python corre localmente)
+
+> **Decisão de arquitectura:** os containers Python foram removidos do Docker. O Python corre localmente via `run_vehicles.py`, ligando-se ao Zenoh de cada container Vanetza-NAP. Mais fácil de iterar sem rebuild.
+
+**Teste:** `docker compose up` (Vanetza) + `python3 run_vehicles.py` (Python), ver nos logs os CAMs dos outros veículos a chegar.
+
+---
+
+## Etapa 7 — Dashboard recebe CAMs dos containers
+
+- [x] O servidor WebSocket passa a subscrever os CAMs do Zenoh em vez de simular localmente
+- [x] Canvas mostra os veículos com posições vindas dos containers Docker
 
 **Teste:** browser com veículos a mover-se, posições vindas dos containers reais.
 
 ---
 
-## Etapa 7 — Deteção do ponto de merge e cálculo de conflito
+## Etapa 8 — Deteção do ponto de merge e cálculo de conflito
 
 - [ ] Cada veículo calcula continuamente a distância ao ponto de merge do seu segmento
 - [ ] O veículo na rampa deteta quando está a X segundos do ponto de merge
@@ -73,7 +84,7 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ---
 
-## Etapa 8 — Módulo de builders de mensagens MCM
+## Etapa 9 — Módulo de builders de mensagens MCM
 
 - [ ] Criar `mcm_builder.py` com funções puras para cada tipo de mensagem:
   - `build_cam()`
@@ -88,7 +99,7 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ---
 
-## Etapa 9 — Protocolo completo: MERGE_REQUEST → ACK → GRANT
+## Etapa 10 — Protocolo completo: MERGE_REQUEST → ACK → GRANT
 
 - [ ] Integrar os builders na lógica dos containers
 - [ ] Veículo na rampa envia `MERGE_REQUEST` quando deteta conflito
@@ -103,7 +114,7 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ---
 
-## Etapa 10 — Estado do protocolo visível no dashboard
+## Etapa 11 — Estado do protocolo visível no dashboard
 
 - [ ] Bridge WebSocket passa a incluir o estado do protocolo de cada veículo (normal / em conflito / a abrandar / merge executado)
 - [ ] Canvas mostra cores diferentes por estado em cada veículo

@@ -6,6 +6,7 @@
       "start": {"lat": 40.6370, "lon": -8.6510},
       "end":   {"lat": 40.6380, "lon": -8.6495},
       "speed_limit_kmh": 60,
+      "lane_position": 1,
       "merges_into": "main"
     },
     {
@@ -13,7 +14,8 @@
       "type": "main",
       "start": {"lat": 40.6380, "lon": -8.6560},
       "end":   {"lat": 40.6380, "lon": -8.6480},
-      "speed_limit_kmh": 100
+      "speed_limit_kmh": 100,
+      "lane_position": 1
     }
   ]
 }
