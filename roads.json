@@ -11,7 +11,7 @@
     {
       "id": "main",
       "type": "main",
-      "start": {"lat": 40.6380, "lon": -8.6520},
+      "start": {"lat": 40.6380, "lon": -8.6560},
       "end":   {"lat": 40.6380, "lon": -8.6480},
       "speed_limit_kmh": 100
     }

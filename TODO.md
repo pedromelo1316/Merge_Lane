@@ -6,7 +6,7 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ## Etapa 1 — Definir as estradas e visualizá-las
 
-- [ ] Escolher as coordenadas GPS reais da via principal e da rampa
+- [x] Escolher as coordenadas GPS reais da via principal e da rampa
 - [x] Criar `roads.json` com os dois segmentos (start/end em lat/lon)
 - [x] Criar uma página HTML que lê `roads.json` e desenha os segmentos num canvas ou SVG
 
@@ -16,8 +16,8 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ## Etapa 2 — Veículos estáticos no canvas
 
-- [ ] Adicionar um marcador por veículo com posição fixa no início de cada segmento
-- [ ] Confirmar que os marcadores ficam sobre os segmentos desenhados
+- [x] Adicionar um marcador por veículo com posição fixa no início de cada segmento
+- [x] Confirmar que os marcadores ficam sobre os segmentos desenhados
 
 **Teste:** ver os marcadores no canvas, cada um no início da sua estrada.
 
@@ -25,9 +25,9 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ## Etapa 3 — Movimento simulado local (sem Docker)
 
-- [ ] Escrever um script Python que lê `roads.json`
-- [ ] Implementar lógica de movimento por interpolação linear entre start e end com base na velocidade
-- [ ] Imprimir posições GPS no terminal a cada 100ms
+- [x] Escrever um script Python que lê `roads.json`
+- [x] Implementar lógica de movimento por interpolação linear entre start e end com base na velocidade
+- [x] Imprimir posições GPS no terminal a cada 100ms
 
 **Teste:** posições a mudar no terminal, veículo chega ao fim do segmento sem erros.
 
@@ -35,8 +35,8 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ## Etapa 4 — Movimento visível no canvas em tempo real
 
-- [ ] Adicionar um servidor WebSocket simples ao script Python da etapa 3
-- [ ] O canvas subscreve o WebSocket e atualiza os marcadores com as posições recebidas
+- [x] Adicionar um servidor WebSocket simples ao script Python da etapa 3
+- [x] O canvas subscreve o WebSocket e atualiza os marcadores com as posições recebidas
 
 **Teste:** abrir o browser e ver os veículos a mover-se sobre os segmentos em tempo real.
 
