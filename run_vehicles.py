@@ -22,7 +22,7 @@ def main():
 
     for v in VEHICLES:
         proc = subprocess.Popen(
-            [sys.executable, "vehicle/vehicle.py", v["id"], "--broker", v["broker"]],
+            [sys.executable, "-u", "vehicle/vehicle.py", v["id"], "--broker", v["broker"]],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,

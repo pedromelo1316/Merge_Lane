@@ -7,7 +7,7 @@ import threading
 import time
 
 from cam_builder import build_cam
-from mcm_builder import build_merge_request
+from mcm_builder import build_merge_request, build_slowdown_request, build_ack
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -61,7 +61,7 @@ def make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_stat
                 neighbour_states[station_id] = {
                     "lat": lat, "lon": lon, "speed_ms": speed_ms, "ts": time.time()
                 }
-            print(f"[{vehicle_id}] CAM recebido de stationID={station_id} pos=({lat:.5f}, {lon:.5f})")
+            #print(f"[{vehicle_id}] CAM recebido de stationID={station_id} pos=({lat:.5f}, {lon:.5f})")
         except Exception:
             pass
     return on_cam
@@ -70,18 +70,200 @@ def make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_stat
 MCM_TYPE_NAMES = {1: "request", 2: "response", 9: "acknowledgment"}
 
 
-def make_mcm_callback(vehicle_id, own_station_id):
+def find_vehicle_behind(own_t, own_station_id, road, neighbour_lock, neighbour_states):
+    """Return station_id of the vehicle immediately behind on this road, or None."""
+    s, e = road["start"], road["end"]
+    dlat = e["lat"] - s["lat"]
+    dlon = e["lon"] - s["lon"]
+    L2 = dlat ** 2 + dlon ** 2
+    best_id, best_t = None, -1.0
+    with neighbour_lock:
+        snapshot = dict(neighbour_states)
+    for sid, st in snapshot.items():
+        t_n = ((st["lat"] - s["lat"]) * dlat + (st["lon"] - s["lon"]) * dlon) / L2
+        if not (0.0 <= t_n <= 1.0 and t_n < own_t and t_n > best_t):
+            continue
+        proj_lat = s["lat"] + t_n * dlat
+        proj_lon = s["lon"] + t_n * dlon
+        if haversine(proj_lat, proj_lon, st["lat"], st["lon"]) > 25.0:
+            continue
+        best_t, best_id = t_n, sid
+    return best_id
+
+
+def make_mcm_callback(vehicle_id, own_station_id, session,
+                      vehicle_state, road, is_ramp,
+                      neighbour_lock, neighbour_states,
+                      protocol_lock, protocol_state):
+
+    def _suggested_speed_for(target_id, mc_advice):
+        for entry in mc_advice:
+            if entry.get("executantID") == target_id:
+                try:
+                    return entry["submaneuvres"][0]["advisedTrajectory"]["speed"][0]["speedValue"]
+                except (KeyError, IndexError):
+                    pass
+        with neighbour_lock:
+            current = (neighbour_states.get(target_id) or {}).get("speed_ms")
+        return current * 0.7 if current else None
+
+    def _send_slowdown(target_id, mc_advice):
+        sugg = _suggested_speed_for(target_id, mc_advice)
+        if sugg is None:
+            sugg = vehicle_state["speed_ms"] * 0.7
+        with protocol_lock:
+            mid = protocol_state["manoeuvre_id"]
+        mcm = build_slowdown_request(
+            station_id=own_station_id,
+            lat=vehicle_state["lat"],
+            lon=vehicle_state["lon"],
+            heading=vehicle_state["bearing"],
+            speed_ms=vehicle_state["speed_ms"],
+            manoeuvre_id=mid,
+            next_vehicle_id=target_id,
+            suggested_speed_ms=sugg,
+        )
+        sent_delta = mcm["basicContainer"]["generationDeltaTime"]
+        session.put("vanetza/in/mcm", json.dumps(mcm).encode())
+        with protocol_lock:
+            protocol_state["slowdown_sent"] = True
+            protocol_state["slowdown_sent_to"] = target_id
+            protocol_state["slowdown_sent_delta_time"] = sent_delta
+        print(f"[{vehicle_id}] SLOWDOWN_REQUEST enviado para stationID={target_id} speed={sugg:.2f} m/s")
+
     def on_mcm(sample):
         try:
             payload = json.loads(bytes(sample.payload).decode())
             sender_id = payload.get("stationID") or payload.get("stationId")
             if sender_id == own_station_id:
                 return
-            mcm_type = payload["fields"]["payload"]["basicContainer"]["mcmType"]
+
+            inner = payload["fields"]["payload"]
+            basic = inner["basicContainer"]
+            mcm_type = basic["mcmType"]
+            its_role = basic.get("itssRole", 0)
+            delta_time = basic["generationDeltaTime"]
+            manoeuvre_id = basic["manoeuvreId"]
+
             type_name = MCM_TYPE_NAMES.get(mcm_type, mcm_type)
-            print(f"[{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={type_name}")
-        except Exception:
-            pass
+            print(f"[{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={type_name}", end="")
+
+            if is_ramp:
+                return
+
+            # ── MERGE_REQUEST (MC → main road vehicles) ──────────────────────
+            if mcm_type == 1 and its_role == 1:
+                advice = (inner["mcmContainer"]
+                          .get("vehicleManoeuvreContainer", {})
+                          .get("manoeuvreAdvice", []))
+                in_conflict = any(e.get("executantID") == own_station_id for e in advice)
+                with protocol_lock:
+                    protocol_state["in_conflict"] = in_conflict
+                    protocol_state["mc_station_id"] = sender_id
+                    protocol_state["manoeuvre_id"] = manoeuvre_id
+                    protocol_state["mc_advice"] = advice
+
+                if not in_conflict:
+                    print("(Ignorado)")
+                    return
+
+                print()
+
+                own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
+                behind_id = find_vehicle_behind(own_t, own_station_id, road,
+                                                neighbour_lock, neighbour_states)
+                if behind_id is not None:
+                    _send_slowdown(behind_id, advice)
+                # If no vehicle behind: wait for SLOWDOWN_REQUEST from ahead to trigger ACK chain
+
+            # ── SLOWDOWN_REQUEST (vehicle → vehicle) ──────────────────────────
+            elif mcm_type == 1 and its_role == 3:
+                vmc = inner["mcmContainer"].get("vehicleManoeuvreContainer", {})
+                advice = vmc.get("manoeuvreAdvice", [])
+                if not advice:
+                    return
+                if advice[0].get("executantID") != own_station_id:
+                    return
+
+                try:
+                    sugg_speed = advice[0]["submaneuvres"][0]["advisedTrajectory"]["speed"][0]["speedValue"]
+                except (KeyError, IndexError):
+                    sugg_speed = None
+
+                # Use minimum of SLOWDOWN suggestion and MC's own advice for us (if any)
+                with protocol_lock:
+                    mc_advice = list(protocol_state["mc_advice"])
+                own_mc_advice = next((e for e in mc_advice if e.get("executantID") == own_station_id), None)
+                if own_mc_advice and sugg_speed is not None:
+                    try:
+                        mc_speed = own_mc_advice["submaneuvres"][0]["advisedTrajectory"]["speed"][0]["speedValue"]
+                        sugg_speed = min(sugg_speed, mc_speed)
+                    except (KeyError, IndexError):
+                        pass
+
+                with protocol_lock:
+                    protocol_state["slowdown_received"] = True
+                    protocol_state["slowdown_sender_id"] = sender_id
+                    protocol_state["slowdown_delta_time"] = delta_time
+                    protocol_state["manoeuvre_id"] = manoeuvre_id
+                    mid = manoeuvre_id
+
+                own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
+                behind_id = find_vehicle_behind(own_t, own_station_id, road,
+                                                neighbour_lock, neighbour_states)
+
+                if behind_id is not None:
+                    _send_slowdown(behind_id, mc_advice)
+                else:
+                    ack = build_ack(
+                        station_id=own_station_id,
+                        lat=vehicle_state["lat"],
+                        lon=vehicle_state["lon"],
+                        manoeuvre_id=mid,
+                        acknowledged_delta_time=delta_time,
+                    )
+                    session.put("vanetza/in/mcm", json.dumps(ack).encode())
+                    print(f"[{vehicle_id}] ACK enviado (fim de cadeia, origem stationID={sender_id})")
+
+            # ── ACK (vehicle → vehicle) ────────────────────────────────────────
+            elif mcm_type == 9:
+                ack_delta = (inner["mcmContainer"]
+                             .get("acknowledgmentContainer", {})
+                             .get("generationDeltaTime"))
+                if ack_delta is None:
+                    return
+
+                with protocol_lock:
+                    sent = protocol_state["slowdown_sent"]
+                    sent_delta = protocol_state["slowdown_sent_delta_time"]
+                    received = protocol_state["slowdown_received"]
+                    recv_delta = protocol_state["slowdown_delta_time"]
+                    mid = protocol_state["manoeuvre_id"]
+
+                if not sent or sent_delta is None:
+                    return
+                if abs(ack_delta - sent_delta) > 1.0:
+                    return
+
+                print(f"[{vehicle_id}] ACK recebido de stationID={sender_id} (cadeia a partir de trás confirmada)")
+
+                if received and recv_delta is not None:
+                    ack = build_ack(
+                        station_id=own_station_id,
+                        lat=vehicle_state["lat"],
+                        lon=vehicle_state["lon"],
+                        manoeuvre_id=mid,
+                        acknowledged_delta_time=recv_delta,
+                    )
+                    session.put("vanetza/in/mcm", json.dumps(ack).encode())
+                    with protocol_lock:
+                        sid_up = protocol_state["slowdown_sender_id"]
+                    print(f"[{vehicle_id}] ACK propagado para cima (stationID={sid_up})")
+                # (10.3: MERGE_GRANT ao MC aqui se in_conflict)
+
+        except Exception as e:
+            print(f"[{vehicle_id}] Erro no MCM callback: {e}")
+
     return on_mcm
 
 
@@ -236,6 +418,27 @@ def main():
         "last_send_time":    0.0,
     }
 
+    initial_lat = road["start"]["lat"] + t * (road["end"]["lat"] - road["start"]["lat"])
+    initial_lon = road["start"]["lon"] + t * (road["end"]["lon"] - road["start"]["lon"])
+    vehicle_state = {
+        "lat": initial_lat, "lon": initial_lon,
+        "speed_ms": speed_ms, "bearing": bearing,
+    }
+
+    protocol_lock = threading.Lock()
+    protocol_state = {
+        "in_conflict":              False,
+        "mc_station_id":            None,
+        "manoeuvre_id":             None,
+        "mc_advice":                [],
+        "slowdown_received":        False,
+        "slowdown_sender_id":       None,
+        "slowdown_delta_time":      None,
+        "slowdown_sent":            False,
+        "slowdown_sent_to":         None,
+        "slowdown_sent_delta_time": None,
+    }
+
     session = None
     if args.broker:
         try:
@@ -248,7 +451,10 @@ def main():
             )
             session.declare_subscriber(
                 "vanetza/out/mcm",
-                make_mcm_callback(vehicle_id, own_station_id),
+                make_mcm_callback(vehicle_id, own_station_id, session,
+                                  vehicle_state, road, is_ramp,
+                                  neighbour_lock, neighbour_states,
+                                  protocol_lock, protocol_state),
             )
         except Exception as e:
             print(f"[{vehicle_id}] Aviso: não foi possível ligar ao broker ({e})")
@@ -259,7 +465,12 @@ def main():
         lat = road["start"]["lat"] + t * (road["end"]["lat"] - road["start"]["lat"])
         lon = road["start"]["lon"] + t * (road["end"]["lon"] - road["start"]["lon"])
 
-        print(f"[{vehicle_id}] t={elapsed:6.2f}s  lat={lat:.5f}  lon={lon:.5f}  bearing={bearing:.1f}°")
+        vehicle_state["lat"]      = lat
+        vehicle_state["lon"]      = lon
+        vehicle_state["speed_ms"] = speed_ms
+        vehicle_state["bearing"]  = bearing
+
+        #print(f"[{vehicle_id}] t={elapsed:6.2f}s  lat={lat:.5f}  lon={lon:.5f}  bearing={bearing:.1f}°")
 
         if session is not None:
             cam = build_cam(lat, lon, bearing, speed_ms, road.get("lane_position"))
