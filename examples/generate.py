@@ -86,8 +86,10 @@ def load_cam_payload(host):
 
 # Carrega o payload MCM a partir do JSON de exemplo.
 def load_mcm_payload():
-    mcm_path = Path(__file__).resolve().parent / "in_MERGE_REQUEST.json"
-    #mcm_path = Path(__file__).resolve().parent / "SLOWDOWN_REQUEST.json"
+    #mcm_path = Path(__file__).resolve().parent / "in_MERGE_REQUEST.json"
+    #mcm_path = Path(__file__).resolve().parent / "in_SLOWDOWN_REQUEST.json"
+    #mcm_path = Path(__file__).resolve().parent / "in_MERGE_GRANT.json"
+    mcm_path = Path(__file__).resolve().parent / "in_ACK.json"
     with mcm_path.open("r", encoding="utf-8") as source:
         message = json.load(source)
     return json.dumps(message).encode("utf-8")
