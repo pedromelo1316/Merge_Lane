@@ -105,9 +105,9 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ### Etapa 10.2
 
-- [ ] Veículos em conflito propagam `SLOWDOWN_REQUEST` para o veículo atrás (inferido pelos CAMs)
-- [ ] Último veículo da cadeia envia `ACK`
-- [ ] `ACK` propaga para a frente
+- [x] Veículos em conflito propagam `SLOWDOWN_REQUEST` para o veículo atrás (inferido pelos CAMs)
+- [x] Último veículo da cadeia envia `ACK`
+- [x] `ACK` propaga para a frente
 
 ### Etapa 10.3
 

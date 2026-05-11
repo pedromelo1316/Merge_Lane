@@ -357,12 +357,15 @@ def parse_args():
                         help="Vehicle ID (MC, A, B, C)")
     parser.add_argument("--broker", default=os.environ.get("ZENOH_BROKER"),
                         help="Zenoh broker endpoint, e.g. tcp/192.168.98.10:7447")
+    parser.add_argument("--speed", type=float, default=1.0,
+                        help="Simulation speed multiplier (e.g. 2 = 2x faster)")
     return parser.parse_args()
 
 
 def main():
     args = parse_args()
     vehicle_id = args.id
+    speed_factor = max(args.speed, 0.1)
 
     if not vehicle_id:
         print("Erro: especifica o ID do veículo (argumento ou VEHICLE_ID env var)")
@@ -491,7 +494,7 @@ def main():
 
         t += dt_t
         elapsed += DT
-        time.sleep(DT)
+        time.sleep(DT / speed_factor)
 
     lat = road["end"]["lat"]
     lon = road["end"]["lon"]
