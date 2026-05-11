@@ -146,7 +146,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             manoeuvre_id = basic["manoeuvreId"]
 
             type_name = MCM_TYPE_NAMES.get(mcm_type, mcm_type)
-            print(f"[{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={type_name}", end="")
+            print(f"[{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={type_name}")
 
             if is_ramp:
                 return
@@ -164,10 +164,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     protocol_state["mc_advice"] = advice
 
                 if not in_conflict:
-                    print("(Ignorado)")
                     return
-
-                print()
 
                 own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
                 behind_id = find_vehicle_behind(own_t, own_station_id, road,

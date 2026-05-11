@@ -1,3 +1,4 @@
+import argparse
 import subprocess
 import sys
 import threading
@@ -17,12 +18,18 @@ def stream_output(proc, label):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--speed", type=float, default=1.0,
+                        help="Simulation speed multiplier (e.g. 2 = 2x faster)")
+    args = parser.parse_args()
+
     procs = []
     threads = []
 
     for v in VEHICLES:
         proc = subprocess.Popen(
-            [sys.executable, "-u", "vehicle/vehicle.py", v["id"], "--broker", v["broker"]],
+            [sys.executable, "-u", "vehicle/vehicle.py", v["id"],
+             "--broker", v["broker"], "--speed", str(args.speed)],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
