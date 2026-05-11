@@ -1,0 +1,1985 @@
+[MC] Zenoh ligado a tcp/192.168.98.10:7447
+[MC] t=  0.00s  lat=40.63700  lon=-8.65100  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65320)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65180)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65470)
+[MC] t=  0.10s  lat=40.63701  lon=-8.65099  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65177)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65317)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65467)
+[MC] t=  0.20s  lat=40.63702  lon=-8.65097  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65313)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65173)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65463)
+[MC] t=  0.30s  lat=40.63703  lon=-8.65096  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65460)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65310)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65170)
+[MC] t=  0.40s  lat=40.63704  lon=-8.65094  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65457)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65307)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65167)
+[MC] t=  0.50s  lat=40.63705  lon=-8.65093  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65164)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65454)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65304)
+[MC] t=  0.60s  lat=40.63706  lon=-8.65091  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65450)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65300)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65160)
+[MC] t=  0.70s  lat=40.63707  lon=-8.65090  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65447)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65297)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65157)
+[MC] t=  0.80s  lat=40.63708  lon=-8.65088  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65294)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65444)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65154)
+[MC] t=  0.90s  lat=40.63709  lon=-8.65087  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65440)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65150)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65290)
+[MC] t=  1.00s  lat=40.63710  lon=-8.65085  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65287)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65437)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65147)
+[MC] t=  1.10s  lat=40.63711  lon=-8.65084  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65284)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65434)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65144)
+[MC] t=  1.20s  lat=40.63712  lon=-8.65082  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65280)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65430)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65140)
+[MC] t=  1.30s  lat=40.63713  lon=-8.65081  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65277)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65427)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65137)
+[MC] t=  1.40s  lat=40.63714  lon=-8.65079  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65134)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65274)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65424)
+[MC] t=  1.50s  lat=40.63715  lon=-8.65078  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65131)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65421)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65271)
+[MC] t=  1.60s  lat=40.63716  lon=-8.65076  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65417)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65127)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65267)
+[MC] t=  1.70s  lat=40.63717  lon=-8.65075  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65264)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65124)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65414)
+[MC] t=  1.80s  lat=40.63718  lon=-8.65073  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65261)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65121)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65411)
+[MC] t=  1.90s  lat=40.63719  lon=-8.65072  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65257)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65407)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65117)
+[MC] t=  2.00s  lat=40.63720  lon=-8.65070  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65254)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65404)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65114)
+[MC] t=  2.10s  lat=40.63721  lon=-8.65069  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65111)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65251)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65401)
+[MC] t=  2.20s  lat=40.63722  lon=-8.65067  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65248)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65398)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65108)
+[MC] t=  2.30s  lat=40.63723  lon=-8.65066  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65244)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65394)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65104)
+[MC] t=  2.40s  lat=40.63724  lon=-8.65064  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65241)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65391)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65101)
+[MC] t=  2.50s  lat=40.63725  lon=-8.65063  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65388)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65238)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65098)
+[MC] t=  2.60s  lat=40.63726  lon=-8.65061  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65384)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65234)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65094)
+[MC] t=  2.70s  lat=40.63727  lon=-8.65060  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65231)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65091)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65381)
+[MC] t=  2.80s  lat=40.63728  lon=-8.65058  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65228)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65378)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65088)
+[MC] t=  2.90s  lat=40.63729  lon=-8.65057  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65225)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65085)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65375)
+[MC] t=  3.00s  lat=40.63730  lon=-8.65055  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65081)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65371)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65221)
+[MC] t=  3.10s  lat=40.63731  lon=-8.65054  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65368)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65218)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65078)
+[MC] t=  3.20s  lat=40.63732  lon=-8.65053  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65075)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65215)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65365)
+[MC] t=  3.30s  lat=40.63733  lon=-8.65051  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65211)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65361)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65071)
+[MC] t=  3.40s  lat=40.63734  lon=-8.65050  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65358)
+[B] Zenoh ligado a tcp/192.168.98.12:7447
+[C] Zenoh ligado a tcp/192.168.98.13:7447
+[C] t=  0.00s  lat=40.63800  lon=-8.65470  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65320)
+[B] t=  0.00s  lat=40.63800  lon=-8.65320  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63700, -8.65100)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65180)
+[C] CAM recebido de stationID=10 pos=(40.63700, -8.65100)
+[C] t=  0.10s  lat=40.63800  lon=-8.65467  bearing=90.0°
+[A] Zenoh ligado a tcp/192.168.98.11:7447
+[A] t=  0.00s  lat=40.63800  lon=-8.65180  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65470)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65470)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65180)
+[B] t=  0.10s  lat=40.63800  lon=-8.65317  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65317)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65320)
+[A] CAM recebido de stationID=10 pos=(40.63700, -8.65100)
+[A] t=  0.10s  lat=40.63800  lon=-8.65177  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63701, -8.65099)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65317)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65467)
+[A] t=  0.20s  lat=40.63800  lon=-8.65173  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63702, -8.65097)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65313)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65467)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65177)
+[B] CAM recebido de stationID=10 pos=(40.63701, -8.65099)
+[B] t=  0.20s  lat=40.63800  lon=-8.65313  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63701, -8.65099)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65177)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65463)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65463)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65173)
+[B] CAM recebido de stationID=10 pos=(40.63702, -8.65097)
+[B] t=  0.30s  lat=40.63800  lon=-8.65310  bearing=90.0°
+[C] t=  0.20s  lat=40.63800  lon=-8.65463  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63703, -8.65096)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65460)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65170)
+[A] t=  0.30s  lat=40.63800  lon=-8.65170  bearing=90.0°
+[B] t=  0.40s  lat=40.63800  lon=-8.65307  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65313)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65173)
+[C] CAM recebido de stationID=10 pos=(40.63702, -8.65097)
+[C] t=  0.30s  lat=40.63800  lon=-8.65460  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65170)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65310)
+[C] CAM recebido de stationID=10 pos=(40.63703, -8.65096)
+[C] t=  0.40s  lat=40.63800  lon=-8.65457  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65167)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65307)
+[C] CAM recebido de stationID=10 pos=(40.63704, -8.65094)
+[C] t=  0.50s  lat=40.63800  lon=-8.65454  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65164)
+[C] CAM recebido de stationID=10 pos=(40.63705, -8.65093)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65304)
+[C] t=  0.60s  lat=40.63800  lon=-8.65450  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65300)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65160)
+[C] CAM recebido de stationID=10 pos=(40.63706, -8.65091)
+[C] t=  0.70s  lat=40.63800  lon=-8.65447  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65157)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65297)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65167)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65457)
+[B] CAM recebido de stationID=10 pos=(40.63704, -8.65094)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65460)
+[A] CAM recebido de stationID=10 pos=(40.63703, -8.65096)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65310)
+[A] t=  0.40s  lat=40.63800  lon=-8.65167  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65307)
+[A] CAM recebido de stationID=10 pos=(40.63704, -8.65094)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65457)
+[A] t=  0.50s  lat=40.63800  lon=-8.65164  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65454)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65304)
+[A] CAM recebido de stationID=10 pos=(40.63705, -8.65093)
+[A] t=  0.60s  lat=40.63800  lon=-8.65160  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65300)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65450)
+[A] CAM recebido de stationID=10 pos=(40.63706, -8.65091)
+[A] t=  0.70s  lat=40.63800  lon=-8.65157  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65447)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65297)
+[A] CAM recebido de stationID=10 pos=(40.63707, -8.65090)
+[A] t=  0.80s  lat=40.63800  lon=-8.65154  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63708, -8.65088)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65294)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65444)
+[A] t=  0.90s  lat=40.63800  lon=-8.65150  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65440)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65290)
+[A] CAM recebido de stationID=10 pos=(40.63709, -8.65087)
+[A] t=  1.00s  lat=40.63800  lon=-8.65147  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63710, -8.65085)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65287)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65437)
+[A] t=  1.10s  lat=40.63800  lon=-8.65144  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65284)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65434)
+[A] CAM recebido de stationID=10 pos=(40.63711, -8.65084)
+[A] t=  1.20s  lat=40.63800  lon=-8.65140  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65430)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65280)
+[A] CAM recebido de stationID=10 pos=(40.63712, -8.65082)
+[A] t=  1.30s  lat=40.63800  lon=-8.65137  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65277)
+[A] CAM recebido de stationID=10 pos=(40.63713, -8.65081)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65427)
+[B] t=  0.50s  lat=40.63800  lon=-8.65304  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65164)
+[B] CAM recebido de stationID=10 pos=(40.63705, -8.65093)
+[A] t=  1.40s  lat=40.63800  lon=-8.65134  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63714, -8.65079)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65454)
+[B] t=  0.60s  lat=40.63800  lon=-8.65300  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65274)
+[B] CAM recebido de stationID=10 pos=(40.63706, -8.65091)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65424)
+[A] t=  1.50s  lat=40.63800  lon=-8.65131  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63715, -8.65078)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65271)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65421)
+[A] t=  1.60s  lat=40.63800  lon=-8.65127  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63716, -8.65076)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65267)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65160)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65417)
+[A] t=  1.70s  lat=40.63800  lon=-8.65124  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63707, -8.65090)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65450)
+[B] t=  0.70s  lat=40.63800  lon=-8.65297  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65447)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65157)
+[C] t=  0.80s  lat=40.63800  lon=-8.65444  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65154)
+[B] CAM recebido de stationID=10 pos=(40.63707, -8.65090)
+[B] t=  0.80s  lat=40.63800  lon=-8.65294  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63717, -8.65075)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65444)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65264)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65154)
+[B] CAM recebido de stationID=10 pos=(40.63708, -8.65088)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65414)
+[A] t=  1.80s  lat=40.63800  lon=-8.65121  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63718, -8.65073)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65261)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65411)
+[A] t=  1.90s  lat=40.63800  lon=-8.65117  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63719, -8.65072)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65407)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65257)
+[A] t=  2.00s  lat=40.63800  lon=-8.65114  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63720, -8.65070)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65254)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65404)
+[A] t=  2.10s  lat=40.63800  lon=-8.65111  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63721, -8.65069)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65251)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65401)
+[A] t=  2.20s  lat=40.63800  lon=-8.65108  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63722, -8.65067)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65248)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65398)
+[A] t=  2.30s  lat=40.63800  lon=-8.65104  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65244)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65394)
+[A] CAM recebido de stationID=10 pos=(40.63723, -8.65066)
+[A] t=  2.40s  lat=40.63800  lon=-8.65101  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65391)
+[A] CAM recebido de stationID=10 pos=(40.63724, -8.65064)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65241)
+[A] t=  2.50s  lat=40.63800  lon=-8.65098  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65388)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65238)
+[A] CAM recebido de stationID=10 pos=(40.63725, -8.65063)
+[A] t=  2.60s  lat=40.63800  lon=-8.65094  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65234)
+[A] CAM recebido de stationID=10 pos=(40.63726, -8.65061)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65384)
+[A] t=  2.70s  lat=40.63800  lon=-8.65091  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65381)
+[A] CAM recebido de stationID=10 pos=(40.63727, -8.65060)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65231)
+[A] t=  2.80s  lat=40.63800  lon=-8.65088  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65228)
+[A] CAM recebido de stationID=10 pos=(40.63728, -8.65058)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65378)
+[A] t=  2.90s  lat=40.63800  lon=-8.65085  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63729, -8.65057)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65225)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65375)
+[A] t=  3.00s  lat=40.63800  lon=-8.65081  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65371)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65221)
+[A] CAM recebido de stationID=10 pos=(40.63730, -8.65055)
+[A] t=  3.10s  lat=40.63800  lon=-8.65078  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65294)
+[A] CAM recebido de stationID=10 pos=(40.63731, -8.65054)
+[C] CAM recebido de stationID=10 pos=(40.63708, -8.65088)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65218)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65368)
+[A] t=  3.20s  lat=40.63800  lon=-8.65075  bearing=90.0°
+[B] t=  0.90s  lat=40.63800  lon=-8.65290  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63709, -8.65087)
+[C] t=  0.90s  lat=40.63800  lon=-8.65440  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65440)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65150)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65365)
+[A] CAM recebido de stationID=10 pos=(40.63732, -8.65053)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65215)
+[A] t=  3.30s  lat=40.63800  lon=-8.65071  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65211)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65361)
+[B] t=  1.00s  lat=40.63800  lon=-8.65287  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65437)
+[A] CAM recebido de stationID=10 pos=(40.63733, -8.65051)
+[A] t=  3.40s  lat=40.63800  lon=-8.65068  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63734, -8.65050)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65208)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65358)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65147)
+[B] CAM recebido de stationID=10 pos=(40.63710, -8.65085)
+[B] t=  1.10s  lat=40.63800  lon=-8.65284  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65434)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65144)
+[B] CAM recebido de stationID=10 pos=(40.63711, -8.65084)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65150)
+[B] t=  1.20s  lat=40.63800  lon=-8.65280  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63712, -8.65082)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65140)
+[C] CAM recebido de stationID=10 pos=(40.63709, -8.65087)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65290)
+[C] t=  1.00s  lat=40.63800  lon=-8.65437  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63710, -8.65085)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65287)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65430)
+[B] t=  1.30s  lat=40.63800  lon=-8.65277  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63713, -8.65081)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65137)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65147)
+[C] t=  1.10s  lat=40.63800  lon=-8.65434  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65144)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65284)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65427)
+[B] t=  1.40s  lat=40.63800  lon=-8.65274  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65424)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65134)
+[B] CAM recebido de stationID=10 pos=(40.63714, -8.65079)
+[C] CAM recebido de stationID=10 pos=(40.63711, -8.65084)
+[C] t=  1.20s  lat=40.63800  lon=-8.65430  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65280)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65140)
+[C] CAM recebido de stationID=10 pos=(40.63712, -8.65082)
+[B] t=  1.50s  lat=40.63800  lon=-8.65271  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63715, -8.65078)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65421)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65131)
+[B] t=  1.60s  lat=40.63800  lon=-8.65267  bearing=90.0°
+[C] t=  1.30s  lat=40.63800  lon=-8.65427  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65277)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65137)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65127)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65417)
+[C] CAM recebido de stationID=10 pos=(40.63713, -8.65081)
+[B] CAM recebido de stationID=10 pos=(40.63716, -8.65076)
+[C] t=  1.40s  lat=40.63800  lon=-8.65424  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63714, -8.65079)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65274)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65134)
+[C] t=  1.50s  lat=40.63800  lon=-8.65421  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65131)
+[C] CAM recebido de stationID=10 pos=(40.63715, -8.65078)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65271)
+[C] t=  1.60s  lat=40.63800  lon=-8.65417  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63716, -8.65076)
+[B] t=  1.70s  lat=40.63800  lon=-8.65264  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63717, -8.65075)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65414)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65124)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65267)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65127)
+[C] t=  1.70s  lat=40.63800  lon=-8.65414  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63717, -8.65075)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65124)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65264)
+[C] t=  1.80s  lat=40.63800  lon=-8.65411  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65261)
+[B] t=  1.80s  lat=40.63800  lon=-8.65261  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63718, -8.65073)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65411)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65121)
+[C] CAM recebido de stationID=10 pos=(40.63718, -8.65073)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65121)
+[C] t=  1.90s  lat=40.63800  lon=-8.65407  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65117)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65257)
+[C] CAM recebido de stationID=10 pos=(40.63719, -8.65072)
+[C] t=  2.00s  lat=40.63800  lon=-8.65404  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65254)
+[C] CAM recebido de stationID=10 pos=(40.63720, -8.65070)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65114)
+[C] t=  2.10s  lat=40.63800  lon=-8.65401  bearing=90.0°
+[B] t=  1.90s  lat=40.63800  lon=-8.65257  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63719, -8.65072)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65407)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65117)
+[B] t=  2.00s  lat=40.63800  lon=-8.65254  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65404)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65251)
+[C] CAM recebido de stationID=10 pos=(40.63721, -8.65069)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65111)
+[C] t=  2.20s  lat=40.63800  lon=-8.65398  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65248)
+[C] CAM recebido de stationID=10 pos=(40.63722, -8.65067)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65108)
+[C] t=  2.30s  lat=40.63800  lon=-8.65394  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65104)
+[C] CAM recebido de stationID=10 pos=(40.63723, -8.65066)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65244)
+[C] t=  2.40s  lat=40.63800  lon=-8.65391  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65241)
+[C] CAM recebido de stationID=10 pos=(40.63724, -8.65064)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65101)
+[C] t=  2.50s  lat=40.63800  lon=-8.65388  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63725, -8.65063)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65098)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65238)
+[C] t=  2.60s  lat=40.63800  lon=-8.65384  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63726, -8.65061)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65094)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65234)
+[C] t=  2.70s  lat=40.63800  lon=-8.65381  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65231)
+[C] CAM recebido de stationID=10 pos=(40.63727, -8.65060)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65114)
+[B] CAM recebido de stationID=10 pos=(40.63720, -8.65070)
+[B] t=  2.10s  lat=40.63800  lon=-8.65251  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65111)
+[B] CAM recebido de stationID=10 pos=(40.63721, -8.65069)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65401)
+[B] t=  2.20s  lat=40.63800  lon=-8.65248  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63722, -8.65067)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65398)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65091)
+[C] t=  2.80s  lat=40.63800  lon=-8.65378  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65228)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65088)
+[C] CAM recebido de stationID=10 pos=(40.63728, -8.65058)
+[C] t=  2.90s  lat=40.63800  lon=-8.65375  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65225)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65108)
+[B] t=  2.30s  lat=40.63800  lon=-8.65244  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65394)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65104)
+[B] CAM recebido de stationID=10 pos=(40.63723, -8.65066)
+[B] t=  2.40s  lat=40.63800  lon=-8.65241  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65391)
+[B] CAM recebido de stationID=10 pos=(40.63724, -8.65064)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65101)
+[B] t=  2.50s  lat=40.63800  lon=-8.65238  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65085)
+[C] CAM recebido de stationID=10 pos=(40.63729, -8.65057)
+[C] t=  3.00s  lat=40.63800  lon=-8.65371  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63730, -8.65055)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65221)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65081)
+[C] t=  3.10s  lat=40.63800  lon=-8.65368  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63731, -8.65054)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65078)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65218)
+[C] t=  3.20s  lat=40.63800  lon=-8.65365  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65215)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65075)
+[C] CAM recebido de stationID=10 pos=(40.63732, -8.65053)
+[C] t=  3.30s  lat=40.63800  lon=-8.65361  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65211)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65071)
+[C] CAM recebido de stationID=10 pos=(40.63733, -8.65051)
+[C] t=  3.40s  lat=40.63800  lon=-8.65358  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63734, -8.65050)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65208)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65068)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65388)
+[B] CAM recebido de stationID=10 pos=(40.63725, -8.65063)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65098)
+[B] t=  2.60s  lat=40.63800  lon=-8.65234  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63726, -8.65061)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65094)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65384)
+[B] t=  2.70s  lat=40.63800  lon=-8.65231  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65091)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65381)
+[B] CAM recebido de stationID=10 pos=(40.63727, -8.65060)
+[B] t=  2.80s  lat=40.63800  lon=-8.65228  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65088)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65378)
+[B] CAM recebido de stationID=10 pos=(40.63728, -8.65058)
+[B] t=  2.90s  lat=40.63800  lon=-8.65225  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65375)
+[B] CAM recebido de stationID=10 pos=(40.63729, -8.65057)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65085)
+[B] t=  3.00s  lat=40.63800  lon=-8.65221  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65371)
+[B] CAM recebido de stationID=10 pos=(40.63730, -8.65055)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65081)
+[B] t=  3.10s  lat=40.63800  lon=-8.65218  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63731, -8.65054)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65078)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65368)
+[B] t=  3.20s  lat=40.63800  lon=-8.65215  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63732, -8.65053)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65075)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65365)
+[B] t=  3.30s  lat=40.63800  lon=-8.65211  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65071)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65361)
+[B] CAM recebido de stationID=10 pos=(40.63733, -8.65051)
+[B] t=  3.40s  lat=40.63800  lon=-8.65208  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63734, -8.65050)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65358)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65068)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65208)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65068)
+[MC] t=  3.50s  lat=40.63735  lon=-8.65048  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65205)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65355)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65065)
+[MC] t=  3.60s  lat=40.63736  lon=-8.65047  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65201)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65351)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65061)
+[MC] t=  3.70s  lat=40.63737  lon=-8.65045  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65198)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65058)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65348)
+[MC] t=  3.80s  lat=40.63738  lon=-8.65044  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65055)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65195)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65345)
+[MC] t=  3.90s  lat=40.63739  lon=-8.65042  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65342)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65192)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65052)
+[MC] t=  4.00s  lat=40.63740  lon=-8.65041  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65338)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65048)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65188)
+[MC] t=  4.10s  lat=40.63741  lon=-8.65039  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65335)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65045)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65185)
+[MC] t=  4.20s  lat=40.63742  lon=-8.65038  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65042)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65182)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65332)
+[MC] t=  4.30s  lat=40.63743  lon=-8.65036  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65178)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65328)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65038)
+[MC] t=  4.40s  lat=40.63744  lon=-8.65035  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65035)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65325)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65175)
+[MC] t=  4.50s  lat=40.63745  lon=-8.65033  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65322)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65172)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65032)
+[MC] t=  4.60s  lat=40.63746  lon=-8.65032  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65319)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65029)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65169)
+[MC] t=  4.70s  lat=40.63746  lon=-8.65030  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65165)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65315)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65025)
+[MC] t=  4.80s  lat=40.63747  lon=-8.65029  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65312)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65022)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65162)
+[MC] t=  4.90s  lat=40.63748  lon=-8.65027  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65019)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65309)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65159)
+[MC] t=  5.00s  lat=40.63749  lon=-8.65026  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65305)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65155)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65015)
+[MC] t=  5.10s  lat=40.63750  lon=-8.65024  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65152)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65012)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65302)
+[MC] t=  5.20s  lat=40.63751  lon=-8.65023  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65149)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65009)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65299)
+[MC] t=  5.30s  lat=40.63752  lon=-8.65021  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65146)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65006)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65296)
+[MC] t=  5.40s  lat=40.63753  lon=-8.65020  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65142)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.65002)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65292)
+[MC] t=  5.50s  lat=40.63754  lon=-8.65018  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65139)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64999)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65289)
+[MC] t=  5.60s  lat=40.63755  lon=-8.65017  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65286)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65136)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64996)
+[MC] t=  5.70s  lat=40.63756  lon=-8.65015  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64992)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65132)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65282)
+[MC] t=  5.80s  lat=40.63757  lon=-8.65014  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65129)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65279)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64989)
+[MC] t=  5.90s  lat=40.63758  lon=-8.65012  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65126)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64986)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65276)
+[MC] t=  6.00s  lat=40.63759  lon=-8.65011  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65122)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65272)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64982)
+[MC] t=  6.10s  lat=40.63760  lon=-8.65009  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65269)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65119)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64979)
+[MC] t=  6.20s  lat=40.63761  lon=-8.65008  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65116)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65266)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64976)
+[MC] t=  6.30s  lat=40.63762  lon=-8.65007  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65263)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65113)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64973)
+[MC] t=  6.40s  lat=40.63763  lon=-8.65005  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65109)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65259)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64969)
+[MC] t=  6.50s  lat=40.63764  lon=-8.65004  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64966)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65106)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65256)
+[MC] t=  6.60s  lat=40.63765  lon=-8.65002  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65103)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64963)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65253)
+[MC] t=  6.70s  lat=40.63766  lon=-8.65001  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65249)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64959)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65099)
+[MC] t=  6.80s  lat=40.63767  lon=-8.64999  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65246)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65096)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64956)
+[A] t=  3.50s  lat=40.63800  lon=-8.65065  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63735, -8.65048)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65205)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65355)
+[A] t=  3.60s  lat=40.63800  lon=-8.65061  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65201)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65351)
+[A] CAM recebido de stationID=10 pos=(40.63736, -8.65047)
+[A] t=  3.70s  lat=40.63800  lon=-8.65058  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63737, -8.65045)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65348)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65198)
+[B] t=  3.50s  lat=40.63800  lon=-8.65205  bearing=90.0°
+[A] t=  3.80s  lat=40.63800  lon=-8.65055  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63738, -8.65044)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65195)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65345)
+[A] t=  3.90s  lat=40.63800  lon=-8.65052  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65342)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65192)
+[A] CAM recebido de stationID=10 pos=(40.63739, -8.65042)
+[A] t=  4.00s  lat=40.63800  lon=-8.65048  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65188)
+[A] CAM recebido de stationID=10 pos=(40.63740, -8.65041)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65338)
+[A] t=  4.10s  lat=40.63800  lon=-8.65045  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65185)
+[A] CAM recebido de stationID=10 pos=(40.63741, -8.65039)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65335)
+[A] t=  4.20s  lat=40.63800  lon=-8.65042  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63742, -8.65038)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65182)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65332)
+[A] t=  4.30s  lat=40.63800  lon=-8.65038  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63743, -8.65036)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65178)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65328)
+[A] t=  4.40s  lat=40.63800  lon=-8.65035  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65175)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65325)
+[A] CAM recebido de stationID=10 pos=(40.63744, -8.65035)
+[A] t=  4.50s  lat=40.63800  lon=-8.65032  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63745, -8.65033)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65322)
+[C] t=  3.50s  lat=40.63800  lon=-8.65355  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65205)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65172)
+[C] CAM recebido de stationID=10 pos=(40.63735, -8.65048)
+[A] t=  4.60s  lat=40.63800  lon=-8.65029  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65169)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65319)
+[A] CAM recebido de stationID=10 pos=(40.63746, -8.65032)
+[A] t=  4.70s  lat=40.63800  lon=-8.65025  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65165)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65315)
+[A] CAM recebido de stationID=10 pos=(40.63746, -8.65030)
+[A] t=  4.80s  lat=40.63800  lon=-8.65022  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65312)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65162)
+[B] CAM recebido de stationID=10 pos=(40.63735, -8.65048)
+[A] CAM recebido de stationID=10 pos=(40.63747, -8.65029)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65355)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65065)
+[A] t=  4.90s  lat=40.63800  lon=-8.65019  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65159)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65309)
+[B] t=  3.60s  lat=40.63800  lon=-8.65201  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63736, -8.65047)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65351)
+[A] CAM recebido de stationID=10 pos=(40.63748, -8.65027)
+[A] t=  5.00s  lat=40.63800  lon=-8.65015  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65155)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65061)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65305)
+[A] CAM recebido de stationID=10 pos=(40.63749, -8.65026)
+[A] t=  5.10s  lat=40.63800  lon=-8.65012  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65152)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65302)
+[A] CAM recebido de stationID=10 pos=(40.63750, -8.65024)
+[A] t=  5.20s  lat=40.63800  lon=-8.65009  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65149)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65299)
+[A] CAM recebido de stationID=10 pos=(40.63751, -8.65023)
+[A] t=  5.30s  lat=40.63800  lon=-8.65006  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65146)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65296)
+[A] CAM recebido de stationID=10 pos=(40.63752, -8.65021)
+[A] t=  5.40s  lat=40.63800  lon=-8.65002  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65142)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65292)
+[A] CAM recebido de stationID=10 pos=(40.63753, -8.65020)
+[A] t=  5.50s  lat=40.63800  lon=-8.64999  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65139)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65289)
+[A] CAM recebido de stationID=10 pos=(40.63754, -8.65018)
+[A] t=  5.60s  lat=40.63800  lon=-8.64996  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65286)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65136)
+[A] CAM recebido de stationID=10 pos=(40.63755, -8.65017)
+[A] t=  5.70s  lat=40.63800  lon=-8.64992  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65282)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65132)
+[A] CAM recebido de stationID=10 pos=(40.63756, -8.65015)
+[A] t=  5.80s  lat=40.63800  lon=-8.64989  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65129)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65279)
+[A] CAM recebido de stationID=10 pos=(40.63757, -8.65014)
+[A] t=  5.90s  lat=40.63800  lon=-8.64986  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65126)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65276)
+[A] CAM recebido de stationID=10 pos=(40.63758, -8.65012)
+[A] t=  6.00s  lat=40.63800  lon=-8.64982  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65272)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65122)
+[A] CAM recebido de stationID=10 pos=(40.63759, -8.65011)
+[A] t=  6.10s  lat=40.63800  lon=-8.64979  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65269)
+[A] CAM recebido de stationID=10 pos=(40.63760, -8.65009)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65119)
+[A] t=  6.20s  lat=40.63800  lon=-8.64976  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65116)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65266)
+[A] CAM recebido de stationID=10 pos=(40.63761, -8.65008)
+[A] t=  6.30s  lat=40.63800  lon=-8.64973  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65263)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65113)
+[A] CAM recebido de stationID=10 pos=(40.63762, -8.65007)
+[A] t=  6.40s  lat=40.63800  lon=-8.64969  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65259)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65109)
+[A] CAM recebido de stationID=10 pos=(40.63763, -8.65005)
+[A] t=  6.50s  lat=40.63800  lon=-8.64966  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65106)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65256)
+[A] CAM recebido de stationID=10 pos=(40.63764, -8.65004)
+[A] t=  6.60s  lat=40.63800  lon=-8.64963  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65103)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65253)
+[A] CAM recebido de stationID=10 pos=(40.63765, -8.65002)
+[A] t=  6.70s  lat=40.63800  lon=-8.64959  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65099)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65249)
+[A] CAM recebido de stationID=10 pos=(40.63766, -8.65001)
+[A] t=  6.80s  lat=40.63800  lon=-8.64956  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65096)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65246)
+[B] t=  3.70s  lat=40.63800  lon=-8.65198  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65058)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65348)
+[A] CAM recebido de stationID=10 pos=(40.63767, -8.64999)
+[B] CAM recebido de stationID=10 pos=(40.63737, -8.65045)
+[B] t=  3.80s  lat=40.63800  lon=-8.65195  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65055)
+[B] CAM recebido de stationID=10 pos=(40.63738, -8.65044)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65345)
+[B] t=  3.90s  lat=40.63800  lon=-8.65192  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65342)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65052)
+[B] CAM recebido de stationID=10 pos=(40.63739, -8.65042)
+[B] t=  4.00s  lat=40.63800  lon=-8.65188  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65048)
+[B] CAM recebido de stationID=10 pos=(40.63740, -8.65041)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65338)
+[B] t=  4.10s  lat=40.63800  lon=-8.65185  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63741, -8.65039)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65335)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65045)
+[B] t=  4.20s  lat=40.63800  lon=-8.65182  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65332)
+[B] CAM recebido de stationID=10 pos=(40.63742, -8.65038)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65042)
+[B] t=  4.30s  lat=40.63800  lon=-8.65178  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65328)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65038)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65065)
+[A] t=  6.90s  lat=40.63800  lon=-8.64953  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65093)
+[C] t=  3.60s  lat=40.63800  lon=-8.65351  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65201)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65061)
+[C] CAM recebido de stationID=10 pos=(40.63736, -8.65047)
+[B] CAM recebido de stationID=10 pos=(40.63743, -8.65036)
+[C] t=  3.70s  lat=40.63800  lon=-8.65348  bearing=90.0°
+[B] t=  4.40s  lat=40.63800  lon=-8.65175  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65035)
+[B] CAM recebido de stationID=10 pos=(40.63744, -8.65035)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65325)
+[B] t=  4.50s  lat=40.63800  lon=-8.65172  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63745, -8.65033)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65322)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65032)
+[B] t=  4.60s  lat=40.63800  lon=-8.65169  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65029)
+[B] CAM recebido de stationID=10 pos=(40.63746, -8.65032)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65319)
+[B] t=  4.70s  lat=40.63800  lon=-8.65165  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65315)
+[B] CAM recebido de stationID=10 pos=(40.63746, -8.65030)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65025)
+[B] t=  4.80s  lat=40.63800  lon=-8.65162  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65022)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65243)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65312)
+[B] CAM recebido de stationID=10 pos=(40.63747, -8.65029)
+[A] CAM recebido de stationID=10 pos=(40.63768, -8.64998)
+[A] t=  7.00s  lat=40.63800  lon=-8.64950  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65198)
+[C] CAM recebido de stationID=10 pos=(40.63737, -8.65045)
+[B] t=  4.90s  lat=40.63800  lon=-8.65159  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65058)
+[C] t=  3.80s  lat=40.63800  lon=-8.65345  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65055)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65195)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65309)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65019)
+[B] CAM recebido de stationID=10 pos=(40.63748, -8.65027)
+[B] t=  5.00s  lat=40.63800  lon=-8.65155  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65305)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65015)
+[B] CAM recebido de stationID=10 pos=(40.63749, -8.65026)
+[B] t=  5.10s  lat=40.63800  lon=-8.65152  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65012)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65302)
+[B] CAM recebido de stationID=10 pos=(40.63750, -8.65024)
+[B] t=  5.20s  lat=40.63800  lon=-8.65149  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65009)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65299)
+[B] CAM recebido de stationID=10 pos=(40.63751, -8.65023)
+[B] t=  5.30s  lat=40.63800  lon=-8.65146  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65006)
+[B] CAM recebido de stationID=10 pos=(40.63752, -8.65021)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65296)
+[B] t=  5.40s  lat=40.63800  lon=-8.65142  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.65002)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65292)
+[B] CAM recebido de stationID=10 pos=(40.63753, -8.65020)
+[B] t=  5.50s  lat=40.63800  lon=-8.65139  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64999)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65289)
+[B] CAM recebido de stationID=10 pos=(40.63754, -8.65018)
+[B] t=  5.60s  lat=40.63800  lon=-8.65136  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64996)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65286)
+[B] CAM recebido de stationID=10 pos=(40.63755, -8.65017)
+[B] t=  5.70s  lat=40.63800  lon=-8.65132  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64992)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65282)
+[B] CAM recebido de stationID=10 pos=(40.63756, -8.65015)
+[C] CAM recebido de stationID=10 pos=(40.63738, -8.65044)
+[C] t=  3.90s  lat=40.63800  lon=-8.65342  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65052)
+[C] CAM recebido de stationID=10 pos=(40.63739, -8.65042)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65192)
+[C] t=  4.00s  lat=40.63800  lon=-8.65338  bearing=90.0°
+[B] t=  5.80s  lat=40.63800  lon=-8.65129  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65279)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64989)
+[B] CAM recebido de stationID=10 pos=(40.63757, -8.65014)
+[B] t=  5.90s  lat=40.63800  lon=-8.65126  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65276)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64986)
+[B] CAM recebido de stationID=10 pos=(40.63758, -8.65012)
+[B] t=  6.00s  lat=40.63800  lon=-8.65122  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64982)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65272)
+[B] CAM recebido de stationID=10 pos=(40.63759, -8.65011)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65188)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65048)
+[C] CAM recebido de stationID=10 pos=(40.63740, -8.65041)
+[C] t=  4.10s  lat=40.63800  lon=-8.65335  bearing=90.0°
+[B] t=  6.10s  lat=40.63800  lon=-8.65119  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64979)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65269)
+[B] CAM recebido de stationID=10 pos=(40.63760, -8.65009)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65185)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65045)
+[C] CAM recebido de stationID=10 pos=(40.63741, -8.65039)
+[C] t=  4.20s  lat=40.63800  lon=-8.65332  bearing=90.0°
+[B] t=  6.20s  lat=40.63800  lon=-8.65116  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64976)
+[B] CAM recebido de stationID=10 pos=(40.63761, -8.65008)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65266)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65182)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65042)
+[C] CAM recebido de stationID=10 pos=(40.63742, -8.65038)
+[C] t=  4.30s  lat=40.63800  lon=-8.65328  bearing=90.0°
+[B] t=  6.30s  lat=40.63800  lon=-8.65113  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65263)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64973)
+[B] CAM recebido de stationID=10 pos=(40.63762, -8.65007)
+[C] CAM recebido de stationID=10 pos=(40.63743, -8.65036)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65038)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65178)
+[C] t=  4.40s  lat=40.63800  lon=-8.65325  bearing=90.0°
+[B] t=  6.40s  lat=40.63800  lon=-8.65109  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64969)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65259)
+[B] CAM recebido de stationID=10 pos=(40.63763, -8.65005)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65035)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65175)
+[C] CAM recebido de stationID=10 pos=(40.63744, -8.65035)
+[C] t=  4.50s  lat=40.63800  lon=-8.65322  bearing=90.0°
+[B] t=  6.50s  lat=40.63800  lon=-8.65106  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65256)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64966)
+[B] CAM recebido de stationID=10 pos=(40.63764, -8.65004)
+[C] CAM recebido de stationID=10 pos=(40.63745, -8.65033)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65032)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65172)
+[C] t=  4.60s  lat=40.63800  lon=-8.65319  bearing=90.0°
+[B] t=  6.60s  lat=40.63800  lon=-8.65103  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64963)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65253)
+[B] CAM recebido de stationID=10 pos=(40.63765, -8.65002)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65029)
+[C] CAM recebido de stationID=10 pos=(40.63746, -8.65032)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65169)
+[C] t=  4.70s  lat=40.63800  lon=-8.65315  bearing=90.0°
+[B] t=  6.70s  lat=40.63800  lon=-8.65099  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65249)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64959)
+[B] CAM recebido de stationID=10 pos=(40.63766, -8.65001)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65025)
+[B] t=  6.80s  lat=40.63800  lon=-8.65096  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64956)
+[C] CAM recebido de stationID=10 pos=(40.63746, -8.65030)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65246)
+[B] CAM recebido de stationID=10 pos=(40.63767, -8.64999)
+[B] t=  6.90s  lat=40.63800  lon=-8.65093  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65165)
+[C] t=  4.80s  lat=40.63800  lon=-8.65312  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65022)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65162)
+[C] CAM recebido de stationID=10 pos=(40.63747, -8.65029)
+[C] t=  4.90s  lat=40.63800  lon=-8.65309  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65159)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65019)
+[C] CAM recebido de stationID=10 pos=(40.63748, -8.65027)
+[C] t=  5.00s  lat=40.63800  lon=-8.65305  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65155)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65015)
+[C] CAM recebido de stationID=10 pos=(40.63749, -8.65026)
+[C] t=  5.10s  lat=40.63800  lon=-8.65302  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65152)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65012)
+[C] CAM recebido de stationID=10 pos=(40.63750, -8.65024)
+[C] t=  5.20s  lat=40.63800  lon=-8.65299  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65149)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65009)
+[C] CAM recebido de stationID=10 pos=(40.63751, -8.65023)
+[C] t=  5.30s  lat=40.63800  lon=-8.65296  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65006)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65146)
+[C] CAM recebido de stationID=10 pos=(40.63752, -8.65021)
+[C] t=  5.40s  lat=40.63800  lon=-8.65292  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.65002)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65142)
+[C] CAM recebido de stationID=10 pos=(40.63753, -8.65020)
+[C] t=  5.50s  lat=40.63800  lon=-8.65289  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65139)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64999)
+[C] CAM recebido de stationID=10 pos=(40.63754, -8.65018)
+[C] t=  5.60s  lat=40.63800  lon=-8.65286  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64996)
+[C] CAM recebido de stationID=10 pos=(40.63755, -8.65017)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65136)
+[C] t=  5.70s  lat=40.63800  lon=-8.65282  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64992)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65132)
+[C] CAM recebido de stationID=10 pos=(40.63756, -8.65015)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64953)
+[C] t=  5.80s  lat=40.63800  lon=-8.65279  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64989)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65129)
+[C] CAM recebido de stationID=10 pos=(40.63757, -8.65014)
+[C] t=  5.90s  lat=40.63800  lon=-8.65276  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65126)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64986)
+[C] CAM recebido de stationID=10 pos=(40.63758, -8.65012)
+[C] t=  6.00s  lat=40.63800  lon=-8.65272  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64982)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65122)
+[C] CAM recebido de stationID=10 pos=(40.63759, -8.65011)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65243)
+[B] CAM recebido de stationID=10 pos=(40.63768, -8.64998)
+[B] t=  7.00s  lat=40.63800  lon=-8.65090  bearing=90.0°
+[C] t=  6.10s  lat=40.63800  lon=-8.65269  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65119)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64979)
+[C] CAM recebido de stationID=10 pos=(40.63760, -8.65009)
+[C] t=  6.20s  lat=40.63800  lon=-8.65266  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64976)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65116)
+[C] CAM recebido de stationID=10 pos=(40.63761, -8.65008)
+[C] t=  6.30s  lat=40.63800  lon=-8.65263  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64973)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65113)
+[C] CAM recebido de stationID=10 pos=(40.63762, -8.65007)
+[C] t=  6.40s  lat=40.63800  lon=-8.65259  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65109)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64969)
+[C] CAM recebido de stationID=10 pos=(40.63763, -8.65005)
+[C] t=  6.50s  lat=40.63800  lon=-8.65256  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65106)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64966)
+[C] CAM recebido de stationID=10 pos=(40.63764, -8.65004)
+[C] t=  6.60s  lat=40.63800  lon=-8.65253  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65103)
+[C] CAM recebido de stationID=10 pos=(40.63765, -8.65002)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64963)
+[C] t=  6.70s  lat=40.63800  lon=-8.65249  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64959)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65099)
+[C] CAM recebido de stationID=10 pos=(40.63766, -8.65001)
+[C] t=  6.80s  lat=40.63800  lon=-8.65246  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65096)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64956)
+[C] CAM recebido de stationID=10 pos=(40.63767, -8.64999)
+[C] t=  6.90s  lat=40.63800  lon=-8.65243  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65093)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64953)
+[C] CAM recebido de stationID=10 pos=(40.63768, -8.64998)
+[C] t=  7.00s  lat=40.63800  lon=-8.65240  bearing=90.0°
+[MC] t=  6.90s  lat=40.63768  lon=-8.64998  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65093)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64953)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65243)
+[MC] t=  7.00s  lat=40.63769  lon=-8.64996  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65090)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64950)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65240)
+[MC] t=  7.10s  lat=40.63770  lon=-8.64995  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65236)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64946)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65086)
+[MC] t=  7.20s  lat=40.63771  lon=-8.64993  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65233)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64943)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65083)
+[MC] t=  7.30s  lat=40.63772  lon=-8.64992  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65080)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64940)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65230)
+[MC] t=  7.40s  lat=40.63773  lon=-8.64990  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64936)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65226)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65076)
+[MC] t=  7.50s  lat=40.63774  lon=-8.64989  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65223)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64933)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65073)
+[MC] t=  7.60s  lat=40.63775  lon=-8.64987  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65070)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64930)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65220)
+[MC] t=  7.70s  lat=40.63776  lon=-8.64986  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64927)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65067)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65217)
+[MC] t=  7.80s  lat=40.63777  lon=-8.64984  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64923)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65213)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65063)
+[MC] t=  7.90s  lat=40.63778  lon=-8.64983  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65210)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64920)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65060)
+[MC] t=  8.00s  lat=40.63779  lon=-8.64981  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65057)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65207)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64917)
+[MC] t=  8.10s  lat=40.63780  lon=-8.64980  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65203)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65053)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64913)
+[MC] t=  8.20s  lat=40.63781  lon=-8.64978  bearing=48.7°
+[MC] detetei conflito com veículo stationID=12 (ETA=1.9s)
+[MC] MERGE_REQUEST enviado manoeuvre_id=1 conflitos=[12]
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64910)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65200)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65050)
+[MC] t=  8.30s  lat=40.63782  lon=-8.64977  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65047)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65197)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64907)
+[MC] t=  8.40s  lat=40.63783  lon=-8.64975  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65193)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64903)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65043)
+[MC] t=  8.50s  lat=40.63784  lon=-8.64974  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65040)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65190)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64900)
+[MC] t=  8.60s  lat=40.63785  lon=-8.64972  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65037)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64897)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65187)
+[MC] t=  8.70s  lat=40.63786  lon=-8.64971  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64894)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65034)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65184)
+[MC] t=  8.80s  lat=40.63787  lon=-8.64969  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65180)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64890)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65030)
+[MC] t=  8.90s  lat=40.63788  lon=-8.64968  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65177)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64887)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65027)
+[MC] t=  9.00s  lat=40.63789  lon=-8.64966  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64884)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65174)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65024)
+[MC] t=  9.10s  lat=40.63790  lon=-8.64965  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65170)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65020)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64880)
+[MC] t=  9.20s  lat=40.63791  lon=-8.64963  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65167)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65017)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64877)
+[MC] t=  9.30s  lat=40.63792  lon=-8.64962  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64874)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65164)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65014)
+[MC] t=  9.40s  lat=40.63793  lon=-8.64961  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65161)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65011)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64871)
+[MC] t=  9.50s  lat=40.63794  lon=-8.64959  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64867)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65007)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65157)
+[MC] t=  9.60s  lat=40.63795  lon=-8.64958  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65004)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65154)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64864)
+[MC] t=  9.70s  lat=40.63796  lon=-8.64956  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.65001)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65151)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64861)
+[MC] t=  9.80s  lat=40.63797  lon=-8.64955  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65147)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64857)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.64997)
+[MC] t=  9.90s  lat=40.63798  lon=-8.64953  bearing=48.7°
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65144)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.64994)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64854)
+[MC] t= 10.00s  lat=40.63799  lon=-8.64952  bearing=48.7°
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64851)
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.64991)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65141)
+[MC] t= 10.10s  lat=40.63800  lon=-8.64950  bearing=48.7°
+[MC] CAM recebido de stationID=12 pos=(40.63800, -8.64987)
+[MC] CAM recebido de stationID=13 pos=(40.63800, -8.65137)
+[MC] CAM recebido de stationID=11 pos=(40.63800, -8.64847)
+[MC] t= 10.20s  lat=40.63800  lon=-8.64950  [CHEGOU]
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65090)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65240)
+[A] CAM recebido de stationID=10 pos=(40.63769, -8.64996)
+[A] t=  7.10s  lat=40.63800  lon=-8.64946  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65236)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65086)
+[A] CAM recebido de stationID=10 pos=(40.63770, -8.64995)
+[A] t=  7.20s  lat=40.63800  lon=-8.64943  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65233)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64950)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65083)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65240)
+[B] CAM recebido de stationID=10 pos=(40.63769, -8.64996)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65090)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64950)
+[C] CAM recebido de stationID=10 pos=(40.63769, -8.64996)
+[B] t=  7.10s  lat=40.63800  lon=-8.65086  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64946)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65236)
+[A] CAM recebido de stationID=10 pos=(40.63771, -8.64993)
+[C] t=  7.10s  lat=40.63800  lon=-8.65236  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65086)
+[C] CAM recebido de stationID=10 pos=(40.63770, -8.64995)
+[B] CAM recebido de stationID=10 pos=(40.63770, -8.64995)
+[B] t=  7.20s  lat=40.63800  lon=-8.65083  bearing=90.0°
+[A] t=  7.30s  lat=40.63800  lon=-8.64940  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65230)
+[A] CAM recebido de stationID=10 pos=(40.63772, -8.64992)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65080)
+[A] t=  7.40s  lat=40.63800  lon=-8.64936  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65076)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65226)
+[A] CAM recebido de stationID=10 pos=(40.63773, -8.64990)
+[A] t=  7.50s  lat=40.63800  lon=-8.64933  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65223)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65233)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64943)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65073)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64946)
+[C] t=  7.20s  lat=40.63800  lon=-8.65233  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63771, -8.64993)
+[A] CAM recebido de stationID=10 pos=(40.63774, -8.64989)
+[A] t=  7.60s  lat=40.63800  lon=-8.64930  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65070)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64943)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65220)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65083)
+[B] t=  7.30s  lat=40.63800  lon=-8.65080  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65230)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64940)
+[C] CAM recebido de stationID=10 pos=(40.63771, -8.64993)
+[C] t=  7.30s  lat=40.63800  lon=-8.65230  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65080)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64940)
+[C] CAM recebido de stationID=10 pos=(40.63772, -8.64992)
+[C] t=  7.40s  lat=40.63800  lon=-8.65226  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65076)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64936)
+[B] CAM recebido de stationID=10 pos=(40.63772, -8.64992)
+[B] t=  7.40s  lat=40.63800  lon=-8.65076  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63773, -8.64990)
+[C] t=  7.50s  lat=40.63800  lon=-8.65223  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64933)
+[A] CAM recebido de stationID=10 pos=(40.63775, -8.64987)
+[A] t=  7.70s  lat=40.63800  lon=-8.64927  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65226)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65067)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65073)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64936)
+[B] CAM recebido de stationID=10 pos=(40.63773, -8.64990)
+[B] t=  7.50s  lat=40.63800  lon=-8.65073  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63774, -8.64989)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64933)
+[C] t=  7.60s  lat=40.63800  lon=-8.65220  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65223)
+[B] CAM recebido de stationID=10 pos=(40.63774, -8.64989)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65217)
+[A] CAM recebido de stationID=10 pos=(40.63776, -8.64986)
+[A] t=  7.80s  lat=40.63800  lon=-8.64923  bearing=90.0°
+[B] t=  7.60s  lat=40.63800  lon=-8.65070  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65063)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65213)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65070)
+[A] CAM recebido de stationID=10 pos=(40.63777, -8.64984)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64930)
+[A] t=  7.90s  lat=40.63800  lon=-8.64920  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65060)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65210)
+[C] CAM recebido de stationID=10 pos=(40.63775, -8.64987)
+[C] t=  7.70s  lat=40.63800  lon=-8.65217  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63778, -8.64983)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65220)
+[A] t=  8.00s  lat=40.63800  lon=-8.64917  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65057)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65067)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64927)
+[C] CAM recebido de stationID=10 pos=(40.63776, -8.64986)
+[C] t=  7.80s  lat=40.63800  lon=-8.65213  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64930)
+[B] CAM recebido de stationID=10 pos=(40.63775, -8.64987)
+[B] t=  7.70s  lat=40.63800  lon=-8.65067  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65207)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64927)
+[A] CAM recebido de stationID=10 pos=(40.63779, -8.64981)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65217)
+[B] CAM recebido de stationID=10 pos=(40.63776, -8.64986)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65063)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64923)
+[C] CAM recebido de stationID=10 pos=(40.63777, -8.64984)
+[A] t=  8.10s  lat=40.63800  lon=-8.64913  bearing=90.0°
+[C] t=  7.90s  lat=40.63800  lon=-8.65210  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65053)
+[B] t=  7.80s  lat=40.63800  lon=-8.65063  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65060)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64923)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65203)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64920)
+[A] CAM recebido de stationID=10 pos=(40.63780, -8.64980)
+[C] CAM recebido de stationID=10 pos=(40.63778, -8.64983)
+[C] t=  8.00s  lat=40.63800  lon=-8.65207  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65213)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65057)
+[B] CAM recebido de stationID=10 pos=(40.63777, -8.64984)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64917)
+[C] CAM recebido de stationID=10 pos=(40.63779, -8.64981)
+[B] t=  7.90s  lat=40.63800  lon=-8.65060  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64920)
+[B] CAM recebido de stationID=10 pos=(40.63778, -8.64983)
+[A] t=  8.20s  lat=40.63800  lon=-8.64910  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65200)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65050)
+[A] CAM recebido de stationID=10 pos=(40.63781, -8.64978)
+[A] MCM recebido de stationID=10 mcmType=request
+[A] t=  8.30s  lat=40.63800  lon=-8.64907  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65197)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65047)
+[A] CAM recebido de stationID=10 pos=(40.63782, -8.64977)
+[A] t=  8.40s  lat=40.63800  lon=-8.64903  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65043)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65193)
+[A] CAM recebido de stationID=10 pos=(40.63783, -8.64975)
+[A] t=  8.50s  lat=40.63800  lon=-8.64900  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63784, -8.64974)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65190)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65040)
+[A] t=  8.60s  lat=40.63800  lon=-8.64897  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65037)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65187)
+[A] CAM recebido de stationID=10 pos=(40.63785, -8.64972)
+[A] t=  8.70s  lat=40.63800  lon=-8.64894  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65034)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65184)
+[A] CAM recebido de stationID=10 pos=(40.63786, -8.64971)
+[A] t=  8.80s  lat=40.63800  lon=-8.64890  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65180)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65030)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65210)
+[B] t=  8.00s  lat=40.63800  lon=-8.65057  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63787, -8.64969)
+[C] t=  8.10s  lat=40.63800  lon=-8.65203  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65053)
+[A] t=  8.90s  lat=40.63800  lon=-8.64887  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65177)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65027)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64913)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65207)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64917)
+[C] CAM recebido de stationID=10 pos=(40.63780, -8.64980)
+[C] t=  8.20s  lat=40.63800  lon=-8.65200  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63788, -8.64968)
+[A] t=  9.00s  lat=40.63800  lon=-8.64884  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63779, -8.64981)
+[B] t=  8.10s  lat=40.63800  lon=-8.65053  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65050)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64910)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64913)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65203)
+[B] CAM recebido de stationID=10 pos=(40.63780, -8.64980)
+[B] t=  8.20s  lat=40.63800  lon=-8.65050  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65200)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64910)
+[B] CAM recebido de stationID=10 pos=(40.63781, -8.64978)
+[C] CAM recebido de stationID=10 pos=(40.63781, -8.64978)
+[B] MCM recebido de stationID=10 mcmType=request
+[C] MCM recebido de stationID=10 mcmType=request
+[B] t=  8.30s  lat=40.63800  lon=-8.65047  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65197)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65174)
+[C] t=  8.30s  lat=40.63800  lon=-8.65197  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65047)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64907)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64907)
+[C] CAM recebido de stationID=10 pos=(40.63782, -8.64977)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65024)
+[A] CAM recebido de stationID=10 pos=(40.63789, -8.64966)
+[C] t=  8.40s  lat=40.63800  lon=-8.65193  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65043)
+[A] t=  9.10s  lat=40.63800  lon=-8.64880  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64903)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65170)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65020)
+[A] CAM recebido de stationID=10 pos=(40.63790, -8.64965)
+[A] t=  9.20s  lat=40.63800  lon=-8.64877  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65167)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65017)
+[A] CAM recebido de stationID=10 pos=(40.63791, -8.64963)
+[A] t=  9.30s  lat=40.63800  lon=-8.64874  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65164)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65014)
+[A] CAM recebido de stationID=10 pos=(40.63792, -8.64962)
+[A] t=  9.40s  lat=40.63800  lon=-8.64871  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65011)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65161)
+[A] CAM recebido de stationID=10 pos=(40.63793, -8.64961)
+[A] t=  9.50s  lat=40.63800  lon=-8.64867  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65157)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65007)
+[A] CAM recebido de stationID=10 pos=(40.63794, -8.64959)
+[A] t=  9.60s  lat=40.63800  lon=-8.64864  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65004)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65154)
+[A] CAM recebido de stationID=10 pos=(40.63795, -8.64958)
+[A] t=  9.70s  lat=40.63800  lon=-8.64861  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63796, -8.64956)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.65001)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65151)
+[A] t=  9.80s  lat=40.63800  lon=-8.64857  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63797, -8.64955)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64997)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65147)
+[A] t=  9.90s  lat=40.63800  lon=-8.64854  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64994)
+[B] CAM recebido de stationID=10 pos=(40.63782, -8.64977)
+[B] t=  8.40s  lat=40.63800  lon=-8.65043  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63798, -8.64953)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65144)
+[A] t= 10.00s  lat=40.63800  lon=-8.64851  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63799, -8.64952)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64991)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65141)
+[A] t= 10.10s  lat=40.63800  lon=-8.64848  bearing=90.0°
+[A] CAM recebido de stationID=10 pos=(40.63800, -8.64950)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64987)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65137)
+[A] t= 10.20s  lat=40.63800  lon=-8.64844  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65134)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64984)
+[A] t= 10.30s  lat=40.63800  lon=-8.64841  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63783, -8.64975)
+[C] t=  8.50s  lat=40.63800  lon=-8.65190  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65131)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64981)
+[A] t= 10.40s  lat=40.63800  lon=-8.64838  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65128)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64978)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65040)
+[A] t= 10.50s  lat=40.63800  lon=-8.64834  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65193)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64903)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64900)
+[C] CAM recebido de stationID=10 pos=(40.63784, -8.64974)
+[C] t=  8.60s  lat=40.63800  lon=-8.65187  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64897)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65037)
+[B] CAM recebido de stationID=10 pos=(40.63783, -8.64975)
+[C] CAM recebido de stationID=10 pos=(40.63785, -8.64972)
+[B] t=  8.50s  lat=40.63800  lon=-8.65040  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64974)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65124)
+[A] t= 10.60s  lat=40.63800  lon=-8.64831  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65190)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64900)
+[B] CAM recebido de stationID=10 pos=(40.63784, -8.64974)
+[B] t=  8.60s  lat=40.63800  lon=-8.65037  bearing=90.0°
+[C] t=  8.70s  lat=40.63800  lon=-8.65184  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64894)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65187)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65034)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64897)
+[B] CAM recebido de stationID=10 pos=(40.63785, -8.64972)
+[B] t=  8.70s  lat=40.63800  lon=-8.65034  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65184)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64894)
+[B] CAM recebido de stationID=10 pos=(40.63786, -8.64971)
+[B] t=  8.80s  lat=40.63800  lon=-8.65030  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64890)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65180)
+[C] CAM recebido de stationID=10 pos=(40.63786, -8.64971)
+[C] t=  8.80s  lat=40.63800  lon=-8.65180  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63787, -8.64969)
+[B] t=  8.90s  lat=40.63800  lon=-8.65027  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65177)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64887)
+[B] CAM recebido de stationID=10 pos=(40.63788, -8.64968)
+[B] t=  9.00s  lat=40.63800  lon=-8.65024  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65174)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64884)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65030)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64890)
+[B] CAM recebido de stationID=10 pos=(40.63789, -8.64966)
+[B] t=  9.10s  lat=40.63800  lon=-8.65020  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64880)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65170)
+[B] CAM recebido de stationID=10 pos=(40.63790, -8.64965)
+[B] t=  9.20s  lat=40.63800  lon=-8.65017  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64877)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65167)
+[B] CAM recebido de stationID=10 pos=(40.63791, -8.64963)
+[B] t=  9.30s  lat=40.63800  lon=-8.65014  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64874)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65164)
+[B] CAM recebido de stationID=10 pos=(40.63792, -8.64962)
+[B] t=  9.40s  lat=40.63800  lon=-8.65011  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65161)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64871)
+[B] CAM recebido de stationID=10 pos=(40.63793, -8.64961)
+[B] t=  9.50s  lat=40.63800  lon=-8.65007  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65157)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64867)
+[B] CAM recebido de stationID=10 pos=(40.63794, -8.64959)
+[B] t=  9.60s  lat=40.63800  lon=-8.65004  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65154)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64864)
+[C] CAM recebido de stationID=10 pos=(40.63787, -8.64969)
+[C] t=  8.90s  lat=40.63800  lon=-8.65177  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64887)
+[B] CAM recebido de stationID=10 pos=(40.63795, -8.64958)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65027)
+[C] CAM recebido de stationID=10 pos=(40.63788, -8.64968)
+[C] t=  9.00s  lat=40.63800  lon=-8.65174  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64884)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65024)
+[C] CAM recebido de stationID=10 pos=(40.63789, -8.64966)
+[B] t=  9.70s  lat=40.63800  lon=-8.65001  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63796, -8.64956)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65151)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64861)
+[B] t=  9.80s  lat=40.63800  lon=-8.64997  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63797, -8.64955)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64857)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65147)
+[C] t=  9.10s  lat=40.63800  lon=-8.65170  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64880)
+[B] t=  9.90s  lat=40.63800  lon=-8.64994  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64854)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65144)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65020)
+[C] CAM recebido de stationID=10 pos=(40.63790, -8.64965)
+[B] CAM recebido de stationID=10 pos=(40.63798, -8.64953)
+[B] t= 10.00s  lat=40.63800  lon=-8.64991  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64851)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65141)
+[C] t=  9.20s  lat=40.63800  lon=-8.65167  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64877)
+[B] CAM recebido de stationID=10 pos=(40.63799, -8.64952)
+[B] t= 10.10s  lat=40.63800  lon=-8.64988  bearing=90.0°
+[B] CAM recebido de stationID=10 pos=(40.63800, -8.64950)
+[C] CAM recebido de stationID=10 pos=(40.63791, -8.64963)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65017)
+[C] t=  9.30s  lat=40.63800  lon=-8.65164  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64874)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65014)
+[C] CAM recebido de stationID=10 pos=(40.63792, -8.64962)
+[C] t=  9.40s  lat=40.63800  lon=-8.65161  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65011)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65137)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64871)
+[C] CAM recebido de stationID=10 pos=(40.63793, -8.64961)
+[C] t=  9.50s  lat=40.63800  lon=-8.65157  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64847)
+[B] t= 10.20s  lat=40.63800  lon=-8.64984  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64844)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65007)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65134)
+[B] t= 10.30s  lat=40.63800  lon=-8.64981  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65131)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64841)
+[B] t= 10.40s  lat=40.63800  lon=-8.64978  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64867)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64838)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65128)
+[B] t= 10.50s  lat=40.63800  lon=-8.64974  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63794, -8.64959)
+[C] t=  9.60s  lat=40.63800  lon=-8.65154  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63795, -8.64958)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64864)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65004)
+[C] t=  9.70s  lat=40.63800  lon=-8.65151  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64834)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65124)
+[B] t= 10.60s  lat=40.63800  lon=-8.64971  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64861)
+[C] CAM recebido de stationID=10 pos=(40.63796, -8.64956)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.65001)
+[C] t=  9.80s  lat=40.63800  lon=-8.65147  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64997)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64857)
+[C] CAM recebido de stationID=10 pos=(40.63797, -8.64955)
+[C] t=  9.90s  lat=40.63800  lon=-8.65144  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64854)
+[C] CAM recebido de stationID=10 pos=(40.63798, -8.64953)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64994)
+[C] t= 10.00s  lat=40.63800  lon=-8.65141  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64851)
+[C] CAM recebido de stationID=10 pos=(40.63799, -8.64952)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64991)
+[C] t= 10.10s  lat=40.63800  lon=-8.65138  bearing=90.0°
+[C] CAM recebido de stationID=10 pos=(40.63800, -8.64950)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64847)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64987)
+[C] t= 10.20s  lat=40.63800  lon=-8.65134  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64844)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64984)
+[C] t= 10.30s  lat=40.63800  lon=-8.65131  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64981)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64841)
+[C] t= 10.40s  lat=40.63800  lon=-8.65128  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64978)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64838)
+[C] t= 10.50s  lat=40.63800  lon=-8.65124  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64834)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64974)
+[C] t= 10.60s  lat=40.63800  lon=-8.65121  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64971)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65121)
+[A] t= 10.70s  lat=40.63800  lon=-8.64828  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65118)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64968)
+[A] t= 10.80s  lat=40.63800  lon=-8.64824  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65114)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64964)
+[A] t= 10.90s  lat=40.63800  lon=-8.64821  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65111)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64961)
+[A] t= 11.00s  lat=40.63800  lon=-8.64818  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64958)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65108)
+[A] t= 11.10s  lat=40.63800  lon=-8.64815  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64955)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65105)
+[A] t= 11.20s  lat=40.63800  lon=-8.64811  bearing=90.0°
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64951)
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65101)
+[A] t= 11.30s  lat=40.63800  lon=-8.64808  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65098)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64948)
+[A] t= 11.40s  lat=40.63800  lon=-8.64805  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65095)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64945)
+[A] t= 11.50s  lat=40.63800  lon=-8.64801  bearing=90.0°
+[A] CAM recebido de stationID=13 pos=(40.63800, -8.65091)
+[A] CAM recebido de stationID=12 pos=(40.63800, -8.64941)
+[A] t= 11.60s  lat=40.63800  lon=-8.64800  [CHEGOU]
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64831)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65121)
+[B] t= 10.70s  lat=40.63800  lon=-8.64968  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64828)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65118)
+[B] t= 10.80s  lat=40.63800  lon=-8.64964  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65114)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64824)
+[B] t= 10.90s  lat=40.63800  lon=-8.64961  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64821)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65111)
+[B] t= 11.00s  lat=40.63800  lon=-8.64958  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65108)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64818)
+[B] t= 11.10s  lat=40.63800  lon=-8.64955  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64815)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65105)
+[B] t= 11.20s  lat=40.63800  lon=-8.64951  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64811)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65101)
+[B] t= 11.30s  lat=40.63800  lon=-8.64948  bearing=90.0°
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64808)
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65098)
+[B] t= 11.40s  lat=40.63800  lon=-8.64945  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65095)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64805)
+[B] t= 11.50s  lat=40.63800  lon=-8.64941  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65091)
+[B] CAM recebido de stationID=11 pos=(40.63800, -8.64801)
+[B] t= 11.60s  lat=40.63800  lon=-8.64938  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65088)
+[B] t= 11.70s  lat=40.63800  lon=-8.64935  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65085)
+[B] t= 11.80s  lat=40.63800  lon=-8.64932  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65082)
+[B] t= 11.90s  lat=40.63800  lon=-8.64928  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65078)
+[B] t= 12.00s  lat=40.63800  lon=-8.64925  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65075)
+[B] t= 12.10s  lat=40.63800  lon=-8.64922  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65072)
+[B] t= 12.20s  lat=40.63800  lon=-8.64918  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65068)
+[B] t= 12.30s  lat=40.63800  lon=-8.64915  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65065)
+[B] t= 12.40s  lat=40.63800  lon=-8.64912  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65062)
+[B] t= 12.50s  lat=40.63800  lon=-8.64908  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65058)
+[B] t= 12.60s  lat=40.63800  lon=-8.64905  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65055)
+[B] t= 12.70s  lat=40.63800  lon=-8.64902  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65052)
+[B] t= 12.80s  lat=40.63800  lon=-8.64899  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65049)
+[B] t= 12.90s  lat=40.63800  lon=-8.64895  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65045)
+[B] t= 13.00s  lat=40.63800  lon=-8.64892  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65042)
+[B] t= 13.10s  lat=40.63800  lon=-8.64889  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65039)
+[B] t= 13.20s  lat=40.63800  lon=-8.64885  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65035)
+[B] t= 13.30s  lat=40.63800  lon=-8.64882  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65032)
+[B] t= 13.40s  lat=40.63800  lon=-8.64879  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65029)
+[B] t= 13.50s  lat=40.63800  lon=-8.64876  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65026)
+[B] t= 13.60s  lat=40.63800  lon=-8.64872  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65022)
+[B] t= 13.70s  lat=40.63800  lon=-8.64869  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65019)
+[B] t= 13.80s  lat=40.63800  lon=-8.64866  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65016)
+[B] t= 13.90s  lat=40.63800  lon=-8.64862  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65012)
+[B] t= 14.00s  lat=40.63800  lon=-8.64859  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65009)
+[B] t= 14.10s  lat=40.63800  lon=-8.64856  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65006)
+[B] t= 14.20s  lat=40.63800  lon=-8.64853  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.65003)
+[B] t= 14.30s  lat=40.63800  lon=-8.64849  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64999)
+[B] t= 14.40s  lat=40.63800  lon=-8.64846  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64996)
+[B] t= 14.50s  lat=40.63800  lon=-8.64843  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64993)
+[B] t= 14.60s  lat=40.63800  lon=-8.64839  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64989)
+[B] t= 14.70s  lat=40.63800  lon=-8.64836  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64986)
+[B] t= 14.80s  lat=40.63800  lon=-8.64833  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64983)
+[B] t= 14.90s  lat=40.63800  lon=-8.64829  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64979)
+[B] t= 15.00s  lat=40.63800  lon=-8.64826  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64976)
+[B] t= 15.10s  lat=40.63800  lon=-8.64823  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64973)
+[B] t= 15.20s  lat=40.63800  lon=-8.64820  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64970)
+[B] t= 15.30s  lat=40.63800  lon=-8.64816  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64966)
+[B] t= 15.40s  lat=40.63800  lon=-8.64813  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64963)
+[B] t= 15.50s  lat=40.63800  lon=-8.64810  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64960)
+[B] t= 15.60s  lat=40.63800  lon=-8.64806  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64956)
+[B] t= 15.70s  lat=40.63800  lon=-8.64803  bearing=90.0°
+[B] CAM recebido de stationID=13 pos=(40.63800, -8.64953)
+[B] t= 15.80s  lat=40.63800  lon=-8.64800  [CHEGOU]
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64831)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64971)
+[C] t= 10.70s  lat=40.63800  lon=-8.65118  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64968)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64828)
+[C] t= 10.80s  lat=40.63800  lon=-8.65114  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64824)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64964)
+[C] t= 10.90s  lat=40.63800  lon=-8.65111  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64821)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64961)
+[C] t= 11.00s  lat=40.63800  lon=-8.65108  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64958)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64818)
+[C] t= 11.10s  lat=40.63800  lon=-8.65105  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64955)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64815)
+[C] t= 11.20s  lat=40.63800  lon=-8.65101  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64811)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64951)
+[C] t= 11.30s  lat=40.63800  lon=-8.65098  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64948)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64808)
+[C] t= 11.40s  lat=40.63800  lon=-8.65095  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64945)
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64805)
+[C] t= 11.50s  lat=40.63800  lon=-8.65091  bearing=90.0°
+[C] CAM recebido de stationID=11 pos=(40.63800, -8.64801)
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64941)
+[C] t= 11.60s  lat=40.63800  lon=-8.65088  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64938)
+[C] t= 11.70s  lat=40.63800  lon=-8.65085  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64935)
+[C] t= 11.80s  lat=40.63800  lon=-8.65082  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64932)
+[C] t= 11.90s  lat=40.63800  lon=-8.65078  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64928)
+[C] t= 12.00s  lat=40.63800  lon=-8.65075  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64925)
+[C] t= 12.10s  lat=40.63800  lon=-8.65072  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64922)
+[C] t= 12.20s  lat=40.63800  lon=-8.65068  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64918)
+[C] t= 12.30s  lat=40.63800  lon=-8.65065  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64915)
+[C] t= 12.40s  lat=40.63800  lon=-8.65062  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64912)
+[C] t= 12.50s  lat=40.63800  lon=-8.65058  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64908)
+[C] t= 12.60s  lat=40.63800  lon=-8.65055  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64905)
+[C] t= 12.70s  lat=40.63800  lon=-8.65052  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64902)
+[C] t= 12.80s  lat=40.63800  lon=-8.65049  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64899)
+[C] t= 12.90s  lat=40.63800  lon=-8.65045  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64895)
+[C] t= 13.00s  lat=40.63800  lon=-8.65042  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64892)
+[C] t= 13.10s  lat=40.63800  lon=-8.65039  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64889)
+[C] t= 13.20s  lat=40.63800  lon=-8.65035  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64885)
+[C] t= 13.30s  lat=40.63800  lon=-8.65032  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64882)
+[C] t= 13.40s  lat=40.63800  lon=-8.65029  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64879)
+[C] t= 13.50s  lat=40.63800  lon=-8.65026  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64876)
+[C] t= 13.60s  lat=40.63800  lon=-8.65022  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64872)
+[C] t= 13.70s  lat=40.63800  lon=-8.65019  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64869)
+[C] t= 13.80s  lat=40.63800  lon=-8.65016  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64866)
+[C] t= 13.90s  lat=40.63800  lon=-8.65012  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64862)
+[C] t= 14.00s  lat=40.63800  lon=-8.65009  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64859)
+[C] t= 14.10s  lat=40.63800  lon=-8.65006  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64856)
+[C] t= 14.20s  lat=40.63800  lon=-8.65003  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64853)
+[C] t= 14.30s  lat=40.63800  lon=-8.64999  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64849)
+[C] t= 14.40s  lat=40.63800  lon=-8.64996  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64846)
+[C] t= 14.50s  lat=40.63800  lon=-8.64993  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64843)
+[C] t= 14.60s  lat=40.63800  lon=-8.64989  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64839)
+[C] t= 14.70s  lat=40.63800  lon=-8.64986  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64836)
+[C] t= 14.80s  lat=40.63800  lon=-8.64983  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64833)
+[C] t= 14.90s  lat=40.63800  lon=-8.64979  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64829)
+[C] t= 15.00s  lat=40.63800  lon=-8.64976  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64826)
+[C] t= 15.10s  lat=40.63800  lon=-8.64973  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64823)
+[C] t= 15.20s  lat=40.63800  lon=-8.64970  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64820)
+[C] t= 15.30s  lat=40.63800  lon=-8.64966  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64816)
+[C] t= 15.40s  lat=40.63800  lon=-8.64963  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64813)
+[C] t= 15.50s  lat=40.63800  lon=-8.64960  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64810)
+[C] t= 15.60s  lat=40.63800  lon=-8.64956  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64806)
+[C] t= 15.70s  lat=40.63800  lon=-8.64953  bearing=90.0°
+[C] CAM recebido de stationID=12 pos=(40.63800, -8.64803)
+[C] t= 15.80s  lat=40.63800  lon=-8.64950  bearing=90.0°
+[C] t= 15.90s  lat=40.63800  lon=-8.64947  bearing=90.0°
+[C] t= 16.00s  lat=40.63800  lon=-8.64943  bearing=90.0°
+[C] t= 16.10s  lat=40.63800  lon=-8.64940  bearing=90.0°
+[C] t= 16.20s  lat=40.63800  lon=-8.64937  bearing=90.0°
+[C] t= 16.30s  lat=40.63800  lon=-8.64933  bearing=90.0°
+[C] t= 16.40s  lat=40.63800  lon=-8.64930  bearing=90.0°
+[C] t= 16.50s  lat=40.63800  lon=-8.64927  bearing=90.0°
+[C] t= 16.60s  lat=40.63800  lon=-8.64924  bearing=90.0°
+[C] t= 16.70s  lat=40.63800  lon=-8.64920  bearing=90.0°
+[C] t= 16.80s  lat=40.63800  lon=-8.64917  bearing=90.0°
+[C] t= 16.90s  lat=40.63800  lon=-8.64914  bearing=90.0°
+[C] t= 17.00s  lat=40.63800  lon=-8.64910  bearing=90.0°
+[C] t= 17.10s  lat=40.63800  lon=-8.64907  bearing=90.0°
+[C] t= 17.20s  lat=40.63800  lon=-8.64904  bearing=90.0°
+[C] t= 17.30s  lat=40.63800  lon=-8.64900  bearing=90.0°
+[C] t= 17.40s  lat=40.63800  lon=-8.64897  bearing=90.0°
+[C] t= 17.50s  lat=40.63800  lon=-8.64894  bearing=90.0°
+[C] t= 17.60s  lat=40.63800  lon=-8.64891  bearing=90.0°
+[C] t= 17.70s  lat=40.63800  lon=-8.64887  bearing=90.0°
+[C] t= 17.80s  lat=40.63800  lon=-8.64884  bearing=90.0°
+[C] t= 17.90s  lat=40.63800  lon=-8.64881  bearing=90.0°
+[C] t= 18.00s  lat=40.63800  lon=-8.64877  bearing=90.0°
+[C] t= 18.10s  lat=40.63800  lon=-8.64874  bearing=90.0°
+[C] t= 18.20s  lat=40.63800  lon=-8.64871  bearing=90.0°
+[C] t= 18.30s  lat=40.63800  lon=-8.64868  bearing=90.0°
+[C] t= 18.40s  lat=40.63800  lon=-8.64864  bearing=90.0°
+[C] t= 18.50s  lat=40.63800  lon=-8.64861  bearing=90.0°
+[C] t= 18.60s  lat=40.63800  lon=-8.64858  bearing=90.0°
+[C] t= 18.70s  lat=40.63800  lon=-8.64854  bearing=90.0°
+[C] t= 18.80s  lat=40.63800  lon=-8.64851  bearing=90.0°
+[C] t= 18.90s  lat=40.63800  lon=-8.64848  bearing=90.0°
+[C] t= 19.00s  lat=40.63800  lon=-8.64845  bearing=90.0°
+[C] t= 19.10s  lat=40.63800  lon=-8.64841  bearing=90.0°
+[C] t= 19.20s  lat=40.63800  lon=-8.64838  bearing=90.0°
+[C] t= 19.30s  lat=40.63800  lon=-8.64835  bearing=90.0°
+[C] t= 19.40s  lat=40.63800  lon=-8.64831  bearing=90.0°
+[C] t= 19.50s  lat=40.63800  lon=-8.64828  bearing=90.0°
+[C] t= 19.60s  lat=40.63800  lon=-8.64825  bearing=90.0°
+[C] t= 19.70s  lat=40.63800  lon=-8.64821  bearing=90.0°
+[C] t= 19.80s  lat=40.63800  lon=-8.64818  bearing=90.0°
+[C] t= 19.90s  lat=40.63800  lon=-8.64815  bearing=90.0°
+[C] t= 20.00s  lat=40.63800  lon=-8.64812  bearing=90.0°
+[C] t= 20.10s  lat=40.63800  lon=-8.64808  bearing=90.0°
+[C] t= 20.20s  lat=40.63800  lon=-8.64805  bearing=90.0°
+[C] t= 20.30s  lat=40.63800  lon=-8.64802  bearing=90.0°
+[C] t= 20.40s  lat=40.63800  lon=-8.64800  [CHEGOU]

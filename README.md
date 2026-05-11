@@ -24,9 +24,11 @@ Este projeto simula uma fusao cooperativa de vias usando comunicacao V2X. Um vei
 
 - bridge.py: ponte WebSocket que recebe CAM/MCM via Zenoh e envia estado para o browser.
 - dashboard.html: UI com canvas para desenhar estradas e veiculos em tempo real.
+- debug_zenoh.py: subscriber simples para inspecionar topicos Zenoh e payloads.
 - docker-compose.yml: arranque dos containers Vanetza-NAP (um por veiculo).
 - roads.json: definicao das estradas (segmentos GPS) e limites de velocidade.
 - vehicles.json: configuracao dos veiculos (IDs, estrada inicial, velocidade).
+- run.sh: script de arranque rapido (containers, bridge e dashboard).
 - run_vehicles.py: lancador local dos 4 veiculos Python, cada um ligado ao seu broker Zenoh.
 - simulate.py: simulacao local simples (sem containers), usada nas primeiras etapas.
 - TODO.md: roteiro de desenvolvimento com etapas e testes associados.
@@ -37,8 +39,10 @@ Este projeto simula uma fusao cooperativa de vias usando comunicacao V2X. Um vei
 - examples/: exemplos de mensagens CAM/MCM e um script para gerar/enviar.
   - *.json, *.txt: exemplos de payloads
   - generate.py: exemplo de como enviar mensagens via Vanetza-NAP e Zenoh
+  - MCM_FIELD_REFERENCE.md: referencia rapida de campos MCM usados nos exemplos
 - vehicle/: logica do veiculo e builder de CAM.
   - cam_builder.py: funcao pura para construir CAM.
+  - mcm_builder.py: funcoes puras para construir MCM (merge, slowdown, ack, grant).
   - vehicle.py: logica principal do veiculo (movimento, CAMs, deteccao de conflito).
 
 ## Nota sobre o estado do projeto

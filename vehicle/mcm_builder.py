@@ -3,7 +3,7 @@ import time
 
 def _make_basic_container(station_id, lat, lon, mcm_type, its_role, manoeuvre_id, with_rational=False):
     container = {
-        "generationDeltaTime": int(time.time() * 1000) % 65536,
+        "generationDeltaTime": time.time(),
         "stationID": station_id,
         "stationType": 1,
         "itssRole": its_role,
@@ -28,17 +28,36 @@ def _make_basic_container(station_id, lat, lon, mcm_type, its_role, manoeuvre_id
 
 def _vehicle_state(speed_ms, heading):
     return {
-        "vehicleSpeed": {"speedValue": speed_ms, "speedConfidence": 1},
-        "vehicleHeading": {"value": heading, "confidence": 1},
+        "vehicleSpeed": {"speedValue": speed_ms, "speedConfidence": 127},
+        "vehicleHeading": {"value": heading, "confidence": 127},
         "vehicleSize": {
             "vehicleType": 0,
             "vehicleLenth": {
-                "vehicleLengthValue": 45,
+                "vehicleLengthValue": 4.5,
                 "vehicleLengthConfidenceIndication": 4,
             },
-            "vehicleWidth": 18,
+            "vehicleWidth": 1.8,
             "vehicleHeight": 15,
         },
+    }
+
+
+def _trr_description(heading):
+    return {
+        "trrType": 2,
+        "laneCount": 2,
+        "waypoints": [
+            {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
+            {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
+            {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
+        ],
+        "heading": [
+            {"value": heading, "confidence": 1},
+            {"value": heading, "confidence": 1},
+            {"value": heading, "confidence": 1},
+        ],
+        "trrWidth": 1,
+        "trrLength": 1,
     }
 
 
@@ -46,14 +65,16 @@ def _advised_submanoeuvre(suggested_speed_ms):
     return {
         "submanoeuvreId": 0,
         "advisedTrajectory": {
-            "wayPointType": 2,
+            "wayPointType": 1,
             "wayPoints": [
                 {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
-                {"pathPosition": {"deltaLatitude": 1800, "deltaLongitude": 0, "deltaAltitude": 0}},
+                {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
+                {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
             ],
             "speed": [
-                {"speedValue": suggested_speed_ms, "speedConfidence": 1},
-                {"speedValue": suggested_speed_ms, "speedConfidence": 1},
+                {"speedValue": suggested_speed_ms, "speedConfidence": 127},
+                {"speedValue": suggested_speed_ms, "speedConfidence": 127},
+                {"speedValue": suggested_speed_ms, "speedConfidence": 127},
             ],
         },
     }
@@ -78,21 +99,23 @@ def build_merge_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, c
                 "submaneuvres": [
                     {
                         "submanoeuvreID": 0,
-                        "submanoeuvreStrategy": {"getOnHighway": None},
                         "referenceTrajectory": {
-                            "wayPointType": 2,
+                            "wayPointType": 1,
                             "wayPoints": [
                                 {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
-                                {"pathPosition": {"deltaLatitude": 1800, "deltaLongitude": 500, "deltaAltitude": 0}},
+                                {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
+                                {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
                             ],
                             "speed": [
-                                {"speedValue": speed_ms, "speedConfidence": 1},
-                                {"speedValue": speed_ms, "speedConfidence": 1},
+                                {"speedValue": speed_ms, "speedConfidence": 127},
+                                {"speedValue": speed_ms, "speedConfidence": 127},
+                                {"speedValue": speed_ms, "speedConfidence": 127},
                             ],
                         },
+                        "targetRoadResourceIContainer": _trr_description(heading),
                         "temporalCharateristics": {
-                            "tRROccupancyStartTime": 3000,
-                            "tRROccupancyEndTime": 4500,
+                            "tRROccupancyStartTime": 2000,
+                            "tRROccupancyEndTime": 5000,
                         },
                     }
                 ],
@@ -125,21 +148,22 @@ def build_slowdown_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id
                 "submaneuvres": [
                     {
                         "submanoeuvreID": 0,
-                        "submanoeuvreStrategy": {"stayInLane": None},
                         "referenceTrajectory": {
-                            "wayPointType": 2,
+                            "wayPointType": 1,
                             "wayPoints": [
                                 {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
-                                {"pathPosition": {"deltaLatitude": 2400, "deltaLongitude": 0, "deltaAltitude": 0}},
+                                {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
+                                {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
                             ],
                             "speed": [
-                                {"speedValue": speed_ms, "speedConfidence": 1},
-                                {"speedValue": speed_ms, "speedConfidence": 1},
+                                {"speedValue": speed_ms, "speedConfidence": 127},
+                                {"speedValue": speed_ms, "speedConfidence": 127},
+                                {"speedValue": speed_ms, "speedConfidence": 127},
                             ],
                         },
                         "temporalCharateristics": {
-                            "tRROccupancyStartTime": 0,
-                            "tRROccupancyEndTime": 5000,
+                            "tRROccupancyStartTime": 1000,
+                            "tRROccupancyEndTime": 8000,
                         },
                     }
                 ],

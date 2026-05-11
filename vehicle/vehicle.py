@@ -67,16 +67,19 @@ def make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_stat
     return on_cam
 
 
+MCM_TYPE_NAMES = {1: "request", 2: "response", 9: "acknowledgment"}
+
+
 def make_mcm_callback(vehicle_id, own_station_id):
     def on_mcm(sample):
         try:
             payload = json.loads(bytes(sample.payload).decode())
-            bc = payload.get("basicContainer", {})
-            sender_id = bc.get("stationID")
-            mcm_type  = bc.get("mcmType")
+            sender_id = payload.get("stationID") or payload.get("stationId")
             if sender_id == own_station_id:
                 return
-            print(f"[{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={mcm_type}")
+            mcm_type = payload["fields"]["payload"]["basicContainer"]["mcmType"]
+            type_name = MCM_TYPE_NAMES.get(mcm_type, mcm_type)
+            print(f"[{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={type_name}")
         except Exception:
             pass
     return on_mcm
