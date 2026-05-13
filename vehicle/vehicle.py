@@ -7,7 +7,8 @@ import threading
 import time
 
 from cam_builder import build_cam
-from mcm_builder import build_merge_request, build_slowdown_request, build_ack
+from mcm_builder import (build_merge_request, build_slowdown_request,
+                         build_ack, build_merge_grant, build_execution_status)
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -129,7 +130,30 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             protocol_state["slowdown_sent"] = True
             protocol_state["slowdown_sent_to"] = target_id
             protocol_state["slowdown_sent_delta_time"] = sent_delta
-        print(f"[{vehicle_id}] SLOWDOWN_REQUEST enviado para stationID={target_id} speed={sugg:.2f} m/s")
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] [{vehicle_id}] SLOWDOWN_REQUEST enviado para stationID={target_id} speed={sugg:.2f} m/s")
+
+    def _send_merge_grant():
+        with protocol_lock:
+            if protocol_state["merge_grant_sent"]:
+                return
+            if not protocol_state["in_conflict"]:
+                return
+            mc_id = protocol_state["mc_station_id"]
+            mid   = protocol_state["manoeuvre_id"]
+        if mc_id is None:
+            return
+        grant = build_merge_grant(
+            station_id=own_station_id,
+            lat=vehicle_state["lat"],
+            lon=vehicle_state["lon"],
+            manoeuvre_id=mid,
+        )
+        session.put("vanetza/in/mcm", json.dumps(grant).encode())
+        with protocol_lock:
+            protocol_state["merge_grant_sent"] = True
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] [{vehicle_id}] MERGE_GRANT enviado ao MC stationID={mc_id}")
 
     def on_mcm(sample):
         try:
@@ -146,7 +170,20 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             manoeuvre_id = basic["manoeuvreId"]
 
             type_name = MCM_TYPE_NAMES.get(mcm_type, mcm_type)
-            print(f"[{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={type_name}")
+            ts = time.strftime("%H:%M:%S")
+            print(f"[{ts}] [{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={type_name}")
+
+            # ── MERGE_GRANT (road vehicle → MC) ───────────────────────────────
+            if mcm_type == 2 and its_role == 3:
+                if not is_ramp:
+                    return
+                ts = time.strftime("%H:%M:%S")
+                print(f"[{ts}] [{vehicle_id}] MERGE_GRANT recebido de stationID={sender_id} manoeuvre_id={manoeuvre_id}")
+                with protocol_lock:
+                    protocol_state["grants_received"].add(sender_id)
+                    if protocol_state["grant_timeout"] is None:
+                        protocol_state["grant_timeout"] = time.time() + GRANT_TIMEOUT_S
+                return
 
             if is_ramp:
                 return
@@ -220,7 +257,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         acknowledged_delta_time=delta_time,
                     )
                     session.put("vanetza/in/mcm", json.dumps(ack).encode())
-                    print(f"[{vehicle_id}] ACK enviado (fim de cadeia, origem stationID={sender_id})")
+                    ts = time.strftime("%H:%M:%S")
+                    print(f"[{ts}] [{vehicle_id}] ACK enviado (fim de cadeia, origem stationID={sender_id})")
 
             # ── ACK (vehicle → vehicle) ────────────────────────────────────────
             elif mcm_type == 9:
@@ -242,7 +280,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 if abs(ack_delta - sent_delta) > 1.0:
                     return
 
-                print(f"[{vehicle_id}] ACK recebido de stationID={sender_id} (cadeia a partir de trás confirmada)")
+                ts = time.strftime("%H:%M:%S")
+                print(f"[{ts}] [{vehicle_id}] ACK recebido de stationID={sender_id} (cadeia a partir de trás confirmada)")
 
                 if received and recv_delta is not None:
                     ack = build_ack(
@@ -255,8 +294,11 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     session.put("vanetza/in/mcm", json.dumps(ack).encode())
                     with protocol_lock:
                         sid_up = protocol_state["slowdown_sender_id"]
-                    print(f"[{vehicle_id}] ACK propagado para cima (stationID={sid_up})")
-                # (10.3: MERGE_GRANT ao MC aqui se in_conflict)
+                    ts = time.strftime("%H:%M:%S")
+                    print(f"[{ts}] [{vehicle_id}] ACK propagado para cima (stationID={sid_up})")
+                    _send_merge_grant()  # B: recebeu MERGE_REQUEST + ACK de C → envia grant ao MC
+                else:
+                    _send_merge_grant()  # A: recebeu MERGE_REQUEST + ACK de B → envia grant ao MC
 
         except Exception as e:
             print(f"[{vehicle_id}] Erro no MCM callback: {e}")
@@ -339,8 +381,9 @@ def send_merge_request(session, vehicle_id, own_station_id,
         conflict_vehicles = conflict_vehicles,
     )
     session.put("vanetza/in/mcm", json.dumps(mcm).encode())
+    ts = time.strftime("%H:%M:%S")
     print(
-        f"[{vehicle_id}] MERGE_REQUEST enviado "
+        f"[{ts}] [{vehicle_id}] MERGE_REQUEST enviado "
         f"manoeuvre_id={manoeuvre_state['manoeuvre_id']} "
         f"conflitos={sorted(conflict_set)}"
     )
@@ -349,6 +392,7 @@ def send_merge_request(session, vehicle_id, own_station_id,
 STATION_IDS = {"MC": 10, "A": 11, "B": 12, "C": 13}
 CONFLICT_ZONE_M    = 50.0
 CONFLICT_HORIZON_S = 2.0
+GRANT_TIMEOUT_S    = 5.0
 
 
 def parse_args():
@@ -437,6 +481,10 @@ def main():
         "slowdown_sent":            False,
         "slowdown_sent_to":         None,
         "slowdown_sent_delta_time": None,
+        "merge_grant_sent":         False,
+        "grants_received":          set(),
+        "grant_timeout":            None,
+        "merge_decided":            False,
     }
 
     session = None
@@ -476,6 +524,8 @@ def main():
             cam = build_cam(lat, lon, bearing, speed_ms, road.get("lane_position"))
             session.put("vanetza/in/cam", json.dumps(cam).encode())
 
+        should_advance = True
+
         if is_ramp and session is not None and main_road is not None:
             last_conflict_set = detect_conflicts(
                 vehicle_id, t, L_m, speed_ms,
@@ -492,12 +542,74 @@ def main():
                 manoeuvre_state,
             )
 
-        t += dt_t
+            if last_conflict_set:
+                with protocol_lock:
+                    grants  = frozenset(protocol_state["grants_received"])
+                    timeout = protocol_state["grant_timeout"]
+                    decided = protocol_state["merge_decided"]
+
+                if not decided:
+                    all_granted = last_conflict_set.issubset(grants)
+                    timed_out   = timeout is not None and time.time() > timeout
+                    approaching = (1.0 - t) * L_m <= CONFLICT_ZONE_M
+
+                    if all_granted:
+                        now = time.time()
+                        with neighbour_lock:
+                            snap = dict(neighbour_states)
+                        valid = all(
+                            sid in snap and now - snap[sid]["ts"] < 2.0
+                            for sid in last_conflict_set
+                        )
+                        ts = time.strftime("%H:%M:%S")
+                        if valid:
+                            print(f"[{ts}] [{vehicle_id}] MERGE_GRANT validado — a executar merge grants={sorted(grants)}")
+                            status = build_execution_status(
+                                own_station_id, lat, lon,
+                                manoeuvre_state["manoeuvre_id"], success=True,
+                            )
+                            session.put("vanetza/in/mcm", json.dumps(status).encode())
+                            with protocol_lock:
+                                protocol_state["merge_decided"] = True
+                        else:
+                            print(f"[{ts}] [{vehicle_id}] MERGE_GRANT inválido (CAMs stale) — a renegociar")
+                            with protocol_lock:
+                                protocol_state["grants_received"] = set()
+                                protocol_state["grant_timeout"]   = None
+                    elif timed_out:
+                        ts = time.strftime("%H:%M:%S")
+                        print(f"[{ts}] [{vehicle_id}] MERGE_GRANT timeout — fallback "
+                              f"(grants={sorted(grants)}, esperados={sorted(last_conflict_set)})")
+                        status = build_execution_status(
+                            own_station_id, lat, lon,
+                            manoeuvre_state["manoeuvre_id"], success=False,
+                        )
+                        session.put("vanetza/in/mcm", json.dumps(status).encode())
+                        with protocol_lock:
+                            protocol_state["grants_received"] = set()
+                            protocol_state["grant_timeout"]   = None
+                        manoeuvre_state["manoeuvre_id"] += 1
+                    elif approaching:
+                        ts = time.strftime("%H:%M:%S")
+                        print(f"[{ts}] [{vehicle_id}] a aguardar MERGE_GRANT... "
+                              f"grants={sorted(grants)} / esperados={sorted(last_conflict_set)}")
+                        should_advance = False
+
+        if should_advance:
+            t += dt_t
         elapsed += DT
         time.sleep(DT / speed_factor)
 
     lat = road["end"]["lat"]
     lon = road["end"]["lon"]
+    if is_ramp:
+        with protocol_lock:
+            decided = protocol_state["merge_decided"]
+        ts = time.strftime("%H:%M:%S")
+        if decided:
+            print(f"[{ts}] [{vehicle_id}] MERGE EXECUTADO COM SUCESSO")
+        else:
+            print(f"[{ts}] [{vehicle_id}] MERGE: chegou ao fim da rampa sem grants suficientes")
     print(f"[{vehicle_id}] t={elapsed:6.2f}s  lat={lat:.5f}  lon={lon:.5f}  [CHEGOU]")
 
     if session is not None:
