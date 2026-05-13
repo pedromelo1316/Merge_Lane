@@ -6,103 +6,125 @@
   <style>
     body {
       margin: 0;
-      padding: 1rem;
+      padding: 0;
       background: #1a1a2e;
       display: flex;
       flex-direction: column;
-      align-items: flex-start;
+      align-items: center; /* Centraliza horizontalmente */
+      justify-content: center; /* Centraliza verticalmente */
+      min-height: 100vh;
       font-family: monospace;
       color: #e0e0e0;
     }
     h1 {
-      font-size: 1rem;
-      letter-spacing: 0.1em;
-      margin: 0 0 0.75rem 0;
+      font-size: 1.2rem;
+      letter-spacing: 0.2em;
+      margin: 20px 0;
       color: #aaa;
+      text-transform: uppercase;
     }
     .main-row {
       display: flex;
       flex-direction: row;
-      gap: 12px;
+      gap: 20px; /* Espaço maior entre os elementos */
       align-items: flex-start;
     }
     canvas {
       background: #0f0f1a;
-      border: 1px solid #333;
-      border-radius: 4px;
+      border: 2px solid #333;
+      border-radius: 8px;
       display: block;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
     #info {
-      margin-top: 0.5rem;
-      font-size: 0.75rem;
-      color: #666;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      color: #888;
+      text-align: left;
     }
     #mcm-panel {
-      width: 280px;
-      height: 400px;
+      width: 350px; /* Mais largo */
+      height: 500px; /* Altura igual ao canvas */
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 8px;
       background: #0f0f1a;
-      border: 1px solid #333;
-      border-radius: 4px;
-      padding: 8px;
+      border: 2px solid #333;
+      border-radius: 8px;
+      padding: 15px;
       box-sizing: border-box;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
     #mcm-panel-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 2px;
+      margin-bottom: 10px;
       flex-shrink: 0;
+      border-bottom: 1px solid #333;
+      padding-bottom: 5px;
     }
     #mcm-panel-header span {
-      color: #555;
-      font-size: 0.7rem;
-      letter-spacing: 0.08em;
+      color: #888;
+      font-size: 0.8rem;
+      font-weight: bold;
+      letter-spacing: 0.1em;
     }
     #mcm-clear-btn {
-      background: none;
-      border: 1px solid #333;
-      border-radius: 3px;
-      color: #555;
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 4px;
+      color: #aaa;
       font-family: monospace;
-      font-size: 0.65rem;
-      padding: 1px 6px;
+      font-size: 0.7rem;
+      padding: 4px 10px;
       cursor: pointer;
+      transition: all 0.2s;
     }
     #mcm-clear-btn:hover {
+      background: #333;
       border-color: #666;
-      color: #aaa;
+      color: #fff;
     }
     .mcm-card {
-      border-radius: 3px;
-      padding: 5px 8px;
-      font-size: 0.7rem;
-      border-left: 3px solid #666;
+      border-radius: 4px;
+      padding: 10px;
+      font-size: 0.8rem;
+      border-left: 4px solid #666;
       background: #16162a;
       flex-shrink: 0;
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(10px); }
+      to { opacity: 1; transform: translateX(0); }
     }
     .mcm-type {
       font-weight: bold;
+      font-size: 0.85rem;
     }
     .mcm-route {
       color: #bbb;
+      margin-top: 4px;
+      display: inline-block;
     }
     .mcm-id {
-      color: #444;
+      color: #555;
       float: right;
+      font-size: 0.7rem;
     }
   </style>
 </head>
 <body>
   <h1>COOPERATIVE LANE MERGE</h1>
+  
   <div class="main-row">
     <div>
-      <canvas id="canvas" width="700" height="400"></canvas>
+      <canvas id="canvas" width="1000" height="500"></canvas>
       <div id="info">a ligar...</div>
     </div>
+
     <div id="mcm-panel">
       <div id="mcm-panel-header">
         <span>MCM LOG</span>
@@ -112,7 +134,8 @@
   </div>
 
   <script>
-    const PADDING = 60;
+    // Mantém toda a lógica original do Script, apenas o CSS e as dimensões do Canvas mudaram.
+    const PADDING = 80; // Aumentado para lidar com o canvas maior
     const WS_URL  = 'ws://localhost:8765';
 
     const MCM_COLORS = {
@@ -161,8 +184,8 @@
 
     function drawRoads(ctx, roads, bounds, W, H) {
       const roadStyles = {
-        main: {color: '#888888', width: 10, label: 'Via Principal'},
-        ramp: {color: '#e6a817', width: 7,  label: 'Rampa'},
+        main: {color: '#888888', width: 14, label: 'Via Principal'},
+        ramp: {color: '#e6a817', width: 10,  label: 'Rampa'},
       };
 
       function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
@@ -170,7 +193,7 @@
       for (const road of roads) {
         const s = toC(road.start.lat, road.start.lon);
         const e = toC(road.end.lat, road.end.lon);
-        const style = roadStyles[road.type] || {color: '#ffffff', width: 6};
+        const style = roadStyles[road.type] || {color: '#ffffff', width: 8};
 
         ctx.beginPath();
         ctx.moveTo(s.x, s.y);
@@ -182,17 +205,16 @@
 
         for (const pt of [s, e]) {
           ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 4, 0, Math.PI * 2);
+          ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
           ctx.fillStyle = style.color;
           ctx.fill();
         }
 
         const mid = {x: (s.x + e.x) / 2, y: (s.y + e.y) / 2};
         ctx.fillStyle = style.color;
-        ctx.font = '11px monospace';
+        ctx.font = '13px monospace';
         ctx.textAlign = 'left';
-        ctx.textBaseline = 'alphabetic';
-        ctx.fillText(style.label + ' (' + road.speed_limit_kmh + ' km/h)', mid.x + 30, mid.y - 8);
+        ctx.fillText(style.label + ' (' + road.speed_limit_kmh + ' km/h)', mid.x + 30, mid.y - 12);
       }
     }
 
@@ -204,12 +226,23 @@
         const pt = toC(v.lat, v.lon);
         const color = vehicleColor[v.id] || '#ffffff';
 
+        // Brilho estático (substitui o shadowBlur que causava lag)
+        const gradient = ctx.createRadialGradient(pt.x, pt.y, 5, pt.x, pt.y, 20);
+        gradient.addColorStop(0, color + '66'); // Cor com transparência
+        gradient.addColorStop(1, 'transparent');
+        
         ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 10, 0, Math.PI * 2);
+        ctx.arc(pt.x, pt.y, 20, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        // Círculo principal do veículo
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 12, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
 
-        ctx.font = 'bold 10px monospace';
+        ctx.font = 'bold 11px monospace';
         ctx.fillStyle = '#000000';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -232,14 +265,21 @@
       panel.appendChild(header);
     });
 
+    let lastEventCount = 0; // Variável global para controlo
+
     function renderMcmEvents(events) {
-      currentEvents = events;
+      const visible = events.filter(ev => !hiddenSigs.has(evSig(ev)));
+      
+      // SÓ ATUALIZA O HTML SE HOUVER MENSAGENS NOVAS
+      if (visible.length === lastEventCount) return; 
+      lastEventCount = visible.length;
+
       const panel  = document.getElementById('mcm-panel');
       const header = document.getElementById('mcm-panel-header');
+      
+      // Limpa e reconstrói apenas quando necessário
       panel.innerHTML = '';
       panel.appendChild(header);
-
-      const visible = events.filter(ev => !hiddenSigs.has(evSig(ev)));
 
       for (const ev of [...visible].reverse()) {
         const color = mcmColor(ev.type);
@@ -248,13 +288,13 @@
         card.className = 'mcm-card';
         card.style.borderLeftColor = color;
         card.innerHTML =
-          `<span class="mcm-id">·${ev.manoeuvre_id}</span>` +
+          `<span class="mcm-id">#${ev.manoeuvre_id}</span>` +
           `<span class="mcm-type" style="color:${color}">${ev.type}</span><br>` +
-          `<span class="mcm-route">${ev.ts}&nbsp;&nbsp;${ev.from}${to}</span>`;
+          `<span class="mcm-route">${ev.ts}&nbsp;&nbsp;<b>${ev.from}</b>${to}</span>`;
         panel.appendChild(card);
       }
     }
-
+    
     async function main() {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
@@ -262,6 +302,7 @@
       const H = canvas.height;
       const info = document.getElementById('info');
 
+      // Nota: Certifica-te que o roads.json está no mesmo diretório
       const response = await fetch('roads.json');
       const data = await response.json();
       const roads = data.roads;
@@ -282,24 +323,22 @@
 
       function connect() {
         const ws = new WebSocket(WS_URL);
-
-        ws.onopen = () => { info.textContent = 'ligado'; };
-
+        ws.onopen = () => { info.textContent = 'STATUS: LIGADO'; };
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data);
           render(msg.vehicles);
-          if (msg.mcm_events) renderMcmEvents(msg.mcm_events);
-          info.textContent = `ligado · t=${msg.t.toFixed(2)}s`;
+          if (msg.mcm_events && msg.mcm_events.length > 0) {
+            currentEvents = [...currentEvents, ...msg.mcm_events];
+            renderMcmEvents(currentEvents);
+          }
+          info.textContent = `LIGADO · TEMPO: ${msg.t.toFixed(2)}s`;
         };
-
         ws.onclose = () => {
-          info.textContent = 'desligado — a reconectar...';
+          info.textContent = 'DESLIGADO — A RECONECTAR...';
           setTimeout(connect, 2000);
         };
-
         ws.onerror = () => { ws.close(); };
       }
-
       connect();
     }
 

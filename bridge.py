@@ -10,8 +10,7 @@ ZENOH_BROKER = "tcp/192.168.98.10:7447"
 
 vehicle_states = {}
 ws_clients     = set()
-MCM_EVENTS     = []
-MCM_EVENTS_MAX = 100
+MCM_PENDING    = []  # new events since last broadcast, cleared each cycle
 
 
 def _extract_ref_position(payload):
@@ -91,9 +90,7 @@ def on_mcm(sample):
             "to":           to_str,
             "manoeuvre_id": manoeuvre_id,
         }
-        MCM_EVENTS.append(event)
-        if len(MCM_EVENTS) > MCM_EVENTS_MAX:
-            MCM_EVENTS.pop(0)
+        MCM_PENDING.append(event)
     except Exception:
         pass
 
@@ -109,10 +106,12 @@ async def ws_handler(ws):
 async def broadcast_loop():
     start = time.time()
     while True:
+        new_events = MCM_PENDING[:]
+        del MCM_PENDING[:]
         msg = json.dumps({
             "t":          round(time.time() - start, 2),
             "vehicles":   list(vehicle_states.values()),
-            "mcm_events": list(MCM_EVENTS[-20:]),
+            "mcm_events": new_events,
         })
         dead = set()
         for ws in ws_clients:
