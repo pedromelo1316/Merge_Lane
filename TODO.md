@@ -111,9 +111,9 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ### Etapa 10.3
 
-- [ ] Veiculos que receberam MCM respodnem com `MERGE_GRANT`
-- [ ] Veículo na rampa valida e executa o merge (ou fallback se timeout ou negações)
-- [ ] Logar cada passo com timestamp
+- [x] Veiculos que receberam MCM respodnem com `MERGE_GRANT`
+- [x] Veículo na rampa valida e executa o merge (ou fallback se timeout ou negações)
+- [x] Logar cada passo com timestamp
 
 **Teste:** nos logs do `docker compose up` ver a sequência completa de mensagens com timings corretos.
 

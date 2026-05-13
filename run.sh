@@ -4,6 +4,11 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+echo "==> A parar processos antigos (bridge e HTTP)..."
+pkill -f "python3 bridge.py" 2>/dev/null || true
+pkill -f "http.server 8000"  2>/dev/null || true
+sleep 0.5
+
 echo "==> A parar containers antigos..."
 docker compose down
 

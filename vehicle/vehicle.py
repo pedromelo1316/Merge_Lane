@@ -534,19 +534,24 @@ def main():
                 neighbour_lock, neighbour_states,
                 last_conflict_set,
             )
-            send_merge_request(
-                session, vehicle_id, own_station_id,
-                lat, lon, bearing, speed_ms,
-                last_conflict_set,
-                neighbour_lock, neighbour_states,
-                manoeuvre_state,
-            )
+
+            with protocol_lock:
+                decided = protocol_state["merge_decided"]
+
+            if not decided:
+                send_merge_request(
+                    session, vehicle_id, own_station_id,
+                    lat, lon, bearing, speed_ms,
+                    last_conflict_set,
+                    neighbour_lock, neighbour_states,
+                    manoeuvre_state,
+                )
 
             if last_conflict_set:
-                with protocol_lock:
-                    grants  = frozenset(protocol_state["grants_received"])
-                    timeout = protocol_state["grant_timeout"]
-                    decided = protocol_state["merge_decided"]
+                if not decided:
+                    with protocol_lock:
+                        grants  = frozenset(protocol_state["grants_received"])
+                        timeout = protocol_state["grant_timeout"]
 
                 if not decided:
                     all_granted = last_conflict_set.issubset(grants)

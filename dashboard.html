@@ -6,41 +6,126 @@
   <style>
     body {
       margin: 0;
+      padding: 1rem;
       background: #1a1a2e;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
+      align-items: flex-start;
       font-family: monospace;
       color: #e0e0e0;
     }
     h1 {
       font-size: 1rem;
       letter-spacing: 0.1em;
-      margin-bottom: 1rem;
+      margin: 0 0 0.75rem 0;
       color: #aaa;
+    }
+    .main-row {
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+      align-items: flex-start;
     }
     canvas {
       background: #0f0f1a;
       border: 1px solid #333;
       border-radius: 4px;
+      display: block;
     }
     #info {
-      margin-top: 0.75rem;
+      margin-top: 0.5rem;
       font-size: 0.75rem;
       color: #666;
+    }
+    #mcm-panel {
+      width: 280px;
+      height: 400px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      background: #0f0f1a;
+      border: 1px solid #333;
+      border-radius: 4px;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+    #mcm-panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2px;
+      flex-shrink: 0;
+    }
+    #mcm-panel-header span {
+      color: #555;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+    }
+    #mcm-clear-btn {
+      background: none;
+      border: 1px solid #333;
+      border-radius: 3px;
+      color: #555;
+      font-family: monospace;
+      font-size: 0.65rem;
+      padding: 1px 6px;
+      cursor: pointer;
+    }
+    #mcm-clear-btn:hover {
+      border-color: #666;
+      color: #aaa;
+    }
+    .mcm-card {
+      border-radius: 3px;
+      padding: 5px 8px;
+      font-size: 0.7rem;
+      border-left: 3px solid #666;
+      background: #16162a;
+      flex-shrink: 0;
+    }
+    .mcm-type {
+      font-weight: bold;
+    }
+    .mcm-route {
+      color: #bbb;
+    }
+    .mcm-id {
+      color: #444;
+      float: right;
     }
   </style>
 </head>
 <body>
   <h1>COOPERATIVE LANE MERGE</h1>
-  <canvas id="canvas" width="800" height="400"></canvas>
-  <div id="info">a ligar...</div>
+  <div class="main-row">
+    <div>
+      <canvas id="canvas" width="700" height="400"></canvas>
+      <div id="info">a ligar...</div>
+    </div>
+    <div id="mcm-panel">
+      <div id="mcm-panel-header">
+        <span>MCM LOG</span>
+        <button id="mcm-clear-btn">clear</button>
+      </div>
+    </div>
+  </div>
 
   <script>
     const PADDING = 60;
-    const WS_URL = 'ws://localhost:8765';
+    const WS_URL  = 'ws://localhost:8765';
+
+    const MCM_COLORS = {
+      'MERGE_REQUEST':    '#2196f3',
+      'SLOWDOWN_REQUEST': '#ff9800',
+      'ACK':              '#4caf50',
+      'MERGE_GRANT':      '#00bcd4',
+    };
+
+    function mcmColor(type) {
+      if (type.startsWith('EXECUTION_STATUS')) return '#9c27b0';
+      return MCM_COLORS[type] || '#666';
+    }
 
     function gpsToCanvas(lat, lon, bounds, w, h) {
       const latCenter = (bounds.minLat + bounds.maxLat) / 2;
@@ -132,6 +217,44 @@
       }
     }
 
+    let hiddenSigs = new Set();
+    let currentEvents = [];
+
+    function evSig(ev) {
+      return `${ev.ts}|${ev.type}|${ev.from}|${ev.to}|${ev.manoeuvre_id}`;
+    }
+
+    document.getElementById('mcm-clear-btn').addEventListener('click', () => {
+      hiddenSigs = new Set(currentEvents.map(evSig));
+      const panel  = document.getElementById('mcm-panel');
+      const header = document.getElementById('mcm-panel-header');
+      panel.innerHTML = '';
+      panel.appendChild(header);
+    });
+
+    function renderMcmEvents(events) {
+      currentEvents = events;
+      const panel  = document.getElementById('mcm-panel');
+      const header = document.getElementById('mcm-panel-header');
+      panel.innerHTML = '';
+      panel.appendChild(header);
+
+      const visible = events.filter(ev => !hiddenSigs.has(evSig(ev)));
+
+      for (const ev of [...visible].reverse()) {
+        const color = mcmColor(ev.type);
+        const to    = ev.to ? ` → ${ev.to}` : '';
+        const card  = document.createElement('div');
+        card.className = 'mcm-card';
+        card.style.borderLeftColor = color;
+        card.innerHTML =
+          `<span class="mcm-id">·${ev.manoeuvre_id}</span>` +
+          `<span class="mcm-type" style="color:${color}">${ev.type}</span><br>` +
+          `<span class="mcm-route">${ev.ts}&nbsp;&nbsp;${ev.from}${to}</span>`;
+        panel.appendChild(card);
+      }
+    }
+
     async function main() {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
@@ -144,7 +267,6 @@
       const roads = data.roads;
       const bounds = computeBounds(roads);
 
-      // draw roads once to offscreen canvas
       const offscreen = document.createElement('canvas');
       offscreen.width = W;
       offscreen.height = H;
@@ -156,7 +278,6 @@
         drawVehicles(ctx, vehicles, bounds, W, H);
       }
 
-      // initial static render while waiting for WS
       render([]);
 
       function connect() {
@@ -167,6 +288,7 @@
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data);
           render(msg.vehicles);
+          if (msg.mcm_events) renderMcmEvents(msg.mcm_events);
           info.textContent = `ligado · t=${msg.t.toFixed(2)}s`;
         };
 
