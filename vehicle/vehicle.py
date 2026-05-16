@@ -1,4 +1,3 @@
-import argparse
 import json
 import math
 import os
@@ -41,6 +40,16 @@ def open_zenoh_session(broker):
     config_json = '{"mode":"client","connect":{"endpoints":["' + broker + '"]}}'
     config = zenoh.Config.from_json5(config_json)
     return zenoh.open(config)
+
+
+def open_zenoh_session_with_retry(url, retries=15, delay=2.0):
+    for attempt in range(retries):
+        try:
+            return open_zenoh_session(url)
+        except Exception as e:
+            print(f"Zenoh connect to {url} falhou ({e}), retry {attempt + 1}/{retries}...")
+            time.sleep(delay)
+    raise RuntimeError(f"Não foi possível ligar a {url} após {retries} tentativas")
 
 
 def make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_states):
@@ -389,44 +398,25 @@ def send_merge_request(session, vehicle_id, own_station_id,
     )
 
 
-STATION_IDS = {"MC": 10, "A": 11, "B": 12, "C": 13}
 CONFLICT_ZONE_M    = 50.0
 CONFLICT_HORIZON_S = 2.0
 GRANT_TIMEOUT_S    = 5.0
 
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Vehicle simulation with optional CAM publishing.")
-    parser.add_argument("id", nargs="?", default=os.environ.get("VEHICLE_ID"),
-                        help="Vehicle ID (MC, A, B, C)")
-    parser.add_argument("--broker", default=os.environ.get("ZENOH_BROKER"),
-                        help="Zenoh broker endpoint, e.g. tcp/192.168.98.10:7447")
-    parser.add_argument("--speed", type=float, default=1.0,
-                        help="Simulation speed multiplier (e.g. 2 = 2x faster)")
-    return parser.parse_args()
+def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
+    roads = {r["id"]: r for r in scenario["roads"]}
 
+    vehicle_cfg = next(
+        (v for v in scenario["vehicles"] if v["station_id"] == own_station_id),
+        None,
+    )
+    if vehicle_cfg is None:
+        print(f"[{vehicle_id}] Aviso: station_id={own_station_id} não encontrado no cenário — a saltar")
+        return
 
-def main():
-    args = parse_args()
-    vehicle_id = args.id
-    speed_factor = max(args.speed, 0.1)
+    speed_factor = max(float(scenario.get("speed_multiplier", 1.0)), 0.1)
 
-    if not vehicle_id:
-        print("Erro: especifica o ID do veículo (argumento ou VEHICLE_ID env var)")
-        sys.exit(1)
-
-    with open("roads.json") as f:
-        roads = {r["id"]: r for r in json.load(f)["roads"]}
-
-    with open("vehicles.json") as f:
-        all_vehicles = json.load(f)["vehicles"]
-
-    vehicle = next((v for v in all_vehicles if v["id"] == vehicle_id), None)
-    if vehicle is None:
-        print(f"veículo '{vehicle_id}' não encontrado em vehicles.json")
-        sys.exit(1)
-
-    road = roads[vehicle["road"]]
+    road = roads[vehicle_cfg["road"]]
     L_m = haversine(
         road["start"]["lat"], road["start"]["lon"],
         road["end"]["lat"],   road["end"]["lon"],
@@ -437,9 +427,9 @@ def main():
         road["end"]["lat"],   road["end"]["lon"],
     )
 
-    DT = 0.1
+    DT   = 0.1
     dt_t = speed_ms * DT / L_m
-    t = project_t(vehicle["lat"], vehicle["lon"], road)
+    t    = project_t(vehicle_cfg["lat"], vehicle_cfg["lon"], road)
 
     is_ramp = road.get("type") == "ramp"
     if is_ramp and road.get("merges_into"):
@@ -456,7 +446,7 @@ def main():
     neighbour_lock    = threading.Lock()
     neighbour_states  = {}
     last_conflict_set = frozenset()
-    manoeuvre_state = {
+    manoeuvre_state   = {
         "last_conflict_set": frozenset(),
         "manoeuvre_id":      0,
         "last_send_time":    0.0,
@@ -469,7 +459,7 @@ def main():
         "speed_ms": speed_ms, "bearing": bearing,
     }
 
-    protocol_lock = threading.Lock()
+    protocol_lock  = threading.Lock()
     protocol_state = {
         "in_conflict":              False,
         "mc_station_id":            None,
@@ -487,123 +477,120 @@ def main():
         "merge_decided":            False,
     }
 
-    session = None
-    if args.broker:
-        try:
-            session = open_zenoh_session(args.broker)
-            print(f"[{vehicle_id}] Zenoh ligado a {args.broker}")
-            own_station_id = STATION_IDS.get(vehicle_id)
-            session.declare_subscriber(
-                "vanetza/out/cam",
-                make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_states),
-            )
-            session.declare_subscriber(
-                "vanetza/out/mcm",
-                make_mcm_callback(vehicle_id, own_station_id, session,
-                                  vehicle_state, road, is_ramp,
-                                  neighbour_lock, neighbour_states,
-                                  protocol_lock, protocol_state),
-            )
-        except Exception as e:
-            print(f"[{vehicle_id}] Aviso: não foi possível ligar ao broker ({e})")
-            session = None
+    print(f"[{vehicle_id}] Cenário iniciado: road={vehicle_cfg['road']} "
+          f"pos=({vehicle_cfg['lat']:.5f}, {vehicle_cfg['lon']:.5f}) "
+          f"speed={speed_ms:.1f}m/s speed_factor={speed_factor}")
 
-    elapsed = 0.0
-    while t < 1.0:
-        lat = road["start"]["lat"] + t * (road["end"]["lat"] - road["start"]["lat"])
-        lon = road["start"]["lon"] + t * (road["end"]["lon"] - road["start"]["lon"])
+    cam_sub = vanetza_session.declare_subscriber(
+        "vanetza/out/cam",
+        make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_states),
+    )
+    mcm_sub = vanetza_session.declare_subscriber(
+        "vanetza/out/mcm",
+        make_mcm_callback(vehicle_id, own_station_id, vanetza_session,
+                          vehicle_state, road, is_ramp,
+                          neighbour_lock, neighbour_states,
+                          protocol_lock, protocol_state),
+    )
 
-        vehicle_state["lat"]      = lat
-        vehicle_state["lon"]      = lon
-        vehicle_state["speed_ms"] = speed_ms
-        vehicle_state["bearing"]  = bearing
+    try:
+        elapsed = 0.0
+        while t < 1.0:
+            lat = road["start"]["lat"] + t * (road["end"]["lat"] - road["start"]["lat"])
+            lon = road["start"]["lon"] + t * (road["end"]["lon"] - road["start"]["lon"])
 
-        #print(f"[{vehicle_id}] t={elapsed:6.2f}s  lat={lat:.5f}  lon={lon:.5f}  bearing={bearing:.1f}°")
+            vehicle_state["lat"]      = lat
+            vehicle_state["lon"]      = lon
+            vehicle_state["speed_ms"] = speed_ms
+            vehicle_state["bearing"]  = bearing
 
-        if session is not None:
             cam = build_cam(lat, lon, bearing, speed_ms, road.get("lane_position"))
-            session.put("vanetza/in/cam", json.dumps(cam).encode())
+            vanetza_session.put("vanetza/in/cam", json.dumps(cam).encode())
 
-        should_advance = True
+            should_advance = True
 
-        if is_ramp and session is not None and main_road is not None:
-            last_conflict_set = detect_conflicts(
-                vehicle_id, t, L_m, speed_ms,
-                merge_lat, merge_lon,
-                main_road, L_main,
-                neighbour_lock, neighbour_states,
-                last_conflict_set,
-            )
-
-            with protocol_lock:
-                decided = protocol_state["merge_decided"]
-
-            if not decided:
-                send_merge_request(
-                    session, vehicle_id, own_station_id,
-                    lat, lon, bearing, speed_ms,
-                    last_conflict_set,
+            if is_ramp and main_road is not None:
+                last_conflict_set = detect_conflicts(
+                    vehicle_id, t, L_m, speed_ms,
+                    merge_lat, merge_lon,
+                    main_road, L_main,
                     neighbour_lock, neighbour_states,
-                    manoeuvre_state,
+                    last_conflict_set,
                 )
 
-            if last_conflict_set:
-                if not decided:
-                    with protocol_lock:
-                        grants  = frozenset(protocol_state["grants_received"])
-                        timeout = protocol_state["grant_timeout"]
+                with protocol_lock:
+                    decided = protocol_state["merge_decided"]
 
                 if not decided:
-                    all_granted = last_conflict_set.issubset(grants)
-                    timed_out   = timeout is not None and time.time() > timeout
-                    approaching = (1.0 - t) * L_m <= CONFLICT_ZONE_M
+                    send_merge_request(
+                        vanetza_session, vehicle_id, own_station_id,
+                        lat, lon, bearing, speed_ms,
+                        last_conflict_set,
+                        neighbour_lock, neighbour_states,
+                        manoeuvre_state,
+                    )
 
-                    if all_granted:
-                        now = time.time()
-                        with neighbour_lock:
-                            snap = dict(neighbour_states)
-                        valid = all(
-                            sid in snap and now - snap[sid]["ts"] < 2.0
-                            for sid in last_conflict_set
-                        )
-                        ts = time.strftime("%H:%M:%S")
-                        if valid:
-                            print(f"[{ts}] [{vehicle_id}] MERGE_GRANT validado — a executar merge grants={sorted(grants)}")
+                if last_conflict_set:
+                    if not decided:
+                        with protocol_lock:
+                            grants  = frozenset(protocol_state["grants_received"])
+                            timeout = protocol_state["grant_timeout"]
+
+                    if not decided:
+                        all_granted = last_conflict_set.issubset(grants)
+                        timed_out   = timeout is not None and time.time() > timeout
+                        approaching = (1.0 - t) * L_m <= CONFLICT_ZONE_M
+
+                        if all_granted:
+                            now = time.time()
+                            with neighbour_lock:
+                                snap = dict(neighbour_states)
+                            valid = all(
+                                sid in snap and now - snap[sid]["ts"] < 2.0
+                                for sid in last_conflict_set
+                            )
+                            ts = time.strftime("%H:%M:%S")
+                            if valid:
+                                print(f"[{ts}] [{vehicle_id}] MERGE_GRANT validado — a executar merge grants={sorted(grants)}")
+                                status = build_execution_status(
+                                    own_station_id, lat, lon,
+                                    manoeuvre_state["manoeuvre_id"], success=True,
+                                )
+                                vanetza_session.put("vanetza/in/mcm", json.dumps(status).encode())
+                                with protocol_lock:
+                                    protocol_state["merge_decided"] = True
+                            else:
+                                print(f"[{ts}] [{vehicle_id}] MERGE_GRANT inválido (CAMs stale) — a renegociar")
+                                with protocol_lock:
+                                    protocol_state["grants_received"] = set()
+                                    protocol_state["grant_timeout"]   = None
+                        elif timed_out:
+                            ts = time.strftime("%H:%M:%S")
+                            print(f"[{ts}] [{vehicle_id}] MERGE_GRANT timeout — fallback "
+                                  f"(grants={sorted(grants)}, esperados={sorted(last_conflict_set)})")
                             status = build_execution_status(
                                 own_station_id, lat, lon,
-                                manoeuvre_state["manoeuvre_id"], success=True,
+                                manoeuvre_state["manoeuvre_id"], success=False,
                             )
-                            session.put("vanetza/in/mcm", json.dumps(status).encode())
-                            with protocol_lock:
-                                protocol_state["merge_decided"] = True
-                        else:
-                            print(f"[{ts}] [{vehicle_id}] MERGE_GRANT inválido (CAMs stale) — a renegociar")
+                            vanetza_session.put("vanetza/in/mcm", json.dumps(status).encode())
                             with protocol_lock:
                                 protocol_state["grants_received"] = set()
                                 protocol_state["grant_timeout"]   = None
-                    elif timed_out:
-                        ts = time.strftime("%H:%M:%S")
-                        print(f"[{ts}] [{vehicle_id}] MERGE_GRANT timeout — fallback "
-                              f"(grants={sorted(grants)}, esperados={sorted(last_conflict_set)})")
-                        status = build_execution_status(
-                            own_station_id, lat, lon,
-                            manoeuvre_state["manoeuvre_id"], success=False,
-                        )
-                        session.put("vanetza/in/mcm", json.dumps(status).encode())
-                        with protocol_lock:
-                            protocol_state["grants_received"] = set()
-                            protocol_state["grant_timeout"]   = None
-                        manoeuvre_state["manoeuvre_id"] += 1
-                    elif approaching:
-                        ts = time.strftime("%H:%M:%S")
-                        print(f"[{ts}] [{vehicle_id}] a aguardar MERGE_GRANT... "
-                              f"grants={sorted(grants)} / esperados={sorted(last_conflict_set)}")
-                        should_advance = False
+                            manoeuvre_state["manoeuvre_id"] += 1
+                        elif approaching:
+                            ts = time.strftime("%H:%M:%S")
+                            print(f"[{ts}] [{vehicle_id}] a aguardar MERGE_GRANT... "
+                                  f"grants={sorted(grants)} / esperados={sorted(last_conflict_set)}")
+                            should_advance = False
 
-        if should_advance:
-            t += dt_t
-        elapsed += DT
-        time.sleep(DT / speed_factor)
+            if should_advance:
+                t += dt_t
+            elapsed += DT
+            time.sleep(DT / speed_factor)
+
+    finally:
+        cam_sub.undeclare()
+        mcm_sub.undeclare()
 
     lat = road["end"]["lat"]
     lon = road["end"]["lon"]
@@ -617,8 +604,81 @@ def main():
             print(f"[{ts}] [{vehicle_id}] MERGE: chegou ao fim da rampa sem grants suficientes")
     print(f"[{vehicle_id}] t={elapsed:6.2f}s  lat={lat:.5f}  lon={lon:.5f}  [CHEGOU]")
 
-    if session is not None:
-        session.close()
+
+def main():
+    vehicle_id     = os.environ.get("VEHICLE_ID")
+    own_station_id = os.environ.get("STATION_ID")
+    vanetza_url    = os.environ.get("VANETZA_ZENOH_URL")
+    coord_url      = os.environ.get("COORDINATOR_ZENOH_URL")
+
+    if not vehicle_id or own_station_id is None:
+        print("Erro: VEHICLE_ID e STATION_ID são obrigatórios")
+        sys.exit(1)
+
+    own_station_id = int(own_station_id)
+
+    print(f"[{vehicle_id}] A ligar ao Vanetza ({vanetza_url})...")
+    vanetza_session = open_zenoh_session_with_retry(vanetza_url)
+    print(f"[{vehicle_id}] Vanetza ligado.")
+
+    print(f"[{vehicle_id}] A ligar ao coordenador ({coord_url})...")
+    coord_session = open_zenoh_session(coord_url)
+    print(f"[{vehicle_id}] Coordenador ligado.")
+
+    scenario_event = threading.Event()
+    pending        = {}
+    pending_skip   = [False]
+
+    def on_scenario(sample):
+        try:
+            data   = json.loads(bytes(sample.payload).decode())
+            active = data.get("active_vehicles", [])
+            if own_station_id not in active:
+                print(f"[{vehicle_id}] Cenário recebido mas station_id={own_station_id} "
+                      f"não está em active_vehicles — a saltar")
+                pending_skip[0] = True
+            else:
+                pending.update(data)
+                pending_skip[0] = False
+            scenario_event.set()
+        except Exception as e:
+            print(f"[{vehicle_id}] Erro ao processar cenário: {e}")
+
+    coord_session.declare_subscriber("coordinator/scenario", on_scenario)
+    print(f"[{vehicle_id}] Pronto. A aguardar cenário do coordenador...")
+
+    def ready_loop():
+        ready_payload = json.dumps({"station_id": own_station_id}).encode()
+        while not scenario_event.is_set():
+            coord_session.put(f"coordinator/ready/{own_station_id}", ready_payload)
+            time.sleep(2.0)
+
+    while True:
+        ready_thread = threading.Thread(target=ready_loop, daemon=True)
+        ready_thread.start()
+        scenario_event.wait()
+        scenario_event.clear()
+
+        if pending_skip[0]:
+            pending_skip[0] = False
+            coord_session.put(
+                f"coordinator/done/{own_station_id}",
+                json.dumps({"station_id": own_station_id, "skipped": True}).encode(),
+            )
+            continue
+
+        scenario = dict(pending)
+        print(f"[{vehicle_id}] Cenário recebido: {scenario.get('name', '?')}")
+        try:
+            run_scenario(scenario, vehicle_id, own_station_id, vanetza_session)
+        except Exception as e:
+            print(f"[{vehicle_id}] Erro no cenário: {e}")
+
+        coord_session.put(
+            f"coordinator/done/{own_station_id}",
+            json.dumps({"station_id": own_station_id, "vehicle_id": vehicle_id}).encode(),
+        )
+        print(f"[{vehicle_id}] Done publicado — a aguardar próximo cenário")
 
 
 if __name__ == "__main__":

@@ -121,8 +121,6 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ## Etapa 11 — Estado do protocolo visível no dashboard
 
-- [ ] Bridge WebSocket passa a incluir o estado do protocolo de cada veículo (normal / em conflito / a abrandar / merge executado)
-- [ ] Canvas mostra cores diferentes por estado em cada veículo
-- [ ] Painel lateral com log de MCMs em tempo real
+- [x] Painel lateral com log de MCMs em tempo real
 
 **Teste:** `docker compose up`, abrir o browser, ver o merge acontecer visualmente sobre os segmentos desenhados.
