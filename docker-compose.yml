@@ -1,4 +1,13 @@
 services:
+    zenoh-router:
+        image: eclipse/zenoh:1.1.0
+        command: ["--listen", "tcp/0.0.0.0:7446"]
+        ports:
+            - "7446:7446"
+        networks:
+            vanetzalan0:
+                ipv4_address: 192.168.98.5
+
     mc:
         hostname: mc
         restart: always
@@ -95,6 +104,70 @@ services:
             vanetzalan0:
                 ipv4_address: 192.168.98.13
             
+    vehicle-mc-py:
+        build:
+            context: .
+            dockerfile: vehicle/Dockerfile
+        depends_on:
+            - mc
+            - zenoh-router
+        environment:
+            - STATION_ID=10
+            - VEHICLE_ID=MC
+            - VANETZA_ZENOH_URL=tcp/192.168.98.10:7447
+            - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
+        restart: always
+        networks:
+            vanetzalan0:
+
+    vehicle-a-py:
+        build:
+            context: .
+            dockerfile: vehicle/Dockerfile
+        depends_on:
+            - vehicle-a
+            - zenoh-router
+        environment:
+            - STATION_ID=11
+            - VEHICLE_ID=A
+            - VANETZA_ZENOH_URL=tcp/192.168.98.11:7447
+            - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
+        restart: always
+        networks:
+            vanetzalan0:
+
+    vehicle-b-py:
+        build:
+            context: .
+            dockerfile: vehicle/Dockerfile
+        depends_on:
+            - vehicle-b
+            - zenoh-router
+        environment:
+            - STATION_ID=12
+            - VEHICLE_ID=B
+            - VANETZA_ZENOH_URL=tcp/192.168.98.12:7447
+            - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
+        restart: always
+        networks:
+            vanetzalan0:
+
+    vehicle-c-py:
+        build:
+            context: .
+            dockerfile: vehicle/Dockerfile
+        depends_on:
+            - vehicle-c
+            - zenoh-router
+        environment:
+            - STATION_ID=13
+            - VEHICLE_ID=C
+            - VANETZA_ZENOH_URL=tcp/192.168.98.13:7447
+            - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
+        restart: always
+        networks:
+            vanetzalan0:
+
 networks:
   vanetzalan0:
     external: true

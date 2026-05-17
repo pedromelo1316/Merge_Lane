@@ -5,12 +5,16 @@ import time
 import websockets
 import zenoh
 
-STATION_IDS = {10: "MC", 11: "A", 12: "B", 13: "C"}
-ZENOH_BROKER = "tcp/192.168.98.10:7447"
+STATION_IDS           = {10: "MC", 11: "A", 12: "B", 13: "C"}
+ZENOH_BROKER          = "tcp/192.168.98.10:7447"
+COORDINATOR_ZENOH_URL = "tcp/127.0.0.1:7446"
 
-vehicle_states = {}
-ws_clients     = set()
-MCM_PENDING    = []  # new events since last broadcast, cleared each cycle
+vehicle_states        = {}
+ws_clients            = set()
+MCM_PENDING           = []  # new events since last broadcast, cleared each cycle
+current_roads             = []
+current_scenario_name     = ""
+current_scenario_vehicles = set()  # IDs dos veículos activos no cenário actual (e.g. {"A","B","C"})
 
 
 def _extract_ref_position(payload):
@@ -66,6 +70,18 @@ def _classify_mcm(mcm_type, its_role, inner):
     return f"MCM_{mcm_type}_ROLE_{its_role}", None
 
 
+def on_coordinator_scenario(sample):
+    global current_roads, current_scenario_name, current_scenario_vehicles
+    try:
+        data = json.loads(bytes(sample.payload).decode())
+        current_roads             = data.get("roads", [])
+        current_scenario_name     = data.get("name", "")
+        current_scenario_vehicles = {v["id"] for v in data.get("vehicles", [])}
+        print(f"[bridge] Cenário recebido: {current_scenario_name!r} ({len(current_roads)} estradas, veículos: {current_scenario_vehicles})")
+    except Exception:
+        pass
+
+
 def on_mcm(sample):
     try:
         payload = json.loads(bytes(sample.payload).decode())
@@ -110,7 +126,10 @@ async def broadcast_loop():
         del MCM_PENDING[:]
         msg = json.dumps({
             "t":          round(time.time() - start, 2),
-            "vehicles":   list(vehicle_states.values()),
+            "scenario":   current_scenario_name,
+            "roads":      current_roads,
+            "vehicles":   [v for v in vehicle_states.values()
+                           if not current_scenario_vehicles or v["id"] in current_scenario_vehicles],
             "mcm_events": new_events,
         })
         dead = set()
@@ -124,14 +143,18 @@ async def broadcast_loop():
 
 
 async def main():
-    config_json = f'{{"mode":"client","connect":{{"endpoints":["{ZENOH_BROKER}"]}}}}'
-    session = zenoh.open(zenoh.Config.from_json5(config_json))
+    config_vanetza = f'{{"mode":"client","connect":{{"endpoints":["{ZENOH_BROKER}"]}}}}'
+    session = zenoh.open(zenoh.Config.from_json5(config_vanetza))
     session.declare_subscriber("vanetza/out/cam", on_cam)
     session.declare_subscriber("vanetza/time/cam", on_cam)
     session.declare_subscriber("vanetza/out/mcm", on_mcm)
     session.declare_subscriber("vanetza/time/mcm", on_mcm)
 
-    print(f"Bridge ligado a {ZENOH_BROKER}")
+    config_coord = f'{{"mode":"client","connect":{{"endpoints":["{COORDINATOR_ZENOH_URL}"]}}}}'
+    coord_session = zenoh.open(zenoh.Config.from_json5(config_coord))
+    coord_session.declare_subscriber("coordinator/scenario", on_coordinator_scenario)
+
+    print(f"Bridge ligado a {ZENOH_BROKER} (V2X) e {COORDINATOR_ZENOH_URL} (coordinator)")
     print("WebSocket a ouvir em ws://localhost:8765")
     try:
         async with websockets.serve(ws_handler, "localhost", 8765):
@@ -140,6 +163,7 @@ async def main():
         pass
     finally:
         session.close()
+        coord_session.close()
 
 
 if __name__ == "__main__":

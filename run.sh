@@ -4,18 +4,26 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-echo "==> A parar processos antigos (bridge e HTTP)..."
-pkill -f "python3 bridge.py" 2>/dev/null || true
-pkill -f "http.server 8000"  2>/dev/null || true
+echo "==> A parar processos antigos (bridge, HTTP, coordinator)..."
+pkill -f "python3 bridge.py"      2>/dev/null || true
+pkill -f "python3 coordinator.py" 2>/dev/null || true
+pkill -f "http.server 8000"       2>/dev/null || true
 sleep 0.5
 
 echo "==> A parar containers antigos..."
 docker compose down
 
-echo "==> A arrancar containers..."
-docker compose up -d
+echo "==> A arrancar containers (com rebuild das imagens Python)..."
+docker compose up -d --build
 
-echo "==> À espera que o Zenoh broker esteja disponível (192.168.98.10:7447)..."
+echo "==> À espera que o Zenoh router esteja disponível (127.0.0.1:7446)..."
+until nc -z 127.0.0.1 7446 2>/dev/null; do
+    printf "."
+    sleep 1
+done
+echo " pronto."
+
+echo "==> À espera que o Zenoh broker Vanetza esteja disponível (192.168.98.10:7447)..."
 until nc -z 192.168.98.10 7447 2>/dev/null; do
     printf "."
     sleep 1
@@ -39,4 +47,4 @@ firefox "http://localhost:8000/dashboard.html" &
 
 echo ""
 echo "Pronto. Para parar: kill $BRIDGE_PID $HTTP_PID"
-echo "Para correr os veículos: python3 run_vehicles.py"
+echo "Para correr os cenários: python3 coordinator.py"

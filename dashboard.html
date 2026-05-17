@@ -174,8 +174,10 @@
           maxLon = Math.max(maxLon, pt.lon);
         }
       }
-      const mLat = (maxLat - minLat) * 0.15;
-      const mLon = (maxLon - minLon) * 0.15;
+      const latRange = maxLat - minLat;
+      const lonRange = maxLon - minLon;
+      const mLat = latRange > 0 ? latRange * 0.15 : 0.001;
+      const mLon = lonRange > 0 ? lonRange * 0.15 : 0.001;
       return {
         minLat: minLat - mLat, maxLat: maxLat + mLat,
         minLon: minLon - mLon, maxLon: maxLon + mLon,
@@ -302,36 +304,58 @@
       const H = canvas.height;
       const info = document.getElementById('info');
 
-      // Nota: Certifica-te que o roads.json está no mesmo diretório
-      const response = await fetch('roads.json');
-      const data = await response.json();
-      const roads = data.roads;
-      const bounds = computeBounds(roads);
+      let roads     = [];
+      let bounds    = null;
+      let offscreen = null;
 
-      const offscreen = document.createElement('canvas');
-      offscreen.width = W;
-      offscreen.height = H;
-      drawRoads(offscreen.getContext('2d'), roads, bounds, W, H);
+      function rebuildRoads(newRoads) {
+        roads     = newRoads;
+        bounds    = computeBounds(roads);
+        offscreen = document.createElement('canvas');
+        offscreen.width  = W;
+        offscreen.height = H;
+        drawRoads(offscreen.getContext('2d'), roads, bounds, W, H);
+      }
 
       function render(vehicles) {
         ctx.clearRect(0, 0, W, H);
-        ctx.drawImage(offscreen, 0, 0);
-        drawVehicles(ctx, vehicles, bounds, W, H);
+        if (offscreen) ctx.drawImage(offscreen, 0, 0);
+        if (bounds)    drawVehicles(ctx, vehicles, bounds, W, H);
       }
 
       render([]);
+
+      let currentScenario = null;
+
+      function clearMcmLog() {
+        currentEvents  = [];
+        hiddenSigs     = new Set();
+        lastEventCount = 0;
+        const panel  = document.getElementById('mcm-panel');
+        const header = document.getElementById('mcm-panel-header');
+        panel.innerHTML = '';
+        panel.appendChild(header);
+      }
 
       function connect() {
         const ws = new WebSocket(WS_URL);
         ws.onopen = () => { info.textContent = 'STATUS: LIGADO'; };
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data);
+          if (msg.scenario && msg.scenario !== currentScenario) {
+            currentScenario = msg.scenario;
+            clearMcmLog();
+          }
+          if (msg.roads && msg.roads.length > 0 && msg.roads !== roads) {
+            rebuildRoads(msg.roads);
+          }
           render(msg.vehicles);
           if (msg.mcm_events && msg.mcm_events.length > 0) {
             currentEvents = [...currentEvents, ...msg.mcm_events];
             renderMcmEvents(currentEvents);
           }
-          info.textContent = `LIGADO · TEMPO: ${msg.t.toFixed(2)}s`;
+          info.textContent = `LIGADO · TEMPO: ${msg.t.toFixed(2)}s` +
+                             (msg.scenario ? ` · ${msg.scenario}` : '');
         };
         ws.onclose = () => {
           info.textContent = 'DESLIGADO — A RECONECTAR...';
