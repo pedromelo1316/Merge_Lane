@@ -1,13 +1,15 @@
 import json
 import math
 import os
+import random
 import sys
 import threading
 import time
 
 from cam_builder import build_cam
 from mcm_builder import (build_merge_request, build_slowdown_request,
-                         build_ack, build_merge_grant, build_execution_status)
+                         build_ack, build_merge_grant, build_slowdown_grant,
+                         build_execution_status)
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -117,6 +119,16 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             current = (neighbour_states.get(target_id) or {}).get("speed_ms")
         return current * 0.7 if current else None
 
+    def _send_ack(delta_time, mid):
+        ack = build_ack(
+            station_id=own_station_id,
+            lat=vehicle_state["lat"],
+            lon=vehicle_state["lon"],
+            manoeuvre_id=mid,
+            acknowledged_delta_time=delta_time,
+        )
+        session.put("vanetza/in/mcm", json.dumps(ack).encode())
+
     def _send_slowdown(target_id, mc_advice):
         sugg = _suggested_speed_for(target_id, mc_advice)
         if sugg is None:
@@ -142,6 +154,22 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{vehicle_id}] SLOWDOWN_REQUEST enviado para stationID={target_id} speed={sugg:.2f} m/s")
 
+    def _send_slowdown_grant(to_id):
+        grant_id = random.randint(128, 255)
+        grant = build_slowdown_grant(
+            station_id=own_station_id,
+            lat=vehicle_state["lat"],
+            lon=vehicle_state["lon"],
+            manoeuvre_id=grant_id,
+        )
+        sent_delta = grant["basicContainer"]["generationDeltaTime"]
+        session.put("vanetza/in/mcm", json.dumps(grant).encode())
+        with protocol_lock:
+            protocol_state["slowdown_grant_sent"] = True
+            protocol_state["slowdown_grant_sent_delta"] = sent_delta
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] [{vehicle_id}] SLOWDOWN_GRANT enviado para stationID={to_id} (grant_id={grant_id})")
+
     def _send_merge_grant():
         with protocol_lock:
             if protocol_state["merge_grant_sent"]:
@@ -158,9 +186,11 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             lon=vehicle_state["lon"],
             manoeuvre_id=mid,
         )
+        sent_delta = grant["basicContainer"]["generationDeltaTime"]
         session.put("vanetza/in/mcm", json.dumps(grant).encode())
         with protocol_lock:
             protocol_state["merge_grant_sent"] = True
+            protocol_state["merge_grant_sent_delta"] = sent_delta
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{vehicle_id}] MERGE_GRANT enviado ao MC stationID={mc_id}")
 
@@ -182,22 +212,46 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             ts = time.strftime("%H:%M:%S")
             print(f"[{ts}] [{vehicle_id}] MCM recebido de stationID={sender_id} mcmType={type_name}")
 
-            # ── MERGE_GRANT (road vehicle → MC) ───────────────────────────────
+            # ── mcmType=2, itssRole=3: SLOWDOWN_GRANT (128-255) ou MERGE_GRANT (0-127) ──
             if mcm_type == 2 and its_role == 3:
-                if not is_ramp:
-                    return
-                ts = time.strftime("%H:%M:%S")
-                print(f"[{ts}] [{vehicle_id}] MERGE_GRANT recebido de stationID={sender_id} manoeuvre_id={manoeuvre_id}")
-                with protocol_lock:
-                    protocol_state["grants_received"].add(sender_id)
-                    if protocol_state["grant_timeout"] is None:
-                        protocol_state["grant_timeout"] = time.time() + GRANT_TIMEOUT_S
+                if manoeuvre_id >= 128:
+                    # ── SLOWDOWN_GRANT (veículo atrás → este veículo) ──────────
+                    if is_ramp:
+                        return  # MC não recebe SLOWDOWN_GRANT
+                    with protocol_lock:
+                        sent_to = protocol_state["slowdown_sent_to"]
+                    if sender_id != sent_to:
+                        return  # não é de quem esperávamos
+                    _send_ack(delta_time, manoeuvre_id)
+                    ts = time.strftime("%H:%M:%S")
+                    print(f"[{ts}] [{vehicle_id}] SLOWDOWN_GRANT recebido de stationID={sender_id} (grant_id={manoeuvre_id})")
+                    with protocol_lock:
+                        protocol_state["slowdown_grant_received"] = True
+                        protocol_state["slowdown_grant_sender_id"] = sender_id
+                        received = protocol_state["slowdown_received"]
+                        sender_ahead = protocol_state["slowdown_sender_id"]
+                    # Cada veículo decide independentemente (por agora: aceita sempre)
+                    if received and sender_ahead is not None:
+                        _send_slowdown_grant(sender_ahead)
+                    else:
+                        _send_merge_grant()  # veículo A: sem SLOWDOWN_REQUEST recebido → grant ao MC
+                else:
+                    # ── MERGE_GRANT (veículo da estrada → MC) ─────────────────
+                    if not is_ramp:
+                        return
+                    _send_ack(delta_time, manoeuvre_id)
+                    ts = time.strftime("%H:%M:%S")
+                    print(f"[{ts}] [{vehicle_id}] MERGE_GRANT recebido de stationID={sender_id} manoeuvre_id={manoeuvre_id}")
+                    with protocol_lock:
+                        protocol_state["grants_received"].add(sender_id)
+                        if protocol_state["grant_timeout"] is None:
+                            protocol_state["grant_timeout"] = time.time() + GRANT_TIMEOUT_S
                 return
 
             if is_ramp:
                 return
 
-            # ── MERGE_REQUEST (MC → main road vehicles) ──────────────────────
+            # ── MERGE_REQUEST (MC → veículos da estrada) ──────────────────────
             if mcm_type == 1 and its_role == 1:
                 advice = (inner["mcmContainer"]
                           .get("vehicleManoeuvreContainer", {})
@@ -209,6 +263,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     protocol_state["manoeuvre_id"] = manoeuvre_id
                     protocol_state["mc_advice"] = advice
 
+                _send_ack(delta_time, manoeuvre_id)
+
                 if not in_conflict:
                     return
 
@@ -217,9 +273,9 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                                                 neighbour_lock, neighbour_states)
                 if behind_id is not None:
                     _send_slowdown(behind_id, advice)
-                # If no vehicle behind: wait for SLOWDOWN_REQUEST from ahead to trigger ACK chain
+                # Se não há veículo atrás: aguarda SLOWDOWN_REQUEST para desencadear SLOWDOWN_GRANT
 
-            # ── SLOWDOWN_REQUEST (vehicle → vehicle) ──────────────────────────
+            # ── SLOWDOWN_REQUEST (veículo → veículo) ──────────────────────────
             elif mcm_type == 1 and its_role == 3:
                 vmc = inner["mcmContainer"].get("vehicleManoeuvreContainer", {})
                 advice = vmc.get("manoeuvreAdvice", [])
@@ -233,7 +289,6 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 except (KeyError, IndexError):
                     sugg_speed = None
 
-                # Use minimum of SLOWDOWN suggestion and MC's own advice for us (if any)
                 with protocol_lock:
                     mc_advice = list(protocol_state["mc_advice"])
                 own_mc_advice = next((e for e in mc_advice if e.get("executantID") == own_station_id), None)
@@ -251,6 +306,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     protocol_state["manoeuvre_id"] = manoeuvre_id
                     mid = manoeuvre_id
 
+                _send_ack(delta_time, mid)
+
                 own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
                 behind_id = find_vehicle_behind(own_t, own_station_id, road,
                                                 neighbour_lock, neighbour_states)
@@ -258,18 +315,12 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 if behind_id is not None:
                     _send_slowdown(behind_id, mc_advice)
                 else:
-                    ack = build_ack(
-                        station_id=own_station_id,
-                        lat=vehicle_state["lat"],
-                        lon=vehicle_state["lon"],
-                        manoeuvre_id=mid,
-                        acknowledged_delta_time=delta_time,
-                    )
-                    session.put("vanetza/in/mcm", json.dumps(ack).encode())
+                    # Fim de cadeia: decide e envia SLOWDOWN_GRANT (não ACK)
                     ts = time.strftime("%H:%M:%S")
-                    print(f"[{ts}] [{vehicle_id}] ACK enviado (fim de cadeia, origem stationID={sender_id})")
+                    print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a calcular e enviar SLOWDOWN_GRANT para stationID={sender_id}")
+                    _send_slowdown_grant(sender_id)
 
-            # ── ACK (vehicle → vehicle) ────────────────────────────────────────
+            # ── ACK (confirmação de entrega) ───────────────────────────────────
             elif mcm_type == 9:
                 ack_delta = (inner["mcmContainer"]
                              .get("acknowledgmentContainer", {})
@@ -278,36 +329,24 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     return
 
                 with protocol_lock:
-                    sent = protocol_state["slowdown_sent"]
-                    sent_delta = protocol_state["slowdown_sent_delta_time"]
-                    received = protocol_state["slowdown_received"]
-                    recv_delta = protocol_state["slowdown_delta_time"]
-                    mid = protocol_state["manoeuvre_id"]
+                    slowdown_sent_delta   = protocol_state["slowdown_sent_delta_time"]
+                    slowdown_grant_delta  = protocol_state.get("slowdown_grant_sent_delta")
+                    merge_grant_delta     = protocol_state.get("merge_grant_sent_delta")
 
-                if not sent or sent_delta is None:
-                    return
-                if abs(ack_delta - sent_delta) > 1.0:
-                    return
+                def _matches(ref):
+                    return ref is not None and abs(ack_delta - ref) <= 1.0
+
+                if _matches(slowdown_sent_delta):
+                    label = "SLOWDOWN_REQUEST"
+                elif _matches(slowdown_grant_delta):
+                    label = "SLOWDOWN_GRANT"
+                elif _matches(merge_grant_delta):
+                    label = "MERGE_GRANT"
+                else:
+                    label = "mensagem desconhecida"
 
                 ts = time.strftime("%H:%M:%S")
-                print(f"[{ts}] [{vehicle_id}] ACK recebido de stationID={sender_id} (cadeia a partir de trás confirmada)")
-
-                if received and recv_delta is not None:
-                    ack = build_ack(
-                        station_id=own_station_id,
-                        lat=vehicle_state["lat"],
-                        lon=vehicle_state["lon"],
-                        manoeuvre_id=mid,
-                        acknowledged_delta_time=recv_delta,
-                    )
-                    session.put("vanetza/in/mcm", json.dumps(ack).encode())
-                    with protocol_lock:
-                        sid_up = protocol_state["slowdown_sender_id"]
-                    ts = time.strftime("%H:%M:%S")
-                    print(f"[{ts}] [{vehicle_id}] ACK propagado para cima (stationID={sid_up})")
-                    _send_merge_grant()  # B: recebeu MERGE_REQUEST + ACK de C → envia grant ao MC
-                else:
-                    _send_merge_grant()  # A: recebeu MERGE_REQUEST + ACK de B → envia grant ao MC
+                print(f"[{ts}] [{vehicle_id}] ACK de entrega recebido de stationID={sender_id} (confirma {label})")
 
         except Exception as e:
             print(f"[{vehicle_id}] Erro no MCM callback: {e}")
@@ -471,7 +510,12 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         "slowdown_sent":            False,
         "slowdown_sent_to":         None,
         "slowdown_sent_delta_time": None,
+        "slowdown_grant_received":  False,
+        "slowdown_grant_sender_id": None,
+        "slowdown_grant_sent":      False,
+        "slowdown_grant_sent_delta": None,
         "merge_grant_sent":         False,
+        "merge_grant_sent_delta":   None,
         "grants_received":          set(),
         "grant_timeout":            None,
         "merge_decided":            False,

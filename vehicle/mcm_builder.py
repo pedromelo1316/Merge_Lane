@@ -200,9 +200,30 @@ def build_ack(station_id, lat, lon, manoeuvre_id, acknowledged_delta_time):
     }
 
 
+def build_slowdown_grant(station_id, lat, lon, manoeuvre_id):
+    """
+    Vehicle → vehicle ahead. Confirms this vehicle accepts to slow down.
+
+    manoeuvre_id must be in [128, 255] to distinguish from MERGE_GRANT (0-127).
+
+    Returns a dict ready for json.dumps(). No side effects.
+    """
+    return {
+        "basicContainer": _make_basic_container(
+            station_id, lat, lon, mcm_type=2, its_role=3,
+            manoeuvre_id=manoeuvre_id,
+        ),
+        "mcmContainer": {
+            "responseContainer": {"manouevreResponse": 0}
+        },
+    }
+
+
 def build_merge_grant(station_id, lat, lon, manoeuvre_id):
     """
     First conflicting vehicle → MC. Grants the merge window.
+
+    manoeuvre_id must be in [0, 127] to distinguish from SLOWDOWN_GRANT (128-255).
 
     Returns a dict ready for json.dumps(). No side effects.
     """
