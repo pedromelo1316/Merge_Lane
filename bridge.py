@@ -12,8 +12,9 @@ COORDINATOR_ZENOH_URL = "tcp/127.0.0.1:7446"
 vehicle_states        = {}
 ws_clients            = set()
 MCM_PENDING           = []  # new events since last broadcast, cleared each cycle
-current_roads         = []
-current_scenario_name = ""
+current_roads             = []
+current_scenario_name     = ""
+current_scenario_vehicles = set()  # IDs dos veículos activos no cenário actual (e.g. {"A","B","C"})
 
 
 def _extract_ref_position(payload):
@@ -70,12 +71,13 @@ def _classify_mcm(mcm_type, its_role, inner):
 
 
 def on_coordinator_scenario(sample):
-    global current_roads, current_scenario_name
+    global current_roads, current_scenario_name, current_scenario_vehicles
     try:
         data = json.loads(bytes(sample.payload).decode())
-        current_roads         = data.get("roads", [])
-        current_scenario_name = data.get("name", "")
-        print(f"[bridge] Cenário recebido: {current_scenario_name!r} ({len(current_roads)} estradas)")
+        current_roads             = data.get("roads", [])
+        current_scenario_name     = data.get("name", "")
+        current_scenario_vehicles = {v["id"] for v in data.get("vehicles", [])}
+        print(f"[bridge] Cenário recebido: {current_scenario_name!r} ({len(current_roads)} estradas, veículos: {current_scenario_vehicles})")
     except Exception:
         pass
 
@@ -126,7 +128,8 @@ async def broadcast_loop():
             "t":          round(time.time() - start, 2),
             "scenario":   current_scenario_name,
             "roads":      current_roads,
-            "vehicles":   list(vehicle_states.values()),
+            "vehicles":   [v for v in vehicle_states.values()
+                           if not current_scenario_vehicles or v["id"] in current_scenario_vehicles],
             "mcm_events": new_events,
         })
         dead = set()

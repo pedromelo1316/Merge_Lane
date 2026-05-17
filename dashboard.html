@@ -174,8 +174,10 @@
           maxLon = Math.max(maxLon, pt.lon);
         }
       }
-      const mLat = (maxLat - minLat) * 0.15;
-      const mLon = (maxLon - minLon) * 0.15;
+      const latRange = maxLat - minLat;
+      const lonRange = maxLon - minLon;
+      const mLat = latRange > 0 ? latRange * 0.15 : 0.001;
+      const mLon = lonRange > 0 ? lonRange * 0.15 : 0.001;
       return {
         minLat: minLat - mLat, maxLat: maxLat + mLat,
         minLon: minLon - mLon, maxLon: maxLon + mLon,
@@ -323,11 +325,27 @@
 
       render([]);
 
+      let currentScenario = null;
+
+      function clearMcmLog() {
+        currentEvents  = [];
+        hiddenSigs     = new Set();
+        lastEventCount = 0;
+        const panel  = document.getElementById('mcm-panel');
+        const header = document.getElementById('mcm-panel-header');
+        panel.innerHTML = '';
+        panel.appendChild(header);
+      }
+
       function connect() {
         const ws = new WebSocket(WS_URL);
         ws.onopen = () => { info.textContent = 'STATUS: LIGADO'; };
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data);
+          if (msg.scenario && msg.scenario !== currentScenario) {
+            currentScenario = msg.scenario;
+            clearMcmLog();
+          }
           if (msg.roads && msg.roads.length > 0 && msg.roads !== roads) {
             rebuildRoads(msg.roads);
           }
