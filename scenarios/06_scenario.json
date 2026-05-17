@@ -1,0 +1,31 @@
+{
+  "name": "Very fast angled ramp merge — conflict with A",
+  "speed_multiplier": 2.0,
+  "timeout_s": 120,
+  "active_vehicles": [10, 11, 12, 13],
+  "roads": [
+    {
+      "id": "ramp",
+      "type": "ramp",
+      "start": {"lat": 40.63720, "lon": -8.6552},
+      "end":   {"lat": 40.63800, "lon": -8.6500},
+      "speed_limit_kmh": 120,
+      "lane_position": 1,
+      "merges_into": "main"
+    },
+    {
+      "id": "main",
+      "type": "main",
+      "start": {"lat": 40.63800, "lon": -8.6560},
+      "end":   {"lat": 40.63800, "lon": -8.6480},
+      "speed_limit_kmh": 150,
+      "lane_position": 2
+    }
+  ],
+    "vehicles": [
+    {"id": "MC", "station_id": 10, "road": "ramp", "lat": 40.63788, "lon": -8.6508},
+    {"id": "A",  "station_id": 11, "road": "main", "lat": 40.63800, "lon": -8.6511},
+    {"id": "B",  "station_id": 12, "road": "main", "lat": 40.63800, "lon": -8.6520},
+    {"id": "C",  "station_id": 13, "road": "main", "lat": 40.63800, "lon": -8.6530}
+    ]
+}

@@ -11,10 +11,10 @@ pkill -f "http.server 8000"       2>/dev/null || true
 sleep 0.5
 
 echo "==> A parar containers antigos..."
-docker compose down
+docker-compose down
 
 echo "==> A arrancar containers (com rebuild das imagens Python)..."
-docker compose up -d --build
+docker-compose up -d --build
 
 echo "==> À espera que o Zenoh router esteja disponível (127.0.0.1:7446)..."
 until nc -z 127.0.0.1 7446 2>/dev/null; do

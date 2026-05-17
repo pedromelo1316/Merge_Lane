@@ -1,0 +1,31 @@
+{
+  "name": "Road narrows — right lane ends",
+  "speed_multiplier": 2.0,
+  "timeout_s": 120,
+  "active_vehicles": [10, 11, 12, 13],
+  "roads": [
+    {
+      "id": "ending_lane",
+      "type": "ramp",
+      "start": {"lat": 40.63770, "lon": -8.6560},
+      "end":   {"lat": 40.63800, "lon": -8.6500},
+      "speed_limit_kmh": 80,
+      "lane_position": 1,
+      "merges_into": "main_lane"
+    },
+    {
+      "id": "main_lane",
+      "type": "main",
+      "start": {"lat": 40.63800, "lon": -8.6560},
+      "end":   {"lat": 40.63800, "lon": -8.6480},
+      "speed_limit_kmh": 100,
+      "lane_position": 2
+    }
+  ],
+  "vehicles": [
+    {"id": "MC", "station_id": 10, "road": "ending_lane", "lat": 40.63770, "lon": -8.6538},
+    {"id": "A",  "station_id": 11, "road": "main_lane", "lat": 40.63800, "lon": -8.6506},
+    {"id": "B",  "station_id": 12, "road": "main_lane", "lat": 40.63800, "lon": -8.6516},
+    {"id": "C",  "station_id": 13, "road": "main_lane", "lat": 40.63800, "lon": -8.6526}
+  ]
+}

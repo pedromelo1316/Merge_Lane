@@ -176,7 +176,13 @@
       }
       const latRange = maxLat - minLat;
       const lonRange = maxLon - minLon;
-      const mLat = latRange > 0 ? latRange * 0.15 : 0.001;
+      /*const mLat = latRange > 0 ? latRange * 0.15 : 0.001;*/
+      const specialLaneDrop = roads.some(r => r.id === "ending_lane");
+
+      const mLat = specialLaneDrop
+        ? Math.max(latRange * 0.15, 0.003)
+        : (latRange > 0 ? latRange * 0.15 : 0.001);
+
       const mLon = lonRange > 0 ? lonRange * 0.15 : 0.001;
       return {
         minLat: minLat - mLat, maxLat: maxLat + mLat,
