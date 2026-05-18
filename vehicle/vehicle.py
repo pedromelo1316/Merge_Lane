@@ -80,7 +80,8 @@ def make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_stat
 MCM_TYPE_NAMES = {1: "request", 2: "response", 9: "acknowledgment"}
 
 
-def find_vehicle_behind(own_t, own_station_id, road, neighbour_lock, neighbour_states):
+def find_vehicle_behind(own_t, own_station_id, road, neighbour_lock, neighbour_states,
+                        exclude_ids=None):
     """Return station_id of the vehicle immediately behind on this road, or None."""
     s, e = road["start"], road["end"]
     dlat = e["lat"] - s["lat"]
@@ -90,6 +91,8 @@ def find_vehicle_behind(own_t, own_station_id, road, neighbour_lock, neighbour_s
     with neighbour_lock:
         snapshot = dict(neighbour_states)
     for sid, st in snapshot.items():
+        if exclude_ids and sid in exclude_ids:
+            continue
         t_n = ((st["lat"] - s["lat"]) * dlat + (st["lon"] - s["lon"]) * dlon) / L2
         if not (0.0 <= t_n <= 1.0 and t_n < own_t and t_n > best_t):
             continue
@@ -214,10 +217,14 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
 
                 own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
                 behind_id = find_vehicle_behind(own_t, own_station_id, road,
-                                                neighbour_lock, neighbour_states)
+                                                neighbour_lock, neighbour_states,
+                                                exclude_ids={sender_id})
                 if behind_id is not None:
                     _send_slowdown(behind_id, advice)
-                # If no vehicle behind: wait for SLOWDOWN_REQUEST from ahead to trigger ACK chain
+                elif len({e.get("executantID") for e in advice}) == 1:
+                    # Sole conflict vehicle — no SLOWDOWN chain needed; grant directly.
+                    _send_merge_grant()
+                # else: other conflict vehicles are ahead; wait for their SLOWDOWN_REQUEST
 
             # ── SLOWDOWN_REQUEST (vehicle → vehicle) ──────────────────────────
             elif mcm_type == 1 and its_role == 3:
@@ -252,8 +259,11 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     mid = manoeuvre_id
 
                 own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
+                with protocol_lock:
+                    mc_id = protocol_state["mc_station_id"]
                 behind_id = find_vehicle_behind(own_t, own_station_id, road,
-                                                neighbour_lock, neighbour_states)
+                                                neighbour_lock, neighbour_states,
+                                                exclude_ids={mc_id} if mc_id is not None else None)
 
                 if behind_id is not None:
                     _send_slowdown(behind_id, mc_advice)
