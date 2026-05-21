@@ -124,3 +124,87 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 - [x] Painel lateral com log de MCMs em tempo real
 
 **Teste:** `docker compose up`, abrir o browser, ver o merge acontecer visualmente sobre os segmentos desenhados.
+
+---
+
+## Etapa 12 — Redução de velocidade efetiva nos veículos
+
+O protocolo de mensagens está completo, mas os veículos nunca mudam de velocidade fisicamente.
+O main loop em `vehicle.py` sobrescreve `vehicle_state["speed_ms"]` com a velocidade constante da estrada a cada tick, e `dt_t` é calculado uma única vez no arranque.
+
+- [ ] Adicionar `target_speed_ms` ao `vehicle_state` (inicialmente = speed limit da estrada)
+- [ ] Main loop lê `vehicle_state["target_speed_ms"]` para avançar, em vez da constante `speed_ms`
+- [ ] `dt_t` recalculado a cada tick a partir da velocidade atual
+- [ ] MCM callback (SLOWDOWN_REQUEST): aplicar `vehicle_state["target_speed_ms"] = sugg_speed`
+- [ ] Log no terminal: `[A] velocidade reduzida para X.XX m/s`
+
+**Teste:** nos logs, velocidade de A/B/C baixa visivelmente após receber SLOWDOWN_REQUEST.
+
+---
+
+## Etapa 13 — Retoma de velocidade normal após EXECUTION_STATUS
+
+Após o merge, os veículos que abrandaram devem retomar a velocidade limite da estrada.
+
+- [ ] Adicionar handler para `EXECUTION_STATUS` (mcm_type=2, its_role=1) no MCM callback
+- [ ] Ao receber EXECUTION_STATUS(OK): `vehicle_state["target_speed_ms"] = road_speed_limit`
+- [ ] Adicionar flag `slowed_down` ao `protocol_state` para distinguir veículos afetados
+- [ ] Log no terminal: `[A] velocidade retomada após merge executado`
+
+**Teste:** após EXECUTION_STATUS nos logs, velocidade dos veículos da via principal volta ao normal.
+
+---
+
+## Etapa 14 — MC transita para a via principal após merge bem sucedido
+
+Após `merge_decided=True` e chegar ao fim da rampa (`t >= 1.0`), o MC para completamente. Deve continuar a circular na via principal a partir do ponto de merge.
+
+- [ ] Após `merge_decided=True` e `t >= 1.0`, iniciar segundo loop de movimento na `main_road`
+- [ ] Posição inicial na main road = projeção do ponto de merge (end da rampa)
+- [ ] Publicar CAMs continuamente a partir da nova posição na via principal
+- [ ] Log: `[MC] a transitar para via principal em t=X.XX`
+
+**Teste:** MC aparece no dashboard a continuar para a direita (via principal) após o merge.
+
+---
+
+## Etapa 15 — Cenários variados
+
+Os cenários 02–07 foram apagados. Só existe `01_standard_merge.json` (MC vs A, B, C).
+
+- [ ] `02_mc_vs_A_only.json` — só veículo A em conflito (sem cadeia de SLOWDOWN; A é o único)
+- [ ] `03_mc_vs_AB.json` — A e B em conflito (cadeia de 2 veículos)
+- [ ] `04_no_conflict.json` — MC chega sem conflito (vehicles já passaram o ponto; grants imediatos)
+- [ ] `05_timeout_retry.json` — MC faz timeout e renegocia (veículos colocados longe para simular lentidão)
+- [ ] `06_mc_stops.json` — MC chega à zona de conflito sem grants suficientes, para e aguarda
+- [ ] `07_high_speed.json` — `speed_multiplier` elevado para stressar timings do protocolo
+
+**Teste:** coordenador executa todos os cenários sequencialmente sem erros nem deadlocks.
+
+---
+
+## Etapa 16 — Dashboard: velocidade e ponto de merge
+
+O dashboard mostra apenas posições. Faltam indicadores de velocidade e a marcação visual do ponto de merge.
+
+- [ ] `bridge.py`: extrair `speedValue` do `highFrequencyContainer` no CAM, incluir `speed_kmh` em `vehicle_states`
+- [ ] `dashboard.html`: label de velocidade (km/h) junto ao marcador de cada veículo
+- [ ] `dashboard.html`: desenhar ponto de merge explicitamente (ícone ou círculo pontilhado)
+- [ ] `dashboard.html`: desenhar zona de conflito (círculo semitransparente de raio proporcional a `CONFLICT_ZONE_M`)
+- [ ] `dashboard.html`: cor do marcador muda consoante estado — normal (branco), a abrandar (laranja), parado (vermelho)
+
+**Teste:** browser mostra velocidades em tempo real, ponto de merge identificado no canvas, cores dos veículos mudam durante o protocolo.
+
+---
+
+## Etapa 17 — Estado do protocolo por veículo no dashboard (opcional)
+
+- [ ] Bridge infere estado do protocolo por veículo a partir dos MCMs recebidos
+- [ ] Dashboard mostra badge por veículo: `NORMAL` / `SLOWING` / `WAITING_GRANT` / `MERGING`
+
+---
+
+## Etapa 18 — Testes unitários (opcional)
+
+- [ ] Testes para `cam_builder.py` e `mcm_builder.py` (funções puras, não precisam de Docker)
+- [ ] Testes para `detect_conflicts()` com posições GPS sintéticas

@@ -1,7 +1,0 @@
-1º -> velocidades de 60,100; conflito em B; carros afastados 
-2º -> velocidades de 60,100; conflito em C; carros juntos
-3º -> velocidades de 60,100; conflito em B; carros juntos 
-4º -> velocidades de 90,130; conflito em A; 
-5º -> velocidades de 140,100; conflito em B; rampa mais inclinada
-6º -> velocidades de 150,120; conflito em A; rampa mais inclinada
-7º -> POR FAZER (vias paralelas)
