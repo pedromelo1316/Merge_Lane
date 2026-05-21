@@ -13,7 +13,7 @@ import time
 
 COORDINATOR_ZENOH_URL = os.environ.get("COORDINATOR_ZENOH_URL", "tcp/127.0.0.1:7446")
 SCENARIOS_DIR         = os.path.join(os.path.dirname(__file__), "scenarios")
-POOL                  = [10, 11, 12, 13]   # station IDs do pool fixo
+POOL                  = [10, 11, 12, 13, 14,15,16]   # station IDs do pool fixo
 DEFAULT_TIMEOUT_S     = 120
 READY_TIMEOUT_S       = 60
 

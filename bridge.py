@@ -5,7 +5,7 @@ import time
 import websockets
 import zenoh
 
-STATION_IDS           = {10: "MC", 11: "A", 12: "B", 13: "C"}
+STATION_IDS           = {10: "MC", 11: "A", 12: "B", 13: "C", 14: "D",15: "E", 16: "F"}
 ZENOH_BROKER          = "tcp/192.168.98.10:7447"
 COORDINATOR_ZENOH_URL = "tcp/127.0.0.1:7446"
 

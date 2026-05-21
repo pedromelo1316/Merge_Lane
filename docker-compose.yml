@@ -103,7 +103,83 @@ services:
         networks:
             vanetzalan0:
                 ipv4_address: 192.168.98.13
-            
+
+    vehicle-d:
+        hostname: vehicle-d
+        restart: always
+        image: ghcr.io/nap-it/vanetza-nap:latest
+        cap_add:
+            - "NET_ADMIN"
+        environment:
+            - VANETZA_STATION_ID=14
+            - VANETZA_STATION_TYPE=5
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:14
+            - VANETZA_INTERFACE=br0
+            - START_EMBEDDED_MOSQUITTO=false
+            - SUPPORT_MAC_BLOCKING=true
+            - VANETZA_CAM_ENABLED=true
+            - VANETZA_ZENOH_LOCAL_ONLY=false
+            - VANETZA_ZENOH_INTERFACES=br0
+            - VANETZA_CPM_MQTT_ENABLED=false
+            - VANETZA_CPM_MQTT_TIME_ENABLED=false
+            - VANETZA_CPM_ZENOH_ENABLED=true
+            - VANETZA_CAM_PERIODICITY=0
+        networks:
+            vanetzalan0:
+                ipv4_address: 192.168.98.14            
+
+
+
+    vehicle-e:
+        hostname: vehicle-e
+        restart: always
+        image: ghcr.io/nap-it/vanetza-nap:latest
+        cap_add:
+            - "NET_ADMIN"
+        environment:
+            - VANETZA_STATION_ID=15
+            - VANETZA_STATION_TYPE=5
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:15
+            - VANETZA_INTERFACE=br0
+            - START_EMBEDDED_MOSQUITTO=false
+            - SUPPORT_MAC_BLOCKING=true
+            - VANETZA_CAM_ENABLED=true
+            - VANETZA_ZENOH_LOCAL_ONLY=false
+            - VANETZA_ZENOH_INTERFACES=br0
+            - VANETZA_CPM_MQTT_ENABLED=false
+            - VANETZA_CPM_MQTT_TIME_ENABLED=false
+            - VANETZA_CPM_ZENOH_ENABLED=true
+            - VANETZA_CAM_PERIODICITY=0
+        networks:
+            vanetzalan0:
+                ipv4_address: 192.168.98.15
+
+    vehicle-f:
+        hostname: vehicle-f
+        restart: always
+        image: ghcr.io/nap-it/vanetza-nap:latest
+        cap_add:
+            - "NET_ADMIN"
+        environment:
+            - VANETZA_STATION_ID=16
+            - VANETZA_STATION_TYPE=5
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:16
+            - VANETZA_INTERFACE=br0
+            - START_EMBEDDED_MOSQUITTO=false
+            - SUPPORT_MAC_BLOCKING=true
+            - VANETZA_CAM_ENABLED=true
+            - VANETZA_ZENOH_LOCAL_ONLY=false
+            - VANETZA_ZENOH_INTERFACES=br0
+            - VANETZA_CPM_MQTT_ENABLED=false
+            - VANETZA_CPM_MQTT_TIME_ENABLED=false
+            - VANETZA_CPM_ZENOH_ENABLED=true
+            - VANETZA_CAM_PERIODICITY=0
+        networks:
+            vanetzalan0:
+                ipv4_address: 192.168.98.16
+
+
+
     vehicle-mc-py:
         build:
             context: .
@@ -163,6 +239,55 @@ services:
             - STATION_ID=13
             - VEHICLE_ID=C
             - VANETZA_ZENOH_URL=tcp/192.168.98.13:7447
+            - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
+        restart: always
+        networks:
+            vanetzalan0:
+
+    vehicle-d-py:
+        build:
+            context: .
+            dockerfile: vehicle/Dockerfile
+        depends_on:
+            - vehicle-d
+            - zenoh-router
+        environment:
+            - STATION_ID=14
+            - VEHICLE_ID=D
+            - VANETZA_ZENOH_URL=tcp/192.168.98.14:7447
+            - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
+        restart: always
+        networks:
+            vanetzalan0:
+
+
+    vehicle-e-py:
+        build:
+            context: .
+            dockerfile: vehicle/Dockerfile
+        depends_on:
+            - vehicle-e
+            - zenoh-router
+        environment:
+            - STATION_ID=15
+            - VEHICLE_ID=E
+            - VANETZA_ZENOH_URL=tcp/192.168.98.15:7447
+            - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
+        restart: always
+        networks:
+            vanetzalan0:
+
+    vehicle-f-py:
+        build:
+            context: .
+            dockerfile: vehicle/Dockerfile
+        depends_on:
+            - vehicle-f
+            - zenoh-router
+        environment:
+            - STATION_ID=16
+            - VEHICLE_ID=F
+            - VANETZA_ZENOH_URL=tcp/192.168.98.16:7447
             - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
         restart: always
         networks:

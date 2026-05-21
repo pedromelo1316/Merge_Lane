@@ -190,18 +190,51 @@
       };
     }
 
+
+/*-----------------------------------------------------------------------------------*/
+
+
+        // Mapa global de offsets por road id
+    const LANE_OFFSETS = {};
+
+    function computeLaneOffsets(roads, bounds, W, H) {
+      function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
+      
+      for (const road of roads) {
+        if (!road.lane_position) continue;
+        const s = toC(road.start.lat, road.start.lon);
+        const e = toC(road.end.lat, road.end.lon);
+        const dx = e.x - s.x;
+        const dy = e.y - s.y;
+        const len = Math.sqrt(dx*dx + dy*dy) || 1;
+        const offsetPx = (road.lane_position === 1) ? +14 : -14;
+        LANE_OFFSETS[road.id] = {
+          ox: -(dy / len) * offsetPx,
+          oy:  (dx / len) * offsetPx,
+        };
+      }
+    }
+
+    function applyLaneOffset(pt, roadId) {
+      const off = LANE_OFFSETS[roadId];
+      if (!off) return pt;
+      return { x: pt.x + off.ox, y: pt.y + off.oy };
+    }
+
     function drawRoads(ctx, roads, bounds, W, H) {
       const roadStyles = {
-        main: {color: '#888888', width: 14, label: 'Via Principal'},
-        ramp: {color: '#e6a817', width: 10,  label: 'Rampa'},
+        main: { color: '#888888', width: 14, label: 'Via Principal' },
+        ramp: { color: '#e6a817', width: 10, label: 'Rampa' },
       };
-
       function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
 
       for (const road of roads) {
-        const s = toC(road.start.lat, road.start.lon);
-        const e = toC(road.end.lat, road.end.lon);
-        const style = roadStyles[road.type] || {color: '#ffffff', width: 8};
+        let s = toC(road.start.lat, road.start.lon);
+        let e = toC(road.end.lat,   road.end.lon);
+        s = applyLaneOffset(s, road.id);
+        e = applyLaneOffset(e, road.id);
+
+        const style = roadStyles[road.type] || { color: '#ffffff', width: 8 };
 
         ctx.beginPath();
         ctx.moveTo(s.x, s.y);
@@ -218,11 +251,99 @@
           ctx.fill();
         }
 
-        const mid = {x: (s.x + e.x) / 2, y: (s.y + e.y) / 2};
+        const mid = { x: (s.x + e.x) / 2, y: (s.y + e.y) / 2 };
         ctx.fillStyle = style.color;
         ctx.font = '13px monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(style.label + ' (' + road.speed_limit_kmh + ' km/h)', mid.x + 30, mid.y - 12);
+        ctx.fillText(style.label + ' (' + road.speed_limit_kmh + ' km/h)', mid.x + 16, mid.y - 10);
+      }
+    }
+
+    function drawVehicles(ctx, vehicles, bounds, W, H) {
+      const vehicleColor = { MC: '#00bcd4' };
+      function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
+
+      for (const v of vehicles) {
+        let pt = toC(v.lat, v.lon);
+        // Aplica o offset da faixa onde o veículo está
+        pt = applyLaneOffset(pt, v.road);
+
+        const color = vehicleColor[v.id] || '#ffffff';
+
+        const gradient = ctx.createRadialGradient(pt.x, pt.y, 5, pt.x, pt.y, 20);
+        gradient.addColorStop(0, color + '66');
+        gradient.addColorStop(1, 'transparent');
+
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 20, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 12, 0, Math.PI * 2);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        ctx.font = 'bold 11px monospace';
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(v.id, pt.x, pt.y);
+      }
+    }
+ /* -----------------------------------------------------------------
+
+    function drawRoads(ctx, roads, bounds, W, H) {
+      const roadStyles = {
+        main: {color: '#888888', width: 14, label: 'Via Principal'},
+        ramp: {color: '#e6a817', width: 10,  label: 'Rampa'},
+      };
+
+      function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
+
+      // Calcula offset perpendicular em píxeis para separar vias paralelas
+      function perpendicularOffset(s, e, offsetPx) {
+        const dx = e.x - s.x;
+        const dy = e.y - s.y;
+        const len = Math.sqrt(dx*dx + dy*dy) || 1;
+        return { ox: -(dy / len) * offsetPx, oy: (dx / len) * offsetPx };
+      }
+
+      for (const road of roads) {
+        const s = toC(road.start.lat, road.start.lon);
+        const e = toC(road.end.lat, road.end.lon);
+        const style = roadStyles[road.type] || {color: '#ffffff', width: 8};
+
+        // Se a via tem lane_position, aplica offset para separar visualmente
+        const lanePos = road.lane_position || 0;
+        const offsetPx = (lanePos - 1.5) * 16; // lane 1 vai p/ baixo, lane 2 p/ cima
+        const { ox, oy } = perpendicularOffset(s, e, offsetPx);
+
+        const s2 = { x: s.x + ox, y: s.y + oy };
+        const e2 = { x: e.x + ox, y: e.y + oy };
+
+        ctx.beginPath();
+        ctx.moveTo(s2.x, s2.y);
+        ctx.lineTo(e2.x, e2.y);
+        ctx.strokeStyle = style.color;
+        ctx.lineWidth = style.width;
+        ctx.lineCap = 'round';
+        ctx.stroke();
+
+        // Pontos nos extremos
+        for (const pt of [s2, e2]) {
+          ctx.beginPath();
+          ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
+          ctx.fillStyle = style.color;
+          ctx.fill();
+        }
+
+        // Label no meio da via
+        const mid = {x: (s2.x + e2.x) / 2, y: (s2.y + e2.y) / 2};
+        ctx.fillStyle = style.color;
+        ctx.font = '13px monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(style.label + ' (' + road.speed_limit_kmh + ' km/h)', mid.x + 16, mid.y - 10);
       }
     }
 
@@ -257,6 +378,9 @@
         ctx.fillText(v.id, pt.x, pt.y);
       }
     }
+
+   */
+
 
     let hiddenSigs = new Set();
     let currentEvents = [];

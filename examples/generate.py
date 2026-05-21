@@ -12,6 +12,10 @@ BROKERS = {
     "a": "tcp/192.168.98.11:7447",
     "b": "tcp/192.168.98.12:7447",
     "c": "tcp/192.168.98.13:7447",
+    "d": "tcp/192.168.98.14:7447",
+    "e": "tcp/192.168.98.15:7447",
+    "f": "tcp/192.168.98.16:7447",
+
 }
 
 STATION_ID_TO_HOST = {
@@ -19,6 +23,10 @@ STATION_ID_TO_HOST = {
     11: "a",
     12: "b",
     13: "c",
+    14: "d",
+    15: "e",
+    16: "f",
+
 }
 
 _scenario_path = Path(__file__).resolve().parent / "scenario.json"
