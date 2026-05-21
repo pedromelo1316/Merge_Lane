@@ -431,7 +431,11 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         road["start"]["lat"], road["start"]["lon"],
         road["end"]["lat"],   road["end"]["lon"],
     )
-    speed_ms = road["speed_limit_kmh"] / 3.6
+    #speed_ms = road["speed_limit_kmh"] / 3.6
+
+    speed_kmh = vehicle_cfg.get("speed_kmh", road["speed_limit_kmh"])
+    speed_ms = speed_kmh / 3.6
+    
     bearing = compute_bearing(
         road["start"]["lat"], road["start"]["lon"],
         road["end"]["lat"],   road["end"]["lon"],

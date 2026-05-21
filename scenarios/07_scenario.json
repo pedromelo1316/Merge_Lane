@@ -1,15 +1,16 @@
 {
-  "name": "Dense Traffic — Fila de espera",
+  "name": "Dense Traffic — variable gaps and speeds",
   "speed_multiplier": 2.0,
   "timeout_s": 150,
-  "active_vehicles": [10, 11, 12, 13, 14,15,16],
+  "active_vehicles": [10, 11, 12, 13, 14, 15, 16],
   "roads": [
     {
       "id": "main_lane",
       "type": "main",
       "start": {"lat": 40.63800, "lon": -8.6580},
       "end":   {"lat": 40.63800, "lon": -8.6450},
-      "speed_limit_kmh": 100
+      "speed_limit_kmh": 120,
+      "lane_position": 1
     },
     {
       "id": "entry_ramp",
@@ -17,16 +18,18 @@
       "start": {"lat": 40.63760, "lon": -8.6560},
       "end":   {"lat": 40.63800, "lon": -8.6500},
       "speed_limit_kmh": 80,
+      "lane_position": 1,
       "merges_into": "main_lane"
     }
   ],
   "vehicles": [
-    {"id": "MC", "station_id": 10, "road": "entry_ramp", "lat": 40.63763, "lon": -8.6548},
-    {"id": "A",  "station_id": 11, "road": "main_lane",  "lat": 40.63800, "lon": -8.6500},
-    {"id": "B",  "station_id": 12, "road": "main_lane",  "lat": 40.63800, "lon": -8.6506},
-    {"id": "C",  "station_id": 13, "road": "main_lane",  "lat": 40.63800, "lon": -8.6512},
-    {"id": "D",  "station_id": 14, "road": "main_lane",  "lat": 40.63800, "lon": -8.6518},
-    {"id": "E", "station_id": 15, "road": "main_lane", "lat": 40.6380, "lon": -8.6530},
-    {"id": "F", "station_id": 16, "road": "main_lane", "lat": 40.6380, "lon": -8.6535}
+    {"id": "MC", "station_id": 10, "road": "entry_ramp", "lat": 40.63763, "lon": -8.6548, "speed_kmh": 85},
+
+    {"id": "A", "station_id": 11, "road": "main_lane", "lat": 40.63800, "lon": -8.6490, "speed_kmh": 105},
+    {"id": "B", "station_id": 12, "road": "main_lane", "lat": 40.63800, "lon": -8.6536   , "speed_kmh": 105},
+    {"id": "C", "station_id": 13, "road": "main_lane", "lat": 40.63800, "lon": -8.6554, "speed_kmh": 100},
+    {"id": "D", "station_id": 14, "road": "main_lane", "lat": 40.63800, "lon": -8.6562, "speed_kmh": 100},
+    {"id": "E", "station_id": 15, "road": "main_lane", "lat": 40.63800, "lon": -8.6575, "speed_kmh": 85},
+    {"id": "F", "station_id": 16, "road": "main_lane", "lat": 40.63800, "lon": -8.6580, "speed_kmh": 80}
   ]
 }

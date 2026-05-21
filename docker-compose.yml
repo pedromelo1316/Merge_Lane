@@ -32,6 +32,31 @@ services:
             vanetzalan0:
                 ipv4_address: 192.168.98.10
 
+    mc2:
+        hostname: mc2
+        restart: always
+        image: ghcr.io/nap-it/vanetza-nap:latest
+        cap_add:
+            - "NET_ADMIN"
+        environment:
+            - VANETZA_STATION_ID=17
+            - VANETZA_STATION_TYPE=5
+            - VANETZA_MAC_ADDRESS=6e:06:e0:03:00:17
+            - VANETZA_INTERFACE=br0
+            - START_EMBEDDED_MOSQUITTO=false
+            - SUPPORT_MAC_BLOCKING=true
+            - VANETZA_CAM_ENABLED=true
+            - VANETZA_ZENOH_LOCAL_ONLY=false
+            - VANETZA_ZENOH_INTERFACES=br0
+            - VANETZA_CPM_MQTT_ENABLED=false
+            - VANETZA_CPM_MQTT_TIME_ENABLED=false
+            - VANETZA_CPM_ZENOH_ENABLED=true
+            - VANETZA_CAM_PERIODICITY=0
+        networks:
+            vanetzalan0:
+                ipv4_address: 192.168.98.17
+
+
     vehicle-a:
         hostname: vehicle-a
         restart: always
@@ -288,6 +313,22 @@ services:
             - STATION_ID=16
             - VEHICLE_ID=F
             - VANETZA_ZENOH_URL=tcp/192.168.98.16:7447
+            - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
+        restart: always
+        networks:
+            vanetzalan0:
+
+    mc2-py:
+        build:
+            context: .
+            dockerfile: vehicle/Dockerfile
+        depends_on:
+            - mc2
+            - zenoh-router
+        environment:
+            - STATION_ID=17
+            - VEHICLE_ID=MC2
+            - VANETZA_ZENOH_URL=tcp/192.168.98.17:7447
             - COORDINATOR_ZENOH_URL=tcp/192.168.98.5:7446
         restart: always
         networks:
