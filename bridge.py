@@ -58,6 +58,9 @@ def _classify_mcm(mcm_type, its_role, inner):
         return "ACK", None
 
     if mcm_type == 2 and its_role == 3:
+        mid = inner.get("basicContainer", {}).get("manoeuvreId", 0)
+        if mid >= 128:
+            return "SLOWDOWN_GRANT", None
         return "MERGE_GRANT", "MC"
 
     if mcm_type == 2 and its_role == 1:
