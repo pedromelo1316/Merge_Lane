@@ -4,6 +4,7 @@ coordinator.py — corre localmente, orquestra a execução de cenários.
 Publica cenários via Zenoh e aguarda que todos os veículos activos reportem done.
 """
 
+import argparse
 import glob
 import json
 import os
@@ -97,6 +98,16 @@ def load_scenarios():
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--demo", action="store_true", default=False,
+                        help="Demo mode: insert a step delay between protocol messages")
+    parser.add_argument("--demo-delay", type=float, default=5.0,
+                        help="Seconds to wait before each protocol response (default 5)")
+    args = parser.parse_args()
+
+    if args.demo:
+        print(f"[coordinator] Demo mode activo (demo_step_delay={args.demo_delay}s).")
+
     print(f"[coordinator] A ligar ao Zenoh router em {COORDINATOR_ZENOH_URL}...")
     session = open_zenoh_session(COORDINATOR_ZENOH_URL)
     print("[coordinator] Ligado.")
@@ -114,6 +125,10 @@ def main():
         if not active:
             print("[coordinator] Sem active_vehicles — a saltar.")
             continue
+
+        if args.demo:
+            scenario["demo_mode"] = True
+            scenario["demo_step_delay_s"] = args.demo_delay
 
         print(f"[coordinator] À espera que todos os veículos do pool estejam prontos...")
         wait_for_pool_ready(session, POOL)

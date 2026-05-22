@@ -109,7 +109,16 @@ def find_vehicle_behind(own_t, own_station_id, road, neighbour_lock, neighbour_s
 def make_mcm_callback(vehicle_id, own_station_id, session,
                       vehicle_state, road, is_ramp,
                       neighbour_lock, neighbour_states,
-                      protocol_lock, protocol_state):
+                      protocol_lock, protocol_state,
+                      demo_mode=False, demo_step_delay=0.0):
+
+    def _demo_pause():
+        if not demo_mode:
+            return
+        with protocol_lock:
+            active = protocol_state.get("demo_active", False)
+        if active:
+            time.sleep(demo_step_delay)
 
     def _suggested_speed_for(target_id, mc_advice):
         for entry in mc_advice:
@@ -123,6 +132,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
         return current * 0.7 if current else None
 
     def _send_ack(delta_time, mid):
+        _demo_pause()
         ack = build_ack(
             station_id=own_station_id,
             lat=vehicle_state["lat"],
@@ -133,6 +143,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
         session.put("vanetza/in/mcm", json.dumps(ack).encode())
 
     def _send_slowdown(target_id, mc_advice):
+        _demo_pause()
         sugg = _suggested_speed_for(target_id, mc_advice)
         if sugg is None:
             sugg = vehicle_state["speed_ms"] * 0.7
@@ -158,6 +169,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
         print(f"[{ts}] [{vehicle_id}] SLOWDOWN_REQUEST enviado para stationID={target_id} speed={sugg:.2f} m/s")
 
     def _send_slowdown_grant(to_id):
+        _demo_pause()
         grant_id = random.randint(128, 255)
         grant = build_slowdown_grant(
             station_id=own_station_id,
@@ -174,6 +186,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
         print(f"[{ts}] [{vehicle_id}] SLOWDOWN_GRANT enviado para stationID={to_id} (grant_id={grant_id})")
 
     def _send_merge_grant():
+        _demo_pause()
         with protocol_lock:
             if protocol_state["merge_grant_sent"]:
                 return
@@ -248,7 +261,20 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     with protocol_lock:
                         protocol_state["grants_received"].add(sender_id)
                         if protocol_state["grant_timeout"] is None:
-                            protocol_state["grant_timeout"] = time.time() + GRANT_TIMEOUT_S
+                            effective_timeout = GRANT_TIMEOUT_S + (demo_step_delay * 10 if demo_mode else 0.0)
+                            protocol_state["grant_timeout"] = time.time() + effective_timeout
+                return
+
+            # ── mcmType=2, itssRole=1: execution_status do MC ────────────────
+            if mcm_type == 2 and its_role == 1:
+                response = inner["mcmContainer"]["responseContainer"]["manouevreResponse"]
+                success = (response == 0)
+                ts = time.strftime("%H:%M:%S")
+                print(f"[{ts}] [{vehicle_id}] execution_status recebido de MC={sender_id} success={success}")
+                with protocol_lock:
+                    protocol_state["in_conflict"] = False
+                    if demo_mode and success:
+                        protocol_state["demo_active"] = False
                 return
 
             if is_ramp:
@@ -265,6 +291,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     protocol_state["mc_station_id"] = sender_id
                     protocol_state["manoeuvre_id"] = manoeuvre_id
                     protocol_state["mc_advice"] = advice
+                    if demo_mode:
+                        protocol_state["demo_active"] = True
 
                 _send_ack(delta_time, manoeuvre_id)
 
@@ -401,8 +429,8 @@ def detect_conflicts(vehicle_id, t_mc, L_ramp, speed_mc_ms,
 def send_merge_request(session, vehicle_id, own_station_id,
                        lat, lon, bearing, speed_ms,
                        conflict_set, neighbour_lock, neighbour_states,
-                       manoeuvre_state):
-    RESEND_INTERVAL_S      = 2.0
+                       manoeuvre_state, demo_step_delay=0.0):
+    RESEND_INTERVAL_S      = 2.0 + 120 
     SUGGESTED_SPEED_FACTOR = 0.7
 
     if not conflict_set:
@@ -463,7 +491,9 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         print(f"[{vehicle_id}] Aviso: station_id={own_station_id} não encontrado no cenário — a saltar")
         return
 
-    speed_factor = max(float(scenario.get("speed_multiplier", 1.0)), 0.1)
+    speed_factor    = max(float(scenario.get("speed_multiplier", 1.0)), 0.1)
+    demo_mode       = bool(scenario.get("demo_mode", False))
+    demo_step_delay = float(scenario.get("demo_step_delay_s", 0.0)) if demo_mode else 0.0
 
     road = roads[vehicle_cfg["road"]]
     L_m = haversine(
@@ -529,6 +559,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         "grants_received":          set(),
         "grant_timeout":            None,
         "merge_decided":            False,
+        "demo_active":              False,
     }
 
     print(f"[{vehicle_id}] Cenário iniciado: road={vehicle_cfg['road']} "
@@ -544,7 +575,8 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         make_mcm_callback(vehicle_id, own_station_id, vanetza_session,
                           vehicle_state, road, is_ramp,
                           neighbour_lock, neighbour_states,
-                          protocol_lock, protocol_state),
+                          protocol_lock, protocol_state,
+                          demo_mode, demo_step_delay),
     )
 
     try:
@@ -582,7 +614,12 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                         last_conflict_set,
                         neighbour_lock, neighbour_states,
                         manoeuvre_state,
+                        demo_step_delay,
                     )
+                    if demo_mode and last_conflict_set:
+                        with protocol_lock:
+                            if not protocol_state["demo_active"]:
+                                protocol_state["demo_active"] = True
 
                 if last_conflict_set:
                     if not decided:
@@ -599,8 +636,9 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                             now = time.time()
                             with neighbour_lock:
                                 snap = dict(neighbour_states)
+                            cam_freshness_s = 2.0 + (demo_step_delay * 3 if demo_mode else 0.0)
                             valid = all(
-                                sid in snap and now - snap[sid]["ts"] < 2.0
+                                sid in snap and now - snap[sid]["ts"] < cam_freshness_s
                                 for sid in last_conflict_set
                             )
                             ts = time.strftime("%H:%M:%S")
@@ -613,6 +651,8 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                                 vanetza_session.put("vanetza/in/mcm", json.dumps(status).encode())
                                 with protocol_lock:
                                     protocol_state["merge_decided"] = True
+                                    if demo_mode:
+                                        protocol_state["demo_active"] = False
                             else:
                                 print(f"[{ts}] [{vehicle_id}] MERGE_GRANT inválido (CAMs stale) — a renegociar")
                                 with protocol_lock:
@@ -637,10 +677,15 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                                   f"grants={sorted(grants)} / esperados={sorted(last_conflict_set)}")
                             should_advance = False
 
+            with protocol_lock:
+                demo_active = protocol_state.get("demo_active", False)
+            if demo_active:
+                should_advance = False
+
             if should_advance:
                 t += dt_t
             elapsed += DT
-            time.sleep(DT / speed_factor)
+            time.sleep(DT / speed_factor + (demo_step_delay if demo_active else 0.0))
 
     finally:
         cam_sub.undeclare()
