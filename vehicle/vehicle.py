@@ -334,6 +334,11 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     except (KeyError, IndexError):
                         pass
 
+                if sugg_speed is not None:
+                    vehicle_state["target_speed_ms"] = sugg_speed
+                    ts = time.strftime("%H:%M:%S")
+                    print(f"[{ts}] [{vehicle_id}] velocidade reduzida para {sugg_speed:.2f} m/s")
+
                 with protocol_lock:
                     protocol_state["slowdown_received"] = True
                     protocol_state["slowdown_sender_id"] = sender_id
@@ -536,6 +541,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
     vehicle_state = {
         "lat": initial_lat, "lon": initial_lon,
         "speed_ms": speed_ms, "bearing": bearing,
+        "target_speed_ms": speed_ms,
     }
 
     protocol_lock  = threading.Lock()
@@ -585,12 +591,15 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
             lat = road["start"]["lat"] + t * (road["end"]["lat"] - road["start"]["lat"])
             lon = road["start"]["lon"] + t * (road["end"]["lon"] - road["start"]["lon"])
 
+            current_speed = vehicle_state["target_speed_ms"]
+            dt_t = current_speed * DT / L_m
+
             vehicle_state["lat"]      = lat
             vehicle_state["lon"]      = lon
-            vehicle_state["speed_ms"] = speed_ms
+            vehicle_state["speed_ms"] = current_speed
             vehicle_state["bearing"]  = bearing
 
-            cam = build_cam(lat, lon, bearing, speed_ms, road.get("lane_position"))
+            cam = build_cam(lat, lon, bearing, current_speed, road.get("lane_position"))
             vanetza_session.put("vanetza/in/cam", json.dumps(cam).encode())
 
             should_advance = True

@@ -129,8 +129,8 @@ Desenvolvimento incremental. Cada etapa deve ser testável antes de avançar par
 
 ## Etapa 12 — Testes unitários `[sem Docker]`
 
-- [ ] Testes para `cam_builder.py` e `mcm_builder.py` (funções puras, não precisam de Docker)
-- [ ] Testes para `detect_conflicts()` com posições GPS sintéticas
+- [x] Testes para `cam_builder.py` e `mcm_builder.py` (funções puras, não precisam de Docker)
+- [x] Testes para `detect_conflicts()` com posições GPS sintéticas
 
 **Teste:** `pytest` corre a verde sem Docker nem Zenoh.
 
@@ -142,7 +142,6 @@ O dashboard mostra apenas posições. Faltam indicadores de velocidade e a marca
 
 - [ ] `bridge.py`: extrair `speedValue` do `highFrequencyContainer` no CAM, incluir `speed_kmh` em `vehicle_states`
 - [ ] `dashboard.html`: label de velocidade (km/h) junto ao marcador de cada veículo
-- [ ] `dashboard.html`: desenhar ponto de merge explicitamente (ícone ou círculo pontilhado)
 - [ ] `dashboard.html`: desenhar zona de conflito (círculo semitransparente de raio proporcional a `CONFLICT_ZONE_M`)
 - [ ] `dashboard.html`: cor do marcador muda consoante estado — normal (branco), a abrandar (laranja), parado (vermelho)
 
