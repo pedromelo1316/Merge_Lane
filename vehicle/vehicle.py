@@ -294,10 +294,10 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     if demo_mode:
                         protocol_state["demo_active"] = True
 
-                _send_ack(delta_time, manoeuvre_id)
-
                 if not in_conflict:
                     return
+
+                _send_ack(delta_time, manoeuvre_id)
 
                 own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
                 behind_id = find_vehicle_behind(own_t, own_station_id, road,
@@ -737,6 +737,7 @@ def main():
                       f"não está em active_vehicles — a saltar")
                 pending_skip[0] = True
             else:
+                pending.clear()
                 pending.update(data)
                 pending_skip[0] = False
             scenario_event.set()
