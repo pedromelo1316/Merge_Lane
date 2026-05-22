@@ -8,7 +8,7 @@ import time
 
 from cam_builder import build_cam
 from mcm_builder import (build_merge_request, build_slowdown_request,
-                         build_ack, build_merge_grant, build_slowdown_grant,
+                         build_merge_grant, build_slowdown_grant,
                          build_execution_status)
 
 
@@ -110,6 +110,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                       vehicle_state, road, is_ramp,
                       neighbour_lock, neighbour_states,
                       protocol_lock, protocol_state,
+                      merge_lat=None, merge_lon=None, main_road_ref=None, L_main=None,
                       demo_mode=False, demo_step_delay=0.0):
 
     def _demo_pause():
@@ -131,17 +132,6 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             current = (neighbour_states.get(target_id) or {}).get("speed_ms")
         return current * 0.7 if current else None
 
-    def _send_ack(delta_time, mid):
-        _demo_pause()
-        ack = build_ack(
-            station_id=own_station_id,
-            lat=vehicle_state["lat"],
-            lon=vehicle_state["lon"],
-            manoeuvre_id=mid,
-            acknowledged_delta_time=delta_time,
-        )
-        session.put("vanetza/in/mcm", json.dumps(ack).encode())
-
     def _send_slowdown(target_id, mc_advice):
         _demo_pause()
         sugg = _suggested_speed_for(target_id, mc_advice)
@@ -159,12 +149,10 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             next_vehicle_id=target_id,
             suggested_speed_ms=sugg,
         )
-        sent_delta = mcm["basicContainer"]["generationDeltaTime"]
         session.put("vanetza/in/mcm", json.dumps(mcm).encode())
         with protocol_lock:
             protocol_state["slowdown_sent"] = True
             protocol_state["slowdown_sent_to"] = target_id
-            protocol_state["slowdown_sent_delta_time"] = sent_delta
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{vehicle_id}] SLOWDOWN_REQUEST enviado para stationID={target_id} speed={sugg:.2f} m/s")
 
@@ -177,11 +165,9 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             lon=vehicle_state["lon"],
             manoeuvre_id=grant_id,
         )
-        sent_delta = grant["basicContainer"]["generationDeltaTime"]
         session.put("vanetza/in/mcm", json.dumps(grant).encode())
         with protocol_lock:
             protocol_state["slowdown_grant_sent"] = True
-            protocol_state["slowdown_grant_sent_delta"] = sent_delta
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{vehicle_id}] SLOWDOWN_GRANT enviado para stationID={to_id} (grant_id={grant_id})")
 
@@ -189,8 +175,6 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
         _demo_pause()
         with protocol_lock:
             if protocol_state["merge_grant_sent"]:
-                return
-            if not protocol_state["in_conflict"]:
                 return
             mc_id = protocol_state["mc_station_id"]
             mid   = protocol_state["manoeuvre_id"]
@@ -202,11 +186,9 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             lon=vehicle_state["lon"],
             manoeuvre_id=mid,
         )
-        sent_delta = grant["basicContainer"]["generationDeltaTime"]
         session.put("vanetza/in/mcm", json.dumps(grant).encode())
         with protocol_lock:
             protocol_state["merge_grant_sent"] = True
-            protocol_state["merge_grant_sent_delta"] = sent_delta
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{vehicle_id}] MERGE_GRANT enviado ao MC stationID={mc_id}")
 
@@ -238,7 +220,6 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         sent_to = protocol_state["slowdown_sent_to"]
                     if sender_id != sent_to:
                         return  # não é de quem esperávamos
-                    _send_ack(delta_time, manoeuvre_id)
                     ts = time.strftime("%H:%M:%S")
                     print(f"[{ts}] [{vehicle_id}] SLOWDOWN_GRANT recebido de stationID={sender_id} (grant_id={manoeuvre_id})")
                     with protocol_lock:
@@ -246,6 +227,13 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         protocol_state["slowdown_grant_sender_id"] = sender_id
                         received = protocol_state["slowdown_received"]
                         sender_ahead = protocol_state["slowdown_sender_id"]
+                        mc_advice = list(protocol_state["mc_advice"])
+                    own_sugg = _suggested_speed_for(own_station_id, mc_advice)
+                    if own_sugg is None:
+                        own_sugg = vehicle_state["speed_ms"] * 0.7
+                    vehicle_state["target_speed_ms"] = own_sugg
+                    ts = time.strftime("%H:%M:%S")
+                    print(f"[{ts}] [{vehicle_id}] velocidade reduzida para {own_sugg:.2f} m/s")
                     # Cada veículo decide independentemente (por agora: aceita sempre)
                     if received and sender_ahead is not None:
                         _send_slowdown_grant(sender_ahead)
@@ -255,7 +243,6 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     # ── MERGE_GRANT (veículo da estrada → MC) ─────────────────
                     if not is_ramp:
                         return
-                    _send_ack(delta_time, manoeuvre_id)
                     ts = time.strftime("%H:%M:%S")
                     print(f"[{ts}] [{vehicle_id}] MERGE_GRANT recebido de stationID={sender_id} manoeuvre_id={manoeuvre_id}")
                     with protocol_lock:
@@ -285,7 +272,33 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 advice = (inner["mcmContainer"]
                           .get("vehicleManoeuvreContainer", {})
                           .get("manoeuvreAdvice", []))
-                in_conflict = any(e.get("executantID") == own_station_id for e in advice)
+
+                # Independent conflict check: predict own position at MC's ETA
+                submaneuvres = (inner["mcmContainer"]
+                                .get("vehicleManoeuvreContainer", {})
+                                .get("submaneuvres", []))
+                temporal     = submaneuvres[0].get("temporalCharateristics", {}) if submaneuvres else {}
+                t_start_ms   = temporal.get("tRROccupancyStartTime", 2000)
+                t_end_ms     = temporal.get("tRROccupancyEndTime",   5000)
+                mc_eta_s     = (t_start_ms + t_end_ms) / 2 / 1000.0
+
+                in_conflict = False
+                if merge_lat is not None and main_road_ref is not None and L_main:
+                    s, e     = main_road_ref["start"], main_road_ref["end"]
+                    dlat     = e["lat"] - s["lat"]
+                    dlon     = e["lon"] - s["lon"]
+                    own_speed = vehicle_state["speed_ms"]
+                    own_t_now = project_t(vehicle_state["lat"], vehicle_state["lon"], main_road_ref)
+                    t_pred    = min(own_t_now + own_speed * mc_eta_s / L_main, 1.0)
+                    pred_lat  = s["lat"] + t_pred * dlat
+                    pred_lon  = s["lon"] + t_pred * dlon
+                    if haversine(pred_lat, pred_lon, merge_lat, merge_lon) <= CONFLICT_ZONE_M:
+                        in_conflict = True
+
+                ts = time.strftime("%H:%M:%S")
+                print(f"[{ts}] [{vehicle_id}] MERGE_REQUEST de stationID={sender_id} "
+                      f"eta={mc_eta_s:.1f}s in_conflict={in_conflict}")
+
                 with protocol_lock:
                     protocol_state["in_conflict"] = in_conflict
                     protocol_state["mc_station_id"] = sender_id
@@ -295,9 +308,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         protocol_state["demo_active"] = True
 
                 if not in_conflict:
+                    _send_merge_grant()
                     return
-
-                _send_ack(delta_time, manoeuvre_id)
 
                 own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
                 behind_id = find_vehicle_behind(own_t, own_station_id, road,
@@ -341,8 +353,6 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     protocol_state["manoeuvre_id"] = manoeuvre_id
                     mid = manoeuvre_id
 
-                _send_ack(delta_time, mid)
-
                 own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
                 with protocol_lock:
                     mc_id = protocol_state["mc_station_id"]
@@ -353,38 +363,14 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 if behind_id is not None:
                     _send_slowdown(behind_id, mc_advice)
                 else:
-                    # Fim de cadeia: decide e envia SLOWDOWN_GRANT (não ACK)
+                    # Fim de cadeia: reduz velocidade e envia SLOWDOWN_GRANT
+                    if sugg_speed is not None:
+                        vehicle_state["target_speed_ms"] = sugg_speed
+                        ts = time.strftime("%H:%M:%S")
+                        print(f"[{ts}] [{vehicle_id}] velocidade reduzida para {sugg_speed:.2f} m/s")
                     ts = time.strftime("%H:%M:%S")
                     print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a calcular e enviar SLOWDOWN_GRANT para stationID={sender_id}")
                     _send_slowdown_grant(sender_id)
-
-            # ── ACK (confirmação de entrega) ───────────────────────────────────
-            elif mcm_type == 9:
-                ack_delta = (inner["mcmContainer"]
-                             .get("acknowledgmentContainer", {})
-                             .get("generationDeltaTime"))
-                if ack_delta is None:
-                    return
-
-                with protocol_lock:
-                    slowdown_sent_delta   = protocol_state["slowdown_sent_delta_time"]
-                    slowdown_grant_delta  = protocol_state.get("slowdown_grant_sent_delta")
-                    merge_grant_delta     = protocol_state.get("merge_grant_sent_delta")
-
-                def _matches(ref):
-                    return ref is not None and abs(ack_delta - ref) <= 1.0
-
-                if _matches(slowdown_sent_delta):
-                    label = "SLOWDOWN_REQUEST"
-                elif _matches(slowdown_grant_delta):
-                    label = "SLOWDOWN_GRANT"
-                elif _matches(merge_grant_delta):
-                    label = "MERGE_GRANT"
-                else:
-                    label = "mensagem desconhecida"
-
-                ts = time.strftime("%H:%M:%S")
-                print(f"[{ts}] [{vehicle_id}] ACK de entrega recebido de stationID={sender_id} (confirma {label})")
 
         except Exception as e:
             print(f"[{vehicle_id}] Erro no MCM callback: {e}")
@@ -428,9 +414,10 @@ def detect_conflicts(vehicle_id, t_mc, L_ramp, speed_mc_ms,
 
 def send_merge_request(session, vehicle_id, own_station_id,
                        lat, lon, bearing, speed_ms,
+                       t_mc, L_ramp,
                        conflict_set, neighbour_lock, neighbour_states,
                        manoeuvre_state, demo_step_delay=0.0):
-    RESEND_INTERVAL_S      = 2.0 + 120 
+    RESEND_INTERVAL_S      = 2.0 + 120
     SUGGESTED_SPEED_FACTOR = 0.7
 
     if not conflict_set:
@@ -457,6 +444,10 @@ def send_merge_request(session, vehicle_id, own_station_id,
         for sid in sorted(conflict_set)
     ]
 
+    eta_s        = (1.0 - t_mc) * L_ramp / speed_ms
+    eta_start_ms = max(0, int((eta_s - 2.0) * 1000))
+    eta_end_ms   = int((eta_s + 2.0) * 1000)
+
     mcm = build_merge_request(
         station_id        = own_station_id,
         lat               = lat,
@@ -465,13 +456,15 @@ def send_merge_request(session, vehicle_id, own_station_id,
         speed_ms          = speed_ms,
         manoeuvre_id      = manoeuvre_state["manoeuvre_id"],
         conflict_vehicles = conflict_vehicles,
+        eta_start_ms      = eta_start_ms,
+        eta_end_ms        = eta_end_ms,
     )
     session.put("vanetza/in/mcm", json.dumps(mcm).encode())
     ts = time.strftime("%H:%M:%S")
     print(
         f"[{ts}] [{vehicle_id}] MERGE_REQUEST enviado "
         f"manoeuvre_id={manoeuvre_state['manoeuvre_id']} "
-        f"conflitos={sorted(conflict_set)}"
+        f"conflitos={sorted(conflict_set)} eta={eta_s:.1f}s"
     )
 
 
@@ -520,7 +513,18 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
             main_road["end"]["lat"],   main_road["end"]["lon"],
         )
     else:
-        main_road = merge_lat = merge_lon = L_main = None
+        ramp_road = next(
+            (r for r in scenario["roads"]
+             if r.get("type") == "ramp" and r.get("merges_into") == road["id"]),
+            None,
+        )
+        if ramp_road:
+            main_road = road
+            merge_lat = ramp_road["end"]["lat"]
+            merge_lon = ramp_road["end"]["lon"]
+            L_main    = L_m
+        else:
+            main_road = merge_lat = merge_lon = L_main = None
 
     neighbour_lock    = threading.Lock()
     neighbour_states  = {}
@@ -536,6 +540,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
     vehicle_state = {
         "lat": initial_lat, "lon": initial_lon,
         "speed_ms": speed_ms, "bearing": bearing,
+        "target_speed_ms": speed_ms,
     }
 
     protocol_lock  = threading.Lock()
@@ -549,13 +554,10 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         "slowdown_delta_time":      None,
         "slowdown_sent":            False,
         "slowdown_sent_to":         None,
-        "slowdown_sent_delta_time": None,
         "slowdown_grant_received":  False,
         "slowdown_grant_sender_id": None,
         "slowdown_grant_sent":      False,
-        "slowdown_grant_sent_delta": None,
         "merge_grant_sent":         False,
-        "merge_grant_sent_delta":   None,
         "grants_received":          set(),
         "grant_timeout":            None,
         "merge_decided":            False,
@@ -576,7 +578,9 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                           vehicle_state, road, is_ramp,
                           neighbour_lock, neighbour_states,
                           protocol_lock, protocol_state,
-                          demo_mode, demo_step_delay),
+                          merge_lat=merge_lat, merge_lon=merge_lon,
+                          main_road_ref=main_road, L_main=L_main,
+                          demo_mode=demo_mode, demo_step_delay=demo_step_delay),
     )
 
     try:
@@ -585,12 +589,13 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
             lat = road["start"]["lat"] + t * (road["end"]["lat"] - road["start"]["lat"])
             lon = road["start"]["lon"] + t * (road["end"]["lon"] - road["start"]["lon"])
 
+            cur_speed = vehicle_state["target_speed_ms"]
             vehicle_state["lat"]      = lat
             vehicle_state["lon"]      = lon
-            vehicle_state["speed_ms"] = speed_ms
+            vehicle_state["speed_ms"] = cur_speed
             vehicle_state["bearing"]  = bearing
 
-            cam = build_cam(lat, lon, bearing, speed_ms, road.get("lane_position"))
+            cam = build_cam(lat, lon, bearing, cur_speed, road.get("lane_position"))
             vanetza_session.put("vanetza/in/cam", json.dumps(cam).encode())
 
             should_advance = True
@@ -611,6 +616,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                     send_merge_request(
                         vanetza_session, vehicle_id, own_station_id,
                         lat, lon, bearing, speed_ms,
+                        t, L_m,
                         last_conflict_set,
                         neighbour_lock, neighbour_states,
                         manoeuvre_state,
@@ -682,6 +688,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
             if demo_active:
                 should_advance = False
 
+            dt_t = cur_speed * DT / L_m
             if should_advance:
                 t += dt_t
             elapsed += DT

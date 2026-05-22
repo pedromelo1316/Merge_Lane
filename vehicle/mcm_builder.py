@@ -80,11 +80,13 @@ def _advised_submanoeuvre(suggested_speed_ms):
     }
 
 
-def build_merge_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, conflict_vehicles):
+def build_merge_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, conflict_vehicles,
+                        eta_start_ms=2000, eta_end_ms=5000):
     """
     MC → road vehicles. Requests permission to merge.
 
     conflict_vehicles: list of (executant_id, suggested_speed_ms) — one per conflicting vehicle.
+    eta_start_ms / eta_end_ms: MC's estimated arrival window at the conflict zone, in ms from now.
 
     Returns a dict ready for json.dumps(). No side effects.
     """
@@ -114,8 +116,8 @@ def build_merge_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, c
                         },
                         "targetRoadResourceIContainer": _trr_description(heading),
                         "temporalCharateristics": {
-                            "tRROccupancyStartTime": 2000,
-                            "tRROccupancyEndTime": 5000,
+                            "tRROccupancyStartTime": eta_start_ms,
+                            "tRROccupancyEndTime": eta_end_ms,
                         },
                     }
                 ],
