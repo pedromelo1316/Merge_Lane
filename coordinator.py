@@ -84,7 +84,19 @@ def wait_for_done(session, active, timeout=DEFAULT_TIMEOUT_S):
     return ok
 
 
-def load_scenarios():
+def load_scenarios(scenario_filter=None):
+    if scenario_filter:
+        # accept bare name (e.g. "02_colision") or full filename with/without path
+        candidate = scenario_filter
+        if not candidate.endswith(".json"):
+            candidate += ".json"
+        path = candidate if os.path.isabs(candidate) else os.path.join(SCENARIOS_DIR, candidate)
+        if not os.path.isfile(path):
+            print(f"[coordinator] Cenário não encontrado: {path}")
+            sys.exit(1)
+        with open(path) as fh:
+            return [(os.path.basename(path), json.load(fh))]
+
     pattern = os.path.join(SCENARIOS_DIR, "*.json")
     files   = sorted(glob.glob(pattern))
     if not files:
@@ -99,6 +111,8 @@ def load_scenarios():
 
 def main():
     parser = argparse.ArgumentParser()
+    parser.add_argument("scenario", nargs="?", default=None,
+                        help="Cenário específico a correr (nome do ficheiro, com ou sem .json)")
     parser.add_argument("--demo", action="store_true", default=False,
                         help="Demo mode: insert a step delay between protocol messages")
     parser.add_argument("--demo-delay", type=float, default=5.0,
@@ -112,7 +126,7 @@ def main():
     session = open_zenoh_session(COORDINATOR_ZENOH_URL)
     print("[coordinator] Ligado.")
 
-    scenarios = load_scenarios()
+    scenarios = load_scenarios(args.scenario)
     print(f"[coordinator] {len(scenarios)} cenário(s) encontrado(s).")
 
     for scenario_name, scenario in scenarios:
