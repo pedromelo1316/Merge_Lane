@@ -132,9 +132,27 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             current = (neighbour_states.get(target_id) or {}).get("speed_ms")
         return current * 0.7 if current else None
 
+    def _calculate_target_speed(mc_eta_s, lat, lon):
+        """Speed to reach the conflict zone entry just as MC arrives."""
+        if main_road_ref is None or L_main is None or merge_lat is None:
+            return None
+        if mc_eta_s is None or mc_eta_s <= 0:
+            return None
+        t_v = project_t(lat, lon, main_road_ref)
+        t_m = project_t(merge_lat, merge_lon, main_road_ref)
+        dist_safe = (t_m - t_v) * L_main - CONFLICT_ZONE_M
+        return max(0.0, dist_safe / mc_eta_s) if dist_safe > 0 else 0.0
+
     def _send_slowdown(target_id, mc_advice):
         _demo_pause()
-        sugg = _suggested_speed_for(target_id, mc_advice)
+        with protocol_lock:
+            mc_eta_s_local = protocol_state.get("mc_eta_s")
+        with neighbour_lock:
+            t_state = dict(neighbour_states).get(target_id, {})
+        if mc_eta_s_local and t_state.get("lat") is not None:
+            sugg = _calculate_target_speed(mc_eta_s_local, t_state["lat"], t_state["lon"])
+        else:
+            sugg = _suggested_speed_for(target_id, mc_advice)
         if sugg is None:
             sugg = vehicle_state["speed_ms"] * 0.7
         with protocol_lock:
@@ -228,12 +246,14 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         received = protocol_state["slowdown_received"]
                         sender_ahead = protocol_state["slowdown_sender_id"]
                         mc_advice = list(protocol_state["mc_advice"])
-                    own_sugg = _suggested_speed_for(own_station_id, mc_advice)
-                    if own_sugg is None:
-                        own_sugg = vehicle_state["speed_ms"] * 0.7
-                    vehicle_state["target_speed_ms"] = own_sugg
+                        apply_speed = protocol_state.get("own_target_speed_ms")
+                    if apply_speed is None:
+                        apply_speed = _suggested_speed_for(own_station_id, mc_advice)
+                        if apply_speed is None:
+                            apply_speed = vehicle_state["speed_ms"] * 0.7
+                    vehicle_state["target_speed_ms"] = apply_speed
                     ts = time.strftime("%H:%M:%S")
-                    print(f"[{ts}] [{vehicle_id}] velocidade reduzida para {own_sugg:.2f} m/s")
+                    print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed:.2f} m/s (grant recebido)")
                     # Cada veículo decide independentemente (por agora: aceita sempre)
                     if received and sender_ahead is not None:
                         _send_slowdown_grant(sender_ahead)
@@ -295,15 +315,21 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     if haversine(pred_lat, pred_lon, merge_lat, merge_lon) <= CONFLICT_ZONE_M:
                         in_conflict = True
 
+                own_target = _calculate_target_speed(mc_eta_s, vehicle_state["lat"], vehicle_state["lon"])
+
                 ts = time.strftime("%H:%M:%S")
                 print(f"[{ts}] [{vehicle_id}] MERGE_REQUEST de stationID={sender_id} "
                       f"eta={mc_eta_s:.1f}s in_conflict={in_conflict}")
+                if own_target is not None and in_conflict:
+                    print(f"[{ts}] [{vehicle_id}] velocidade alvo calculada: {own_target:.2f} m/s (ETA={mc_eta_s:.1f}s)")
 
                 with protocol_lock:
                     protocol_state["in_conflict"] = in_conflict
                     protocol_state["mc_station_id"] = sender_id
                     protocol_state["manoeuvre_id"] = manoeuvre_id
                     protocol_state["mc_advice"] = advice
+                    protocol_state["mc_eta_s"] = mc_eta_s
+                    protocol_state["own_target_speed_ms"] = own_target
                     if demo_mode:
                         protocol_state["demo_active"] = True
 
@@ -363,13 +389,15 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 if behind_id is not None:
                     _send_slowdown(behind_id, mc_advice)
                 else:
-                    # Fim de cadeia: reduz velocidade e envia SLOWDOWN_GRANT
-                    if sugg_speed is not None:
-                        vehicle_state["target_speed_ms"] = sugg_speed
-                        ts = time.strftime("%H:%M:%S")
-                        print(f"[{ts}] [{vehicle_id}] velocidade reduzida para {sugg_speed:.2f} m/s")
+                    # Fim de cadeia: aplica velocidade alvo e envia SLOWDOWN_GRANT
+                    with protocol_lock:
+                        apply_speed = protocol_state.get("own_target_speed_ms")
+                    if apply_speed is None:
+                        apply_speed = sugg_speed if sugg_speed is not None else vehicle_state["speed_ms"] * 0.7
+                    vehicle_state["target_speed_ms"] = apply_speed
                     ts = time.strftime("%H:%M:%S")
-                    print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a calcular e enviar SLOWDOWN_GRANT para stationID={sender_id}")
+                    print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed:.2f} m/s (fim de cadeia)")
+                    print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
                     _send_slowdown_grant(sender_id)
 
         except Exception as e:
@@ -549,6 +577,8 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         "mc_station_id":            None,
         "manoeuvre_id":             None,
         "mc_advice":                [],
+        "mc_eta_s":                 None,
+        "own_target_speed_ms":      None,
         "slowdown_received":        False,
         "slowdown_sender_id":       None,
         "slowdown_delta_time":      None,
@@ -602,7 +632,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
 
             if is_ramp and main_road is not None:
                 last_conflict_set = detect_conflicts(
-                    vehicle_id, t, L_m, speed_ms,
+                    vehicle_id, t, L_m, cur_speed,
                     merge_lat, merge_lon,
                     main_road, L_main,
                     neighbour_lock, neighbour_states,
@@ -615,7 +645,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                 if not decided:
                     send_merge_request(
                         vanetza_session, vehicle_id, own_station_id,
-                        lat, lon, bearing, speed_ms,
+                        lat, lon, bearing, cur_speed,
                         t, L_m,
                         last_conflict_set,
                         neighbour_lock, neighbour_states,

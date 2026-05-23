@@ -40,7 +40,12 @@ python3 -m http.server 8000 --directory "$SCRIPT_DIR" &
 HTTP_PID=$!
 echo "    http PID: $HTTP_PID"
 
-sleep 1
+echo "==> À espera que o WebSocket da bridge esteja disponível (localhost:8765)..."
+until nc -z 127.0.0.1 8765 2>/dev/null; do
+    printf "."
+    sleep 0.5
+done
+echo " pronto."
 
 echo "==> A abrir dashboard no Firefox..."
 firefox "http://localhost:8000/dashboard.html" &

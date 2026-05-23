@@ -1,8 +1,13 @@
 import asyncio
 import json
+import logging
 import time
 
 import websockets
+
+# nc -z probes (used by run.sh to check readiness) open a TCP connection and
+# close it immediately without sending data, causing a noisy but harmless EOFError.
+logging.getLogger("websockets.server").setLevel(logging.CRITICAL)
 import zenoh
 
 STATION_IDS           = {10: "MC", 11: "A", 12: "B", 13: "C"}
@@ -158,28 +163,46 @@ async def broadcast_loop():
         await asyncio.sleep(0.1)
 
 
+async def connect_zenoh():
+    loop = asyncio.get_event_loop()
+
+    def _open_vanetza():
+        config = f'{{"mode":"client","connect":{{"endpoints":["{ZENOH_BROKER}"]}}}}'
+        s = zenoh.open(zenoh.Config.from_json5(config))
+        s.declare_subscriber("vanetza/out/cam", on_cam)
+        s.declare_subscriber("vanetza/time/cam", on_cam)
+        s.declare_subscriber("vanetza/out/mcm", on_mcm)
+        s.declare_subscriber("vanetza/time/mcm", on_mcm)
+        return s
+
+    def _open_coord():
+        config = f'{{"mode":"client","connect":{{"endpoints":["{COORDINATOR_ZENOH_URL}"]}}}}'
+        s = zenoh.open(zenoh.Config.from_json5(config))
+        s.declare_subscriber("coordinator/scenario", on_coordinator_scenario)
+        return s
+
+    print(f"[bridge] A ligar ao Zenoh ({ZENOH_BROKER} e {COORDINATOR_ZENOH_URL})...")
+    session       = await loop.run_in_executor(None, _open_vanetza)
+    coord_session = await loop.run_in_executor(None, _open_coord)
+    print(f"[bridge] Zenoh ligado.")
+    return session, coord_session
+
+
 async def main():
-    config_vanetza = f'{{"mode":"client","connect":{{"endpoints":["{ZENOH_BROKER}"]}}}}'
-    session = zenoh.open(zenoh.Config.from_json5(config_vanetza))
-    session.declare_subscriber("vanetza/out/cam", on_cam)
-    session.declare_subscriber("vanetza/time/cam", on_cam)
-    session.declare_subscriber("vanetza/out/mcm", on_mcm)
-    session.declare_subscriber("vanetza/time/mcm", on_mcm)
-
-    config_coord = f'{{"mode":"client","connect":{{"endpoints":["{COORDINATOR_ZENOH_URL}"]}}}}'
-    coord_session = zenoh.open(zenoh.Config.from_json5(config_coord))
-    coord_session.declare_subscriber("coordinator/scenario", on_coordinator_scenario)
-
-    print(f"Bridge ligado a {ZENOH_BROKER} (V2X) e {COORDINATOR_ZENOH_URL} (coordinator)")
     print("WebSocket a ouvir em ws://localhost:8765")
+    session = coord_session = None
     try:
         async with websockets.serve(ws_handler, "localhost", 8765):
+            # Liga ao Zenoh em paralelo com o WebSocket já a aceitar clientes
+            session, coord_session = await connect_zenoh()
             await broadcast_loop()
     except asyncio.CancelledError:
         pass
     finally:
-        session.close()
-        coord_session.close()
+        if session:
+            session.close()
+        if coord_session:
+            coord_session.close()
 
 
 if __name__ == "__main__":
