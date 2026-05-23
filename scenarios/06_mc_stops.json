@@ -1,0 +1,32 @@
+{
+  "name": "MC stops — insufficient grants",
+  "description": "Cenário 6 (MC stops): o MC aproxima-se da zona de conflito sem grants suficientes e é forçado a parar e aguardar.",
+  "speed_multiplier": 2.0,
+  "timeout_s": 120,
+  "active_vehicles": [10, 11, 12, 13],
+  "roads": [
+    {
+      "id": "ramp",
+      "type": "ramp",
+      "start": {"lat": 40.6370, "lon": -8.6510},
+      "end":   {"lat": 40.6380, "lon": -8.6495},
+      "speed_limit_kmh": 80,
+      "lane_position": 1,
+      "merges_into": "main"
+    },
+    {
+      "id": "main",
+      "type": "main",
+      "start": {"lat": 40.6380, "lon": -8.6560},
+      "end":   {"lat": 40.6380, "lon": -8.6480},
+      "speed_limit_kmh": 100,
+      "lane_position": 1
+    }
+  ],
+  "vehicles": [
+    {"id": "MC", "station_id": 10, "road": "ramp", "lat": 40.63775, "lon": -8.6499},
+    {"id": "A",  "station_id": 11, "road": "main", "lat": 40.6380, "lon": -8.6503},
+    {"id": "B",  "station_id": 12, "road": "main", "lat": 40.6380, "lon": -8.6509},
+    {"id": "C",  "station_id": 13, "road": "main", "lat": 40.6380, "lon": -8.6515}
+  ]
+}

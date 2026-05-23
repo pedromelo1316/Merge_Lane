@@ -114,10 +114,20 @@
       float: right;
       font-size: 0.7rem;
     }
+
+    #scenario-description {
+      max-width: 1000px;
+      margin: -5px 0 15px 0;
+      color: #aaa;
+      font-size: 0.9rem;
+      text-align: center;
+      line-height: 1.4;
+    }
   </style>
 </head>
 <body>
   <h1>COOPERATIVE LANE MERGE</h1>
+  <div id="scenario-description">A aguardar cenário...</div>
   
   <div class="main-row">
     <div>
@@ -411,7 +421,7 @@
         //const lengthPx = 28;
         //const widthPx  = 16;    
 
-        const SCALE = 8;
+        const SCALE = 10;
 
         const lengthM = v.length_m || 4.5;
         const widthM  = v.width_m  || 1.8;
@@ -610,6 +620,10 @@
             currentScenario = msg.scenario;
             clearMcmLog();
           }
+
+          document.getElementById('scenario-description').textContent =
+            msg.description || 'Sem descrição para este cenário.';
+
           if (msg.roads && msg.roads.length > 0 && msg.roads !== roads) {
             rebuildRoads(msg.roads);
           }
@@ -634,6 +648,7 @@
       document.getElementById('info').textContent = 'Erro: ' + err.message;
       console.error(err);
     });
+
   </script>
 </body>
 </html>

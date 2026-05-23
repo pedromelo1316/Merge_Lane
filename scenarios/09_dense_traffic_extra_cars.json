@@ -1,0 +1,35 @@
+{
+  "name": "Dense traffic — extended main lane",
+  "description": "Cenário 9 (Dense traffic): a via principal apresenta tráfego denso com vários veículos próximos da zona de merge.",
+  "speed_multiplier": 2.0,
+  "timeout_s": 150,
+  "active_vehicles": [10, 11, 12, 13, 14, 15, 16],
+  "roads": [
+    {
+      "id": "entry_ramp",
+      "type": "ramp",
+      "start": {"lat": 40.6370, "lon": -8.6510},
+      "end":   {"lat": 40.6380, "lon": -8.6495},
+      "speed_limit_kmh": 70,
+      "lane_position": 1,
+      "merges_into": "main"
+    },
+    {
+      "id": "main",
+      "type": "main",
+      "start": {"lat": 40.6380, "lon": -8.6560},
+      "end":   {"lat": 40.6380, "lon": -8.6480},
+      "speed_limit_kmh": 100,
+      "lane_position": 1
+    }
+  ],
+  "vehicles": [
+    {"id": "MC", "station_id": 10, "road": "entry_ramp", "lat": 40.63745, "lon": -8.65035},
+    {"id": "A",  "station_id": 11, "road": "main", "lat": 40.6380, "lon": -8.6503},
+    {"id": "B",  "station_id": 12, "road": "main", "lat": 40.6380, "lon": -8.6509},
+    {"id": "C",  "station_id": 13, "road": "main", "lat": 40.6380, "lon": -8.6516},
+    {"id": "D",  "station_id": 14, "road": "main", "lat": 40.6380, "lon": -8.6524},
+    {"id": "E",  "station_id": 15, "road": "main", "lat": 40.6380, "lon": -8.6533},
+    {"id": "F",  "station_id": 16, "road": "main", "lat": 40.6380, "lon": -8.6544}
+  ]
+}

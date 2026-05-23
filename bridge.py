@@ -14,6 +14,7 @@ ws_clients            = set()
 MCM_PENDING           = []  # new events since last broadcast, cleared each cycle
 current_roads             = []
 current_scenario_name     = ""
+current_scenario_description = ""
 current_scenario_vehicles = set()  # IDs dos veículos activos no cenário actual (e.g. {"A","B","C"})
 
 # Recipient resolution history (Opção 2 — derivar destinatário pelo contexto)
@@ -37,7 +38,21 @@ def on_cam(sample):
             return
         ref = _extract_ref_position(payload)
         name = STATION_IDS[station_id]
-        vehicle_states[name] = {"id": name, "lat": ref["latitude"], "lon": ref["longitude"]}
+
+        
+        #vehicle_states[name] = {"id": name, "lat": ref["latitude"], "lon": ref["longitude"]}
+        
+        hfc = payload["fields"]["cam"]["camParameters"]["highFrequencyContainer"]["basicVehicleContainerHighFrequency"]
+        vehicle_length = hfc.get("vehicleLength", {}).get("vehicleLengthValue", 4.5)
+        vehicle_width = hfc.get("vehicleWidth", 1.8)
+
+        vehicle_states[name] = {
+            "id": name,
+            "lat": ref["latitude"],
+            "lon": ref["longitude"],
+            "length_m": vehicle_length,
+            "width_m": vehicle_width
+        }
     except Exception:
         pass
 
@@ -78,11 +93,12 @@ def _classify_mcm(mcm_type, its_role, inner):
 
 
 def on_coordinator_scenario(sample):
-    global current_roads, current_scenario_name, current_scenario_vehicles
+    global current_roads, current_scenario_name,current_scenario_description, current_scenario_vehicles
     try:
         data = json.loads(bytes(sample.payload).decode())
         current_roads             = data.get("roads", [])
         current_scenario_name     = data.get("name", "")
+        current_scenario_description = data.get("description", "")
         current_scenario_vehicles = {v["id"] for v in data.get("vehicles", [])}
 
         vehicle_states.clear()
@@ -165,6 +181,7 @@ async def broadcast_loop():
         msg = json.dumps({
             "t":          round(time.time() - start, 2),
             "scenario":   current_scenario_name,
+            "description": current_scenario_description,
             "roads":      current_roads,
             "vehicles":   [v for v in vehicle_states.values()
                            if not current_scenario_vehicles or v["id"] in current_scenario_vehicles],

@@ -582,7 +582,10 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                           protocol_lock, protocol_state,
                           demo_mode, demo_step_delay),
     )
+    
 
+    length_m = vehicle_cfg.get("length_m", 4.5)
+    width_m = vehicle_cfg.get("width_m", 1.8)
     try:
         elapsed = 0.0
         while t < 1.0:
@@ -594,7 +597,8 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
             vehicle_state["speed_ms"] = speed_ms
             vehicle_state["bearing"]  = bearing
 
-            cam = build_cam(lat, lon, bearing, speed_ms, road.get("lane_position"))
+
+            cam = build_cam(lat, lon, bearing, speed_ms, road.get("lane_position"),length_m, width_m,)
             vanetza_session.put("vanetza/in/cam", json.dumps(cam).encode())
 
             should_advance = True

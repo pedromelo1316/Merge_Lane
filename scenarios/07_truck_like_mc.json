@@ -1,0 +1,41 @@
+{
+  "name": "Truck-like MC — heavy merge vehicle",
+  "description": "Cenário 7 (Truck-like MC): o MC representa um veículo pesado com maiores dimensões e menor capacidade de manobra durante o merge.",
+  "speed_multiplier": 1.5,
+  "timeout_s": 180,
+  "active_vehicles": [10, 11, 12, 13, 14],
+  "roads": [
+    {
+      "id": "truck_ramp",
+      "type": "ramp",
+      "start": {"lat": 40.6370, "lon": -8.6510},
+      "end":   {"lat": 40.6380, "lon": -8.6495},
+      "speed_limit_kmh": 55,
+      "lane_position": 1,
+      "merges_into": "main"
+    },
+    {
+      "id": "main",
+      "type": "main",
+      "start": {"lat": 40.6380, "lon": -8.6560},
+      "end":   {"lat": 40.6380, "lon": -8.6480},
+      "speed_limit_kmh": 100,
+      "lane_position": 1
+    }
+  ],
+  "vehicles": [
+    {
+      "id": "MC",
+      "station_id": 10,
+      "road": "truck_ramp",
+      "lat": 40.6373,
+      "lon": -8.65055,
+      "length_m": 12.0,
+      "width_m": 2.5
+    },
+    {"id": "A", "station_id": 11, "road": "main", "lat": 40.6380, "lon": -8.6505},
+    {"id": "B", "station_id": 12, "road": "main", "lat": 40.6380, "lon": -8.6514},
+    {"id": "C", "station_id": 13, "road": "main", "lat": 40.6380, "lon": -8.6525},
+    {"id": "D", "station_id": 14, "road": "main", "lat": 40.6380, "lon": -8.6536}
+  ]
+}

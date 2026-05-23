@@ -1,0 +1,31 @@
+{
+  "name": "MC vs A B — two conflict vehicles",
+  "description": "Cenário 3 (MC vs A and B): os veículos A e B entram em conflito com o MC, exigindo uma negociação cooperativa em cadeia antes do merge.",
+  "speed_multiplier": 2.0,
+  "timeout_s": 120,
+  "active_vehicles": [10, 11, 12],
+  "roads": [
+    {
+      "id": "ramp",
+      "type": "ramp",
+      "start": {"lat": 40.6370, "lon": -8.6510},
+      "end":   {"lat": 40.6380, "lon": -8.6495},
+      "speed_limit_kmh": 60,
+      "lane_position": 1,
+      "merges_into": "main"
+    },
+    {
+      "id": "main",
+      "type": "main",
+      "start": {"lat": 40.6380, "lon": -8.6560},
+      "end":   {"lat": 40.6380, "lon": -8.6480},
+      "speed_limit_kmh": 100,
+      "lane_position": 1
+    }
+  ],
+  "vehicles": [
+    {"id": "MC", "station_id": 10, "road": "ramp", "lat": 40.63745, "lon": -8.65035},
+    {"id": "A",  "station_id": 11, "road": "main", "lat": 40.6380, "lon": -8.6510},
+    {"id": "B",  "station_id": 12, "road": "main", "lat": 40.6380, "lon": -8.6518}
+  ]
+}

@@ -1,5 +1,6 @@
 {
   "name": "High speed merge — MC vs A B C",
+  "description": "Cenário 8 (High speed merge): o MC e os veículos da via principal circulam a velocidades elevadas, reduzindo o tempo disponível para negociação.",
   "speed_multiplier": 2.0,
   "timeout_s": 120,
   "active_vehicles": [10, 11, 12, 13],

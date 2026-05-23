@@ -1,7 +1,7 @@
 import time
 
 
-def build_cam(lat, lon, heading, speed_ms, lane_position=None):
+def build_cam(lat, lon, heading, speed_ms, lane_position=None,length_m=4.5, width_m=1.8):
     """
     Constrói um payload CAM ETSI C-ITS.
 
@@ -46,10 +46,10 @@ def build_cam(lat, lon, heading, speed_ms, lane_position=None):
                     },
                     "driveDirection": 0,
                     "vehicleLength": {
-                        "vehicleLengthValue": 1023,
+                        "vehicleLengthValue": length_m,
                         "vehicleLengthConfidenceIndication": 4,
                     },
-                    "vehicleWidth": 62,
+                    "vehicleWidth":  width_m,
                     "longitudinalAcceleration": {
                         "value": 0.0,
                         "confidence": 102,

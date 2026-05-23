@@ -1,6 +1,6 @@
 {
-  "name": "Standard merge — MC vs A B C",
-"description": "Cenário 1 (Standard): o MC entra pela rampa e negocia a entrada na via principal com os veículos A, B e C.",
+  "name": "MC vs A B C — all conflict",
+  "description": "Cenário 5 (All conflict): os veículos A, B e C entram em conflito com o MC e precisam de desacelerar para permitir o merge.",
   "speed_multiplier": 2.0,
   "timeout_s": 120,
   "active_vehicles": [10, 11, 12, 13],
@@ -24,9 +24,9 @@
     }
   ],
   "vehicles": [
-    {"id": "MC","station_id": 10,"road": "ramp","lat": 40.6373,"lon": -8.65055},
-    {"id": "A",  "station_id": 11, "road": "main", "lat": 40.6380, "lon": -8.6518},
-    {"id": "B",  "station_id": 12, "road": "main", "lat": 40.6380, "lon": -8.6532},
-    {"id": "C",  "station_id": 13, "road": "main", "lat": 40.6380, "lon": -8.6547}
+    {"id": "MC", "station_id": 10, "road": "ramp", "lat": 40.6375, "lon": -8.65025},
+    {"id": "A",  "station_id": 11, "road": "main", "lat": 40.6380, "lon": -8.6507},
+    {"id": "B",  "station_id": 12, "road": "main", "lat": 40.6380, "lon": -8.6513},
+    {"id": "C",  "station_id": 13, "road": "main", "lat": 40.6380, "lon": -8.6519}
   ]
 }
