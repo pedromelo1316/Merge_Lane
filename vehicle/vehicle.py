@@ -155,6 +155,11 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             sugg = _suggested_speed_for(target_id, mc_advice)
         if sugg is None:
             sugg = vehicle_state["speed_ms"] * 0.7
+        # Vehicle behind must not exceed own target (avoid rear collision)
+        with protocol_lock:
+            own_target = protocol_state.get("own_target_speed_ms")
+        if own_target is not None:
+            sugg = min(sugg, own_target)
         with protocol_lock:
             mid = protocol_state["manoeuvre_id"]
         mcm = build_slowdown_request(
@@ -172,7 +177,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             protocol_state["slowdown_sent"] = True
             protocol_state["slowdown_sent_to"] = target_id
         ts = time.strftime("%H:%M:%S")
-        print(f"[{ts}] [{vehicle_id}] SLOWDOWN_REQUEST enviado para stationID={target_id} speed={sugg:.2f} m/s")
+        print(f"[{ts}] [{vehicle_id}] SLOWDOWN_REQUEST enviado para stationID={target_id} speed={sugg * 3.6:.1f} km/h")
 
     def _send_slowdown_grant(to_id):
         _demo_pause()
@@ -253,7 +258,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                             apply_speed = vehicle_state["speed_ms"] * 0.7
                     vehicle_state["target_speed_ms"] = apply_speed
                     ts = time.strftime("%H:%M:%S")
-                    print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed:.2f} m/s (grant recebido)")
+                    print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (grant recebido)")
                     # Cada veículo decide independentemente (por agora: aceita sempre)
                     if received and sender_ahead is not None:
                         _send_slowdown_grant(sender_ahead)
@@ -321,7 +326,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 print(f"[{ts}] [{vehicle_id}] MERGE_REQUEST de stationID={sender_id} "
                       f"eta={mc_eta_s:.1f}s in_conflict={in_conflict}")
                 if own_target is not None and in_conflict:
-                    print(f"[{ts}] [{vehicle_id}] velocidade alvo calculada: {own_target:.2f} m/s (ETA={mc_eta_s:.1f}s)")
+                    print(f"[{ts}] [{vehicle_id}] velocidade alvo calculada: {own_target * 3.6:.1f} km/h (ETA={mc_eta_s:.1f}s)")
 
                 with protocol_lock:
                     protocol_state["in_conflict"] = in_conflict
@@ -378,6 +383,13 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     protocol_state["slowdown_delta_time"] = delta_time
                     protocol_state["manoeuvre_id"] = manoeuvre_id
                     mid = manoeuvre_id
+                    # Cap own target at the speed of the vehicle ahead (avoids rear collision)
+                    if sugg_speed is not None:
+                        prev = protocol_state.get("own_target_speed_ms")
+                        if prev is not None:
+                            protocol_state["own_target_speed_ms"] = min(prev, sugg_speed)
+                        else:
+                            protocol_state["own_target_speed_ms"] = sugg_speed
 
                 own_t = project_t(vehicle_state["lat"], vehicle_state["lon"], road)
                 with protocol_lock:
@@ -396,7 +408,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         apply_speed = sugg_speed if sugg_speed is not None else vehicle_state["speed_ms"] * 0.7
                     vehicle_state["target_speed_ms"] = apply_speed
                     ts = time.strftime("%H:%M:%S")
-                    print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed:.2f} m/s (fim de cadeia)")
+                    print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (fim de cadeia)")
                     print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
                     _send_slowdown_grant(sender_id)
 
