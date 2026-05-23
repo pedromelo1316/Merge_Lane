@@ -153,13 +153,37 @@ O dashboard mostra apenas posições. Faltam indicadores de velocidade e a marca
 ## Etapa 14 — Cenários variados `[só JSON]`
 
 Os cenários 02–07 foram apagados. Só existe `01_standard_merge.json` (MC vs A, B, C).
+## Cenários
 
-- [ ] `02_mc_vs_A_only.json` — só veículo A em conflito (sem cadeia de SLOWDOWN; A é o único)
-- [ ] `03_mc_vs_AB.json` — A e B em conflito (cadeia de 2 veículos)
-- [ ] `04_no_conflict.json` — MC chega sem conflito (vehicles já passaram o ponto; grants imediatos)
-- [ ] `06_mc_stops.json` — MC chega à zona de conflito sem grants suficientes, para e aguarda
-- 2 na rampa 
-- mais 2 na  via principal
+- [x] `01_standard_merge.json`
+      Cenário base: MC entra pela rampa e negoceia com A, B e C.
+
+- [x] `02_mc_vs_A_only.json`
+      Apenas o veículo A entra em conflito com o MC.
+
+- [x] `03_mc_vs_AB.json`
+      Os veículos A e B entram em conflito com o MC.
+
+- [x] `04_no_conflict.json`
+      Os veículos da via principal passam antes do MC chegar ao merge.
+
+- [x] `05_all_conflict_ABC.json`
+      A, B e C entram em conflito e precisam de desacelerar.
+
+- [x] `06_mc_stops.json`
+      O MC não recebe grants suficientes e para antes do merge.
+
+- [x] `07_truck_like_mc.json`
+      O MC representa um veículo pesado/camião com maiores dimensões.
+
+- [ ] `08_high_speed_merge.json`
+      Merge a alta velocidade com menor tempo de reação e negociação.
+
+- [ ] `09_dense_traffic_extra_cars.json`
+      Tráfego denso na via principal com veículos adicionais próximos da zona de merge.
+
+- [ ] `10_two_merge_cars.json`
+      Dois veículos na rampa tentam entrar cooperativamente na via principal.
 
 
 **Teste:** coordenador executa todos os cenários sequencialmente sem erros nem deadlocks.
