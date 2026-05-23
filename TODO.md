@@ -171,10 +171,10 @@ Os cenários 02–07 foram apagados. Só existe `01_standard_merge.json` (MC vs 
 
 O veículo que recebe o MERGE_REQUEST calcula a velocidade a que precisa de circular para não estar na zona de conflito no momento indicado. Propaga essa velocidade no SLOWDOWN_REQUEST para trás. O último veículo da cadeia verifica se consegue abrandar em segurança e, se sim, aplica a velocidade e envia SLOWDOWN_GRANT. O grant propaga pela cadeia e cada veículo aplica a sua velocidade alvo quando recebe o grant do veículo atrás. A mudança de velocidade é instantânea nesta fase.
 
-- [ ] Veículo calcula velocidade alvo a partir do ETA e posição do MERGE_REQUEST, em vez de usar o valor sugerido pelo MC
-- [ ] Main loop lê velocidade atual de `vehicle_state` em vez de constante; `dt_t` recalculado a cada tick
-- [ ] Cada veículo aplica a sua velocidade alvo ao receber o SLOWDOWN_GRANT (ou ao ser fim de cadeia)
-- [ ] Log no terminal com a velocidade alvo calculada
+- [x] Veículo calcula velocidade alvo a partir do ETA e posição do MERGE_REQUEST, em vez de usar o valor sugerido pelo MC
+- [x] Main loop lê velocidade atual de `vehicle_state` em vez de constante; `dt_t` recalculado a cada tick
+- [x] Cada veículo aplica a sua velocidade alvo ao receber o SLOWDOWN_GRANT (ou ao ser fim de cadeia)
+- [x] Log no terminal com a velocidade alvo calculada
 
 **Teste:** nos logs, velocidade de A/B/C baixa após o SLOWDOWN_GRANT, de forma coerente com o ETA do MC.
 

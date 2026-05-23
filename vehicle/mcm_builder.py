@@ -202,11 +202,12 @@ def build_ack(station_id, lat, lon, manoeuvre_id, acknowledged_delta_time):
     }
 
 
-def build_slowdown_grant(station_id, lat, lon, manoeuvre_id):
+def build_slowdown_grant(station_id, lat, lon, manoeuvre_id, success=True):
     """
-    Vehicle → vehicle ahead. Confirms this vehicle accepts to slow down.
+    Vehicle → vehicle ahead. Confirms or refuses slowdown.
 
     manoeuvre_id must be in [128, 255] to distinguish from MERGE_GRANT (0-127).
+    success=False → manouevreResponse=1 (refuse).
 
     Returns a dict ready for json.dumps(). No side effects.
     """
@@ -216,16 +217,17 @@ def build_slowdown_grant(station_id, lat, lon, manoeuvre_id):
             manoeuvre_id=manoeuvre_id,
         ),
         "mcmContainer": {
-            "responseContainer": {"manouevreResponse": 0}
+            "responseContainer": {"manouevreResponse": 0 if success else 1}
         },
     }
 
 
-def build_merge_grant(station_id, lat, lon, manoeuvre_id):
+def build_merge_grant(station_id, lat, lon, manoeuvre_id, success=True):
     """
-    First conflicting vehicle → MC. Grants the merge window.
+    First conflicting vehicle → MC. Grants or refuses the merge window.
 
     manoeuvre_id must be in [0, 127] to distinguish from SLOWDOWN_GRANT (128-255).
+    success=False → manouevreResponse=1 (chain refused).
 
     Returns a dict ready for json.dumps(). No side effects.
     """
@@ -235,7 +237,7 @@ def build_merge_grant(station_id, lat, lon, manoeuvre_id):
             manoeuvre_id=manoeuvre_id,
         ),
         "mcmContainer": {
-            "responseContainer": {"manouevreResponse": 0}
+            "responseContainer": {"manouevreResponse": 0 if success else 1}
         },
     }
 

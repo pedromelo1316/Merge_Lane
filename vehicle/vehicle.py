@@ -179,7 +179,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{vehicle_id}] SLOWDOWN_REQUEST enviado para stationID={target_id} speed={sugg * 3.6:.1f} km/h")
 
-    def _send_slowdown_grant(to_id):
+    def _send_slowdown_grant(to_id, success=True):
         _demo_pause()
         grant_id = random.randint(128, 255)
         grant = build_slowdown_grant(
@@ -187,14 +187,23 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             lat=vehicle_state["lat"],
             lon=vehicle_state["lon"],
             manoeuvre_id=grant_id,
+            success=success,
         )
         session.put("vanetza/in/mcm", json.dumps(grant).encode())
         with protocol_lock:
             protocol_state["slowdown_grant_sent"] = True
         ts = time.strftime("%H:%M:%S")
-        print(f"[{ts}] [{vehicle_id}] SLOWDOWN_GRANT enviado para stationID={to_id} (grant_id={grant_id})")
+        label = "SLOWDOWN_GRANT" if success else "SLOWDOWN_GRANT(recusa)"
+        print(f"[{ts}] [{vehicle_id}] {label} enviado para stationID={to_id} (grant_id={grant_id})")
 
-    def _send_merge_grant():
+    def _available_dist():
+        if main_road_ref is None or L_main is None or merge_lat is None:
+            return None
+        t_v = project_t(vehicle_state["lat"], vehicle_state["lon"], main_road_ref)
+        t_m = project_t(merge_lat, merge_lon, main_road_ref)
+        return max(0.0, (t_m - t_v) * L_main - CONFLICT_ZONE_M)
+
+    def _send_merge_grant(success=True):
         _demo_pause()
         with protocol_lock:
             if protocol_state["merge_grant_sent"]:
@@ -208,12 +217,14 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             lat=vehicle_state["lat"],
             lon=vehicle_state["lon"],
             manoeuvre_id=mid,
+            success=success,
         )
         session.put("vanetza/in/mcm", json.dumps(grant).encode())
         with protocol_lock:
             protocol_state["merge_grant_sent"] = True
         ts = time.strftime("%H:%M:%S")
-        print(f"[{ts}] [{vehicle_id}] MERGE_GRANT enviado ao MC stationID={mc_id}")
+        label = "MERGE_GRANT" if success else "MERGE_GRANT(recusa)"
+        print(f"[{ts}] [{vehicle_id}] {label} enviado ao MC stationID={mc_id}")
 
     def on_mcm(sample):
         try:
@@ -236,39 +247,78 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
             # ── mcmType=2, itssRole=3: SLOWDOWN_GRANT (128-255) ou MERGE_GRANT (0-127) ──
             if mcm_type == 2 and its_role == 3:
                 if manoeuvre_id >= 128:
-                    # ── SLOWDOWN_GRANT (veículo atrás → este veículo) ──────────
+                    # ── SLOWDOWN_GRANT ou SLOWDOWN_REFUSE (veículo atrás → este) ──
                     if is_ramp:
-                        return  # MC não recebe SLOWDOWN_GRANT
+                        return  # MC não recebe estas mensagens
                     with protocol_lock:
                         sent_to = protocol_state["slowdown_sent_to"]
                     if sender_id != sent_to:
                         return  # não é de quem esperávamos
                     ts = time.strftime("%H:%M:%S")
+                    response_code = inner["mcmContainer"]["responseContainer"]["manouevreResponse"]
+                    if response_code != 0:
+                        # ── SLOWDOWN_REFUSE: propaga recusa para a frente ──────
+                        print(f"[{ts}] [{vehicle_id}] SLOWDOWN_REFUSE recebido de stationID={sender_id}")
+                        with protocol_lock:
+                            received     = protocol_state["slowdown_received"]
+                            sender_ahead = protocol_state["slowdown_sender_id"]
+                        if received and sender_ahead is not None:
+                            _send_slowdown_grant(sender_ahead, success=False)
+                        else:
+                            _send_merge_grant(success=False)
+                        return
+                    # ── SLOWDOWN_GRANT ────────────────────────────────────────
                     print(f"[{ts}] [{vehicle_id}] SLOWDOWN_GRANT recebido de stationID={sender_id} (grant_id={manoeuvre_id})")
                     with protocol_lock:
                         protocol_state["slowdown_grant_received"] = True
                         protocol_state["slowdown_grant_sender_id"] = sender_id
-                        received = protocol_state["slowdown_received"]
+                        received     = protocol_state["slowdown_received"]
                         sender_ahead = protocol_state["slowdown_sender_id"]
-                        mc_advice = list(protocol_state["mc_advice"])
-                        apply_speed = protocol_state.get("own_target_speed_ms")
+                        mc_advice    = list(protocol_state["mc_advice"])
+                        apply_speed  = protocol_state.get("own_target_speed_ms")
                     if apply_speed is None:
                         apply_speed = _suggested_speed_for(own_station_id, mc_advice)
                         if apply_speed is None:
                             apply_speed = vehicle_state["speed_ms"] * 0.7
-                    vehicle_state["target_speed_ms"] = apply_speed
+                    avail = _available_dist()
                     ts = time.strftime("%H:%M:%S")
-                    print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (grant recebido)")
-                    # Cada veículo decide independentemente (por agora: aceita sempre)
-                    if received and sender_ahead is not None:
-                        _send_slowdown_grant(sender_ahead)
+                    if avail is not None:
+                        ok, brake_d = can_brake_in_time(vehicle_state["speed_ms"], apply_speed, avail)
+                        if ok:
+                            print(f"[{ts}] [{vehicle_id}] aceita: dist_travagem={brake_d:.1f}m, disponivel={avail:.1f}m")
+                            vehicle_state["target_speed_ms"] = apply_speed
+                            print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (grant recebido)")
+                            if received and sender_ahead is not None:
+                                _send_slowdown_grant(sender_ahead)
+                            else:
+                                _send_merge_grant()
+                        else:
+                            print(f"[{ts}] [{vehicle_id}] recusa: dist_travagem={brake_d:.1f}m > disponivel={avail:.1f}m")
+                            if received and sender_ahead is not None:
+                                _send_slowdown_grant(sender_ahead, success=False)
+                            else:
+                                _send_merge_grant(success=False)
                     else:
-                        _send_merge_grant()  # veículo A: sem SLOWDOWN_REQUEST recebido → grant ao MC
+                        # sem informação de distância: aceita (compatibilidade)
+                        vehicle_state["target_speed_ms"] = apply_speed
+                        print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (grant recebido)")
+                        if received and sender_ahead is not None:
+                            _send_slowdown_grant(sender_ahead)
+                        else:
+                            _send_merge_grant()
                 else:
                     # ── MERGE_GRANT (veículo da estrada → MC) ─────────────────
                     if not is_ramp:
                         return
                     ts = time.strftime("%H:%M:%S")
+                    response_code = inner["mcmContainer"]["responseContainer"]["manouevreResponse"]
+                    if response_code != 0:
+                        print(f"[{ts}] [{vehicle_id}] MERGE_GRANT(recusa) de stationID={sender_id} — a reiniciar negociação")
+                        with protocol_lock:
+                            protocol_state["grants_received"] = set()
+                            protocol_state["grant_timeout"] = None
+                            protocol_state["merge_grant_sent"] = False
+                        return
                     print(f"[{ts}] [{vehicle_id}] MERGE_GRANT recebido de stationID={sender_id} manoeuvre_id={manoeuvre_id}")
                     with protocol_lock:
                         protocol_state["grants_received"].add(sender_id)
@@ -401,16 +451,30 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 if behind_id is not None:
                     _send_slowdown(behind_id, mc_advice)
                 else:
-                    # Fim de cadeia: aplica velocidade alvo e envia SLOWDOWN_GRANT
+                    # Fim de cadeia: verifica se consegue abrandar; envia GRANT ou REFUSE
                     with protocol_lock:
                         apply_speed = protocol_state.get("own_target_speed_ms")
                     if apply_speed is None:
                         apply_speed = sugg_speed if sugg_speed is not None else vehicle_state["speed_ms"] * 0.7
-                    vehicle_state["target_speed_ms"] = apply_speed
+                    avail = _available_dist()
                     ts = time.strftime("%H:%M:%S")
-                    print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (fim de cadeia)")
-                    print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
-                    _send_slowdown_grant(sender_id)
+                    if avail is not None:
+                        ok, brake_d = can_brake_in_time(vehicle_state["speed_ms"], apply_speed, avail)
+                        if ok:
+                            print(f"[{ts}] [{vehicle_id}] aceita: dist_travagem={brake_d:.1f}m, disponivel={avail:.1f}m")
+                            vehicle_state["target_speed_ms"] = apply_speed
+                            print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (fim de cadeia)")
+                            print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
+                            _send_slowdown_grant(sender_id)
+                        else:
+                            print(f"[{ts}] [{vehicle_id}] recusa: dist_travagem={brake_d:.1f}m > disponivel={avail:.1f}m")
+                            _send_slowdown_grant(sender_id, success=False)
+                    else:
+                        # sem informação de distância: aceita (compatibilidade)
+                        vehicle_state["target_speed_ms"] = apply_speed
+                        print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (fim de cadeia)")
+                        print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
+                        _send_slowdown_grant(sender_id)
 
         except Exception as e:
             print(f"[{vehicle_id}] Erro no MCM callback: {e}")
@@ -509,8 +573,17 @@ def send_merge_request(session, vehicle_id, own_station_id,
 
 
 CONFLICT_ZONE_M    = 50.0
-CONFLICT_HORIZON_S = 2.0
+CONFLICT_HORIZON_S = 4.0
 GRANT_TIMEOUT_S    = 5.0
+DECELERATION_MS2   = 7   # m/s² — travagem confortável
+
+
+def can_brake_in_time(cur_speed_ms, target_speed_ms, avail_dist_m):
+    """Returns (can_brake: bool, braking_dist_m: float)."""
+    if cur_speed_ms <= target_speed_ms:
+        return True, 0.0
+    d = (cur_speed_ms ** 2 - target_speed_ms ** 2) / (2 * DECELERATION_MS2)
+    return d <= avail_dist_m, d
 
 
 def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
@@ -631,7 +704,10 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
             lat = road["start"]["lat"] + t * (road["end"]["lat"] - road["start"]["lat"])
             lon = road["start"]["lon"] + t * (road["end"]["lon"] - road["start"]["lon"])
 
-            cur_speed = vehicle_state["target_speed_ms"]
+            target    = vehicle_state["target_speed_ms"]
+            cur_speed = vehicle_state["speed_ms"]
+            if cur_speed > target + 0.01:
+                cur_speed = max(target, cur_speed - DECELERATION_MS2 * DT)
             vehicle_state["lat"]      = lat
             vehicle_state["lon"]      = lon
             vehicle_state["speed_ms"] = cur_speed

@@ -45,32 +45,38 @@ def on_cam(sample):
         pass
 
 def _classify_mcm(mcm_type, its_role, inner):
-    """Return (label, to_str) for an MCM. to_str is None when recipient isn't in the message."""
+    """Return (label, to_str, success) for an MCM. success is None for non-response messages."""
     vmc = (inner.get("mcmContainer", {})
                .get("vehicleManoeuvreContainer", {}))
     advice = vmc.get("manoeuvreAdvice", [])
 
     if mcm_type == 1 and its_role == 1:
-        return "MERGE_REQUEST", "all"
+        return "MERGE_REQUEST", "all", None
 
     if mcm_type == 1 and its_role == 3:
         target_id = advice[0].get("executantID") if advice else None
-        return "SLOWDOWN_REQUEST", (STATION_IDS.get(target_id, str(target_id)) if target_id is not None else "?")
+        return "SLOWDOWN_REQUEST", (STATION_IDS.get(target_id, str(target_id)) if target_id is not None else "?"), None
 
     if mcm_type == 2 and its_role == 3:
+        resp = (inner.get("mcmContainer", {})
+                     .get("responseContainer", {})
+                     .get("manouevreResponse", -1))
+        success = (resp == 0)
+        result = "OK" if success else "ABORT"
         mid = inner.get("basicContainer", {}).get("manoeuvreId", 0)
         if mid >= 128:
-            return "SLOWDOWN_GRANT", None
-        return "MERGE_GRANT", "MC"
+            return f"SLOWDOWN_GRANT({result})", None, success
+        return f"MERGE_GRANT({result})", "MC", success
 
     if mcm_type == 2 and its_role == 1:
         resp = (inner.get("mcmContainer", {})
                      .get("responseContainer", {})
                      .get("manouevreResponse", -1))
-        result = "OK" if resp == 0 else "ABORT"
-        return f"EXECUTION_STATUS({result})", "all"
+        success = (resp == 0)
+        result = "OK" if success else "ABORT"
+        return f"EXECUTION_STATUS({result})", "all", success
 
-    return f"MCM_{mcm_type}_ROLE_{its_role}", None
+    return f"MCM_{mcm_type}_ROLE_{its_role}", None, None
 
 
 def on_coordinator_scenario(sample):
@@ -104,9 +110,9 @@ def on_mcm(sample):
         manoeuvre_id = basic["manoeuvreId"]
         delta_time   = basic["generationDeltaTime"]
 
-        label, to_str = _classify_mcm(mcm_type, its_role, inner)
+        label, to_str, success = _classify_mcm(mcm_type, its_role, inner)
 
-        if label == "SLOWDOWN_REQUEST":
+        if label.startswith("SLOWDOWN_REQUEST"):
             advice = (inner.get("mcmContainer", {})
                           .get("vehicleManoeuvreContainer", {})
                           .get("manoeuvreAdvice", []))
@@ -115,10 +121,10 @@ def on_mcm(sample):
                 if executant_id is not None:
                     _slowdown_sent_to[executant_id] = sender_name
 
-        if to_str is None and label == "SLOWDOWN_GRANT":
+        if to_str is None and label.startswith("SLOWDOWN_GRANT"):
             to_str = _slowdown_sent_to.get(station_id, "?")
 
-        print(f"[MCM] {label:<22}  {sender_name} → {to_str or '?'}  (manoeuvre_id={manoeuvre_id})")
+        print(f"[MCM] {label:<30}  {sender_name} → {to_str or '?'}  (manoeuvre_id={manoeuvre_id})")
 
         event = {
             "ts":           time.strftime("%H:%M:%S"),
@@ -126,6 +132,7 @@ def on_mcm(sample):
             "from":         sender_name,
             "to":           to_str,
             "manoeuvre_id": manoeuvre_id,
+            "success":      success,
         }
         MCM_PENDING.append(event)
     except Exception:
