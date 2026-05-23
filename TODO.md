@@ -182,10 +182,10 @@ O veículo que recebe o MERGE_REQUEST calcula a velocidade a que precisa de circ
 
 Em vez de mudar de velocidade instantaneamente, o veículo abranda como um carro real (travagem contínua). A decisão de aceitar o SLOWDOWN passa a incluir uma verificação de segurança: o veículo só aceita se conseguir atingir a velocidade alvo antes de entrar na zona de conflito.
 
-- [ ] Modelo de travagem: aceleração negativa constante até atingir a velocidade alvo
-- [ ] Verificação de segurança antes de aceitar: distância disponível vs. distância de travagem necessária
-- [ ] Se não conseguir abrandar a tempo, recusa o SLOWDOWN e propaga a recusa para a frente
-- [ ] Log no terminal com decisão (aceita/recusa) e distância de travagem calculada
+- [x] Modelo de travagem: aceleração negativa constante até atingir a velocidade alvo
+- [x] Verificação de segurança antes de aceitar: distância disponível vs. distância de travagem necessária
+- [x] Se não conseguir abrandar a tempo, recusa o SLOWDOWN e propaga a recusa para a frente
+- [x] Log no terminal com decisão (aceita/recusa) e distância de travagem calculada
 
 **Teste:** veículos abrandam visivelmente ao longo de vários ticks; veículo que não consegue abrandar a tempo recusa e o MC recebe fallback.
 
@@ -195,9 +195,9 @@ Em vez de mudar de velocidade instantaneamente, o veículo abranda como um carro
 
 Após o merge, os veículos que abrandaram devem retomar a velocidade limite da estrada.
 
-- [ ] Ao receber EXECUTION_STATUS(OK): `vehicle_state["target_speed_ms"] = road_speed_limit`
-- [ ] Adicionar flag `slowed_down` ao `protocol_state` para distinguir veículos afetados
-- [ ] Log no terminal: `[A] velocidade retomada após merge executado`
+- [x] Ao receber EXECUTION_STATUS(OK): `vehicle_state["target_speed_ms"] = road_speed_limit`
+- [x] Adicionar flag `slowed_down` ao `protocol_state` para distinguir veículos afetados
+- [x] Log no terminal: `[A] velocidade retomada após merge executado`
 
 **Teste:** após EXECUTION_STATUS nos logs, velocidade dos veículos da via principal volta ao normal.
 

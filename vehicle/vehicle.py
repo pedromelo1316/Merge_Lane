@@ -287,6 +287,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         if ok:
                             print(f"[{ts}] [{vehicle_id}] aceita: dist_travagem={brake_d:.1f}m, disponivel={avail:.1f}m")
                             vehicle_state["target_speed_ms"] = apply_speed
+                            with protocol_lock:
+                                protocol_state["slowed_down"] = True
                             print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (grant recebido)")
                             if received and sender_ahead is not None:
                                 _send_slowdown_grant(sender_ahead)
@@ -301,6 +303,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     else:
                         # sem informação de distância: aceita (compatibilidade)
                         vehicle_state["target_speed_ms"] = apply_speed
+                        with protocol_lock:
+                            protocol_state["slowed_down"] = True
                         print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (grant recebido)")
                         if received and sender_ahead is not None:
                             _send_slowdown_grant(sender_ahead)
@@ -335,6 +339,12 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 print(f"[{ts}] [{vehicle_id}] execution_status recebido de MC={sender_id} success={success}")
                 with protocol_lock:
                     protocol_state["in_conflict"] = False
+                    slowed = protocol_state.get("slowed_down", False)
+                    if success and slowed:
+                        road_spd = vehicle_state.get("road_speed_ms", vehicle_state["speed_ms"])
+                        vehicle_state["target_speed_ms"] = road_spd
+                        protocol_state["slowed_down"] = False
+                        print(f"[{ts}] [{vehicle_id}] velocidade retomada após merge executado ({road_spd * 3.6:.1f} km/h)")
                     if demo_mode and success:
                         protocol_state["demo_active"] = False
                 return
@@ -463,6 +473,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         if ok:
                             print(f"[{ts}] [{vehicle_id}] aceita: dist_travagem={brake_d:.1f}m, disponivel={avail:.1f}m")
                             vehicle_state["target_speed_ms"] = apply_speed
+                            with protocol_lock:
+                                protocol_state["slowed_down"] = True
                             print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (fim de cadeia)")
                             print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
                             _send_slowdown_grant(sender_id)
@@ -472,6 +484,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     else:
                         # sem informação de distância: aceita (compatibilidade)
                         vehicle_state["target_speed_ms"] = apply_speed
+                        with protocol_lock:
+                            protocol_state["slowed_down"] = True
                         print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (fim de cadeia)")
                         print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
                         _send_slowdown_grant(sender_id)
@@ -576,6 +590,7 @@ CONFLICT_ZONE_M    = 50.0
 CONFLICT_HORIZON_S = 4.0
 GRANT_TIMEOUT_S    = 5.0
 DECELERATION_MS2   = 7   # m/s² — travagem confortável
+ACCELERATION_MS2   = 2   # m/s² — aceleração confortável de retoma
 
 
 def can_brake_in_time(cur_speed_ms, target_speed_ms, avail_dist_m):
@@ -654,6 +669,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         "lat": initial_lat, "lon": initial_lon,
         "speed_ms": speed_ms, "bearing": bearing,
         "target_speed_ms": speed_ms,
+        "road_speed_ms": speed_ms,
     }
 
     protocol_lock  = threading.Lock()
@@ -676,6 +692,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         "grants_received":          set(),
         "grant_timeout":            None,
         "merge_decided":            False,
+        "slowed_down":              False,
         "demo_active":              False,
     }
 
@@ -708,6 +725,8 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
             cur_speed = vehicle_state["speed_ms"]
             if cur_speed > target + 0.01:
                 cur_speed = max(target, cur_speed - DECELERATION_MS2 * DT)
+            elif cur_speed < target - 0.01:
+                cur_speed = min(target, cur_speed + ACCELERATION_MS2 * DT)
             vehicle_state["lat"]      = lat
             vehicle_state["lon"]      = lon
             vehicle_state["speed_ms"] = cur_speed
