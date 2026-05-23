@@ -16,6 +16,10 @@ current_roads             = []
 current_scenario_name     = ""
 current_scenario_vehicles = set()  # IDs dos veículos activos no cenário actual (e.g. {"A","B","C"})
 
+# Recipient resolution history (Opção 2 — derivar destinatário pelo contexto)
+_msg_by_delta     = {}  # {generationDeltaTime → sender_name}  — para ACKs
+_slowdown_sent_to = {}  # {executant_station_id → sender_name} — para SLOWDOWN_GRANTs
+
 
 def _extract_ref_position(payload):
     # vanetza/out/cam wraps the CAM in fields.cam; vanetza/own/cam may use the raw structure
@@ -58,6 +62,9 @@ def _classify_mcm(mcm_type, its_role, inner):
         return "ACK", None
 
     if mcm_type == 2 and its_role == 3:
+        mid = inner.get("basicContainer", {}).get("manoeuvreId", 0)
+        if mid >= 128:
+            return "SLOWDOWN_GRANT", None
         return "MERGE_GRANT", "MC"
 
     if mcm_type == 2 and its_role == 1:
@@ -77,6 +84,12 @@ def on_coordinator_scenario(sample):
         current_roads             = data.get("roads", [])
         current_scenario_name     = data.get("name", "")
         current_scenario_vehicles = {v["id"] for v in data.get("vehicles", [])}
+
+        vehicle_states.clear()
+        del MCM_PENDING[:]
+        _msg_by_delta.clear()
+        _slowdown_sent_to.clear()
+
         print(f"[bridge] Cenário recebido: {current_scenario_name!r} ({len(current_roads)} estradas, veículos: {current_scenario_vehicles})")
     except Exception:
         pass
@@ -91,11 +104,36 @@ def on_mcm(sample):
         fields = payload["fields"]
         inner  = fields.get("payload") or fields["mcm"]
         basic = inner["basicContainer"]
-        mcm_type = basic["mcmType"]
-        its_role = basic.get("itssRole", 0)
+        mcm_type     = basic["mcmType"]
+        its_role     = basic.get("itssRole", 0)
         manoeuvre_id = basic["manoeuvreId"]
+        delta_time   = basic["generationDeltaTime"]
 
         label, to_str = _classify_mcm(mcm_type, its_role, inner)
+
+        # Normalize to integer milliseconds so vanetza/time/mcm (original float, full precision)
+        # and vanetza/out/mcm (decoded, sub-ms precision lost) produce the same key.
+        # e.g. 1741192835.4648783 and 1741192835.464 both → int key 1741192835464
+        _msg_by_delta[int(delta_time * 1000)] = sender_name
+
+        if label == "SLOWDOWN_REQUEST":
+            advice = (inner.get("mcmContainer", {})
+                          .get("vehicleManoeuvreContainer", {})
+                          .get("manoeuvreAdvice", []))
+            if advice:
+                executant_id = advice[0].get("executantID")
+                if executant_id is not None:
+                    _slowdown_sent_to[executant_id] = sender_name
+
+        if to_str is None:
+            if label == "ACK":
+                ack_delta = (inner.get("mcmContainer", {})
+                                  .get("acknowledgmentContainer", {})
+                                  .get("generationDeltaTime"))
+                if ack_delta is not None:
+                    to_str = _msg_by_delta.get(int(ack_delta * 1000), "?")
+            elif label == "SLOWDOWN_GRANT":
+                to_str = _slowdown_sent_to.get(station_id, "?")
 
         print(f"[MCM] {label:<22}  {sender_name} → {to_str or '?'}  (manoeuvre_id={manoeuvre_id})")
 

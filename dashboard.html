@@ -297,7 +297,7 @@
   */
 
 
-    function drawVehicles(ctx, vehicles, bounds, W, H) {
+  /*  function drawVehicles(ctx, vehicles, bounds, W, H) {
     const vehicleColor = {
       MC: '#00bcd4',
       ML2: '#00bcd4'
@@ -363,6 +363,68 @@
       drawVehicleShape(ctx, pt.x, pt.y, lengthPx, widthPx, color, v.id);
     }
 }
+
+*/
+
+    function drawVehicles(ctx, vehicles, bounds, W, H) {
+      const vehicleColor = {
+        MC: '#00bcd4',
+        ML2: '#00bcd4'
+      };
+
+      function toC(lat, lon) {
+        return gpsToCanvas(lat, lon, bounds, W, H);
+      }
+
+      function drawVehicleShape(ctx, x, y, lengthPx, widthPx, color, label) {
+        // Corpo da viatura
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(x - lengthPx / 2, y - widthPx / 2, lengthPx, widthPx, 6);
+        ctx.fillStyle = color;
+        ctx.fill();
+
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#111';
+        ctx.stroke();
+        ctx.restore();
+
+        // Texto
+        ctx.font = 'bold 11px monospace';
+        ctx.fillStyle = '#000000';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(label, x, y);
+      }
+
+      for (const v of vehicles) {
+        let pt = toC(v.lat, v.lon);
+        pt = applyLaneOffset(pt, v.road);
+
+        const color = vehicleColor[v.id] || '#ffffff';
+
+        //const isMergeVehicle = v.id === 'MC' || v.id === 'ML2';
+
+        //const lengthPx = isMergeVehicle ? 42 : 26;
+        //const widthPx  = isMergeVehicle ? 20 : 16;
+
+        //const lengthPx = 28;
+        //const widthPx  = 16;    
+
+        const SCALE = 8;
+
+        const lengthM = v.length_m || 4.5;
+        const widthM  = v.width_m  || 1.8;
+
+        const lengthPx = lengthM * SCALE;
+        const widthPx  = widthM * SCALE;
+
+
+
+        drawVehicleShape(ctx, pt.x, pt.y, lengthPx, widthPx, color, v.id);
+      }
+    }
+
  /* -----------------------------------------------------------------
 
     function drawRoads(ctx, roads, bounds, W, H) {
