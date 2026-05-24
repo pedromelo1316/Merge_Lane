@@ -33,14 +33,14 @@ Melhorias incrementais ao dashboard. Implementar uma de cada vez.
 
 **Contexto:** os cards do MCM LOG mostram pouca informação. Expandir ao clicar.
 
-- [ ] `dashboard.html`: estilo CSS para modal overlay (fundo semitransparente, card centrado, animação de entrada)
-- [ ] `dashboard.html`: cards ganham `cursor: pointer`; `onclick` abre modal com:
+- [x] `dashboard.html`: estilo CSS para modal overlay (fundo semitransparente, card centrado, animação de entrada)
+- [x] `dashboard.html`: cards ganham `cursor: pointer`; `onclick` abre modal com:
   - Cabeçalho colorido com tipo da mensagem
   - Timestamp, `from → to`, manoeuvre_id, success
   - Descrição contextual do que a mensagem representa no protocolo (lookup table estático)
   - Campos extra se presentes (ex: target_speed, ETA)
-- [ ] `dashboard.html`: fechar com botão ×, click no backdrop, ou tecla Escape
-- [ ] `bridge.py` (opcional): enriquecer eventos MCM com campos extra:
+- [x] `dashboard.html`: fechar com botão ×, click no backdrop, ou tecla Escape
+- [x] `bridge.py` (opcional): enriquecer eventos MCM com campos extra:
   - `MERGE_REQUEST`: `eta_ms`, `entry_lat/lon`
   - `SLOWDOWN_REQUEST`: `target_speed_kmh` de `manoeuvreAdvice[0].targetSpeed`
 

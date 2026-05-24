@@ -154,6 +154,30 @@ def on_mcm(sample):
         elif label.startswith("EXECUTION_STATUS"):
             vehicle_protocol_states["MC"] = "NORMAL"
 
+        # Extract additional fields for modal enrichment
+        extras = {}
+        vmc = inner.get("mcmContainer", {}).get("vehicleManoeuvreContainer", {})
+
+        if label == "MERGE_REQUEST":
+            submaneuvres = vmc.get("submaneuvres", [{}])
+            if submaneuvres:
+                tc = submaneuvres[0].get("temporalCharateristics", {})
+                extras["eta_start_ms"] = tc.get("tRROccupancyStartTime")
+                extras["eta_end_ms"]   = tc.get("tRROccupancyEndTime")
+            pos = basic.get("position", {})
+            extras["entry_lat"] = pos.get("latitude")
+            extras["entry_lon"] = pos.get("longitude")
+
+        elif label.startswith("SLOWDOWN_REQUEST"):
+            advice = vmc.get("manoeuvreAdvice", [{}])
+            if advice:
+                subs = advice[0].get("submaneuvres", [{}])
+                if subs:
+                    speeds = subs[0].get("advisedTrajectory", {}).get("speed", [{}])
+                    if speeds:
+                        speed_ms = speeds[0].get("speedValue", 0)
+                        extras["target_speed_kmh"] = round(speed_ms * 3.6, 1)
+
         event = {
             "ts":           time.strftime("%H:%M:%S"),
             "type":         label,
@@ -161,6 +185,7 @@ def on_mcm(sample):
             "to":           to_str,
             "manoeuvre_id": manoeuvre_id,
             "success":      success,
+            **extras,
         }
         MCM_PENDING.append(event)
     except Exception:

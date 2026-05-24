@@ -114,6 +114,55 @@
       float: right;
       font-size: 0.7rem;
     }
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    #modal-overlay.active { display: flex; }
+    #modal-card {
+      background: #1a1a2e;
+      border: 2px solid #444;
+      border-radius: 8px;
+      min-width: 360px;
+      max-width: 500px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      animation: slideUp 0.18s ease;
+      overflow: hidden;
+    }
+    @keyframes slideUp {
+      from { transform: translateY(16px); opacity: 0; }
+      to   { transform: translateY(0);    opacity: 1; }
+    }
+    #modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      border-bottom: 2px solid #444;
+    }
+    #modal-type { font-weight: bold; font-size: 1rem; font-family: monospace; }
+    #modal-close {
+      background: none; border: none; color: #aaa;
+      font-size: 1.3rem; cursor: pointer; padding: 0 4px; line-height: 1;
+    }
+    #modal-close:hover { color: #fff; }
+    #modal-body { padding: 16px; font-family: monospace; font-size: 0.82rem; color: #ccc; }
+    .modal-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .modal-label { color: #888; }
+    .modal-value { color: #fff; text-align: right; }
+    #modal-extras { margin-top: 10px; border-top: 1px solid #333; padding-top: 10px; }
+    #modal-description {
+      margin-top: 12px; padding: 10px; background: #0f0f1a;
+      border-radius: 4px; border-left: 3px solid #555;
+      color: #aaa; font-size: 0.78rem; line-height: 1.5;
+    }
+    .mcm-card { cursor: pointer; }
+    .mcm-card:hover { background: #1e1e35; }
   </style>
 </head>
 <body>
@@ -133,10 +182,78 @@
     </div>
   </div>
 
+  <div id="modal-overlay">
+    <div id="modal-card">
+      <div id="modal-header">
+        <span id="modal-type"></span>
+        <button id="modal-close">×</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
   <script>
     // Mantém toda a lógica original do Script, apenas o CSS e as dimensões do Canvas mudaram.
     const PADDING = 80; // Aumentado para lidar com o canvas maior
     const WS_URL  = 'ws://localhost:8765';
+
+    const MCM_DESCRIPTIONS = {
+      'MERGE_REQUEST':          'O MC solicita permissão para entrar na via principal. Inclui a janela temporal estimada de ocupação do ponto de conflito e a velocidade sugerida para cada veículo afetado.',
+      'SLOWDOWN_REQUEST':       'Veículo em conflito propaga pedido de abrandamento ao veículo imediatamente atrás na cadeia.',
+      'ACK':                    'Confirmação de aceitação do abrandamento. Propaga-se para a frente até ao primeiro veículo em conflito.',
+      'MERGE_GRANT(OK)':        'Permissão de merge concedida ao MC — a janela de entrada está garantida.',
+      'MERGE_GRANT(ABORT)':     'Merge recusado — o veículo não consegue garantir a janela de entrada ao MC.',
+      'SLOWDOWN_GRANT(OK)':     'Abrandamento confirmado pelo veículo de trás — propaga-se para a frente na cadeia.',
+      'SLOWDOWN_GRANT(ABORT)':  'Abrandamento recusado — o veículo não consegue abrandar a tempo.',
+      'MERGE_CONFIRMED(OK)':    'MC confirmou o merge após validar todos os grants. Inicia a manobra de mudança de faixa.',
+      'MERGE_CONFIRMED(ABORT)': 'MC abortou a negociação — timeout ou grants insuficientes. Veículos retomam velocidade normal.',
+      'EXECUTION_STATUS(OK)':   'MC está efetivamente a mudar de faixa agora. Após esta mensagem, os veículos da via principal retomam a velocidade normal.',
+    };
+
+    function openModal(ev) {
+      const overlay = document.getElementById('modal-overlay');
+      const typeEl  = document.getElementById('modal-type');
+      const body    = document.getElementById('modal-body');
+      const header  = document.getElementById('modal-header');
+
+      const color = mcmColor(ev.type);
+      header.style.borderBottomColor = color;
+      typeEl.textContent = ev.type;
+      typeEl.style.color = color;
+
+      const toStr = ev.to ? `<b>${ev.from}</b> → <b>${ev.to}</b>` : `<b>${ev.from}</b>`;
+      const successHtml = ev.success == null ? '' :
+        `<div class="modal-row"><span class="modal-label">Resultado</span>
+         <span class="modal-value" style="color:${ev.success ? '#4caf50' : '#f44336'}">
+           ${ev.success ? 'OK' : 'ABORT'}</span></div>`;
+
+      let html =
+        `<div class="modal-row"><span class="modal-label">Rota</span><span class="modal-value">${toStr}</span></div>` +
+        `<div class="modal-row"><span class="modal-label">Timestamp</span><span class="modal-value">${ev.ts}</span></div>` +
+        `<div class="modal-row"><span class="modal-label">Manobra #</span><span class="modal-value">${ev.manoeuvre_id}</span></div>` +
+        successHtml;
+
+      let extrasHtml = '';
+      if (ev.eta_start_ms != null)
+        extrasHtml += `<div class="modal-row"><span class="modal-label">ETA conflito</span><span class="modal-value">${ev.eta_start_ms} – ${ev.eta_end_ms} ms</span></div>`;
+      if (ev.entry_lat != null)
+        extrasHtml +=
+          `<div class="modal-row"><span class="modal-label">Entrada lat</span><span class="modal-value">${ev.entry_lat.toFixed(6)}</span></div>` +
+          `<div class="modal-row"><span class="modal-label">Entrada lon</span><span class="modal-value">${ev.entry_lon.toFixed(6)}</span></div>`;
+      if (ev.target_speed_kmh != null)
+        extrasHtml += `<div class="modal-row"><span class="modal-label">Velocidade alvo</span><span class="modal-value">${ev.target_speed_kmh} km/h</span></div>`;
+      if (extrasHtml) html += `<div id="modal-extras">${extrasHtml}</div>`;
+
+      const desc = MCM_DESCRIPTIONS[ev.type] || '';
+      if (desc) html += `<div id="modal-description">${desc}</div>`;
+
+      body.innerHTML = html;
+      overlay.classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modal-overlay').classList.remove('active');
+    }
 
     const MCM_COLORS = {
       'MERGE_REQUEST':    '#2196f3',
@@ -319,6 +436,13 @@
       panel.appendChild(header);
     });
 
+    // Modal event listeners
+    document.getElementById('modal-close').addEventListener('click', closeModal);
+    document.getElementById('modal-overlay').addEventListener('click', e => {
+      if (e.target.id === 'modal-overlay') closeModal();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
     let lastEventCount = 0; // Variável global para controlo
 
     function renderMcmEvents(events) {
@@ -345,6 +469,7 @@
           `<span class="mcm-id">#${ev.manoeuvre_id}</span>` +
           `<span class="mcm-type" style="color:${color}">${ev.type}</span><br>` +
           `<span class="mcm-route">${ev.ts}&nbsp;&nbsp;<b>${ev.from}</b>${to}</span>`;
+        card.addEventListener('click', () => openModal(ev));
         panel.appendChild(card);
       }
     }
