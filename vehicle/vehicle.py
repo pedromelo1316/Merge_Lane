@@ -843,6 +843,38 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         ts = time.strftime("%H:%M:%S")
         if decided:
             print(f"[{ts}] [{vehicle_id}] MERGE EXECUTADO COM SUCESSO")
+            if main_road is not None:
+                t2 = project_t(lat, lon, main_road)
+                t2 = max(0.0, min(t2, 1.0))
+                L2 = haversine(
+                    main_road["start"]["lat"], main_road["start"]["lon"],
+                    main_road["end"]["lat"],   main_road["end"]["lon"],
+                )
+                bearing2 = compute_bearing(
+                    main_road["start"]["lat"], main_road["start"]["lon"],
+                    main_road["end"]["lat"],   main_road["end"]["lon"],
+                )
+                speed2  = vehicle_state["speed_ms"]
+                target2 = main_road["speed_limit_kmh"] / 3.6
+                ts2 = time.strftime("%H:%M:%S")
+                print(f"[{ts2}] [{vehicle_id}] a transitar para via principal em t={t2:.2f}")
+                while t2 < 1.0:
+                    lat = main_road["start"]["lat"] + t2 * (main_road["end"]["lat"] - main_road["start"]["lat"])
+                    lon = main_road["start"]["lon"] + t2 * (main_road["end"]["lon"] - main_road["start"]["lon"])
+                    if speed2 < target2 - 0.01:
+                        speed2 = min(target2, speed2 + ACCELERATION_MS2 * DT)
+                    vehicle_state["lat"]      = lat
+                    vehicle_state["lon"]      = lon
+                    vehicle_state["speed_ms"] = speed2
+                    vehicle_state["bearing"]  = bearing2
+                    cam = build_cam(lat, lon, bearing2, speed2, main_road.get("lane_position"))
+                    vanetza_session.put("vanetza/in/cam", json.dumps(cam).encode())
+                    dt_t2 = speed2 * DT / L2
+                    t2 += dt_t2
+                    elapsed += DT
+                    time.sleep(DT / speed_factor)
+                lat = main_road["end"]["lat"]
+                lon = main_road["end"]["lon"]
         else:
             print(f"[{ts}] [{vehicle_id}] MERGE: chegou ao fim da rampa sem grants suficientes")
     print(f"[{vehicle_id}] t={elapsed:6.2f}s  lat={lat:.5f}  lon={lon:.5f}  [CHEGOU]")

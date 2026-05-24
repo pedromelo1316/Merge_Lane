@@ -214,9 +214,9 @@ Após o merge, os veículos que abrandaram devem retomar a velocidade limite da 
 
 Após `merge_decided=True` e chegar ao fim da rampa (`t >= 1.0`), o MC para completamente. Deve continuar a circular na via principal a partir do ponto de merge.
 
-- [ ] Após `merge_decided=True` e `t >= 1.0`, iniciar segundo loop de movimento na `main_road`
-- [ ] Posição inicial na main road = projeção do ponto de merge (end da rampa)
-- [ ] Publicar CAMs continuamente a partir da nova posição na via principal
-- [ ] Log: `[MC] a transitar para via principal em t=X.XX`
+- [x] Após `merge_decided=True` e `t >= 1.0`, iniciar segundo loop de movimento na `main_road`
+- [x] Posição inicial na main road = projeção do ponto de merge (end da rampa)
+- [x] Publicar CAMs continuamente a partir da nova posição na via principal
+- [x] Log: `[MC] a transitar para via principal em t=X.XX`
 
 **Teste:** MC aparece no dashboard a continuar para a direita (via principal) após o merge.
