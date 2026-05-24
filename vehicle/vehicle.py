@@ -286,10 +286,9 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         ok, brake_d = can_brake_in_time(vehicle_state["speed_ms"], apply_speed, avail)
                         if ok:
                             print(f"[{ts}] [{vehicle_id}] aceita: dist_travagem={brake_d:.1f}m, disponivel={avail:.1f}m")
-                            vehicle_state["target_speed_ms"] = apply_speed
                             with protocol_lock:
-                                protocol_state["slowed_down"] = True
-                            print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (grant recebido)")
+                                protocol_state["pending_slowdown_speed_ms"] = apply_speed
+                            print(f"[{ts}] [{vehicle_id}] velocidade alvo pendente: {apply_speed * 3.6:.1f} km/h (aguarda merge_confirmed)")
                             if received and sender_ahead is not None:
                                 _send_slowdown_grant(sender_ahead)
                             else:
@@ -302,10 +301,9 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                                 _send_merge_grant(success=False)
                     else:
                         # sem informação de distância: aceita (compatibilidade)
-                        vehicle_state["target_speed_ms"] = apply_speed
                         with protocol_lock:
-                            protocol_state["slowed_down"] = True
-                        print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (grant recebido)")
+                            protocol_state["pending_slowdown_speed_ms"] = apply_speed
+                        print(f"[{ts}] [{vehicle_id}] velocidade alvo pendente: {apply_speed * 3.6:.1f} km/h (aguarda merge_confirmed)")
                         if received and sender_ahead is not None:
                             _send_slowdown_grant(sender_ahead)
                         else:
@@ -350,16 +348,24 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                 ts = time.strftime("%H:%M:%S")
 
                 if response == 0:
-                    # MERGE_CONFIRMED: acordo alcançado → terminar demo, conflito resolvido
+                    # MERGE_CONFIRMED: acordo alcançado → aplicar abrandamento e terminar demo
                     print(f"[{ts}] [{vehicle_id}] merge_confirmed de MC={sender_id} — acordo alcançado")
                     with protocol_lock:
                         protocol_state["in_conflict"] = False
+                        pending_speed = protocol_state.get("pending_slowdown_speed_ms")
+                        if pending_speed is not None:
+                            vehicle_state["target_speed_ms"] = pending_speed
+                            protocol_state["slowed_down"] = True
+                            protocol_state["pending_slowdown_speed_ms"] = None
+                            print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {pending_speed * 3.6:.1f} km/h (merge_confirmed)")
                         if demo_mode:
                             protocol_state["demo_active"] = False
 
                 elif response == 1:
                     # MERGE_CONFIRMED(ABORT): timeout/fallback
                     print(f"[{ts}] [{vehicle_id}] merge_confirmed(abort) de MC={sender_id}")
+                    with protocol_lock:
+                        protocol_state["pending_slowdown_speed_ms"] = None
 
                 return
 
@@ -486,10 +492,9 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         ok, brake_d = can_brake_in_time(vehicle_state["speed_ms"], apply_speed, avail)
                         if ok:
                             print(f"[{ts}] [{vehicle_id}] aceita: dist_travagem={brake_d:.1f}m, disponivel={avail:.1f}m")
-                            vehicle_state["target_speed_ms"] = apply_speed
                             with protocol_lock:
-                                protocol_state["slowed_down"] = True
-                            print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (fim de cadeia)")
+                                protocol_state["pending_slowdown_speed_ms"] = apply_speed
+                            print(f"[{ts}] [{vehicle_id}] velocidade alvo pendente: {apply_speed * 3.6:.1f} km/h (aguarda merge_confirmed)")
                             print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
                             _send_slowdown_grant(sender_id)
                         else:
@@ -497,11 +502,10 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                             _send_slowdown_grant(sender_id, success=False)
                     else:
                         # sem informação de distância: aceita (compatibilidade)
-                        vehicle_state["target_speed_ms"] = apply_speed
                         with protocol_lock:
-                            protocol_state["slowed_down"] = True
-                        print("[{ts}] [{vehicle_id}] aceita: sem informação de distância, a aplicar velocidade sugerida")
-                        print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (fim de cadeia)")
+                            protocol_state["pending_slowdown_speed_ms"] = apply_speed
+                        print(f"[{ts}] [{vehicle_id}] aceita: sem informação de distância, velocidade pendente sugerida")
+                        print(f"[{ts}] [{vehicle_id}] velocidade alvo pendente: {apply_speed * 3.6:.1f} km/h (aguarda merge_confirmed)")
                         print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
                         _send_slowdown_grant(sender_id)
 
@@ -604,7 +608,7 @@ def send_merge_request(session, vehicle_id, own_station_id,
 CONFLICT_ZONE_M    = 50.0
 CONFLICT_HORIZON_S = 4.0
 GRANT_TIMEOUT_S    = 5.0
-DECELERATION_MS2   = 7   # m/s² — travagem confortável
+DECELERATION_MS2   = 4   # m/s² — travagem confortável
 ACCELERATION_MS2   = 2   # m/s² — aceleração confortável de retoma
 
 
@@ -709,6 +713,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         "grant_timeout":            None,
         "merge_decided":            False,
         "slowed_down":              False,
+        "pending_slowdown_speed_ms": None,
         "demo_active":              False,
     }
 
