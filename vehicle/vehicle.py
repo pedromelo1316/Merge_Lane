@@ -9,7 +9,7 @@ import time
 from cam_builder import build_cam
 from mcm_builder import (build_merge_request, build_slowdown_request,
                          build_merge_grant, build_slowdown_grant,
-                         build_execution_status)
+                         build_merge_confirmed, build_execution_status)
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -331,22 +331,34 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                             protocol_state["grant_timeout"] = time.time() + effective_timeout
                 return
 
-            # ── mcmType=2, itssRole=1: execution_status do MC ────────────────
+            # ── mcmType=2, itssRole=1: merge_confirmed ou execution_status do MC
             if mcm_type == 2 and its_role == 1:
                 response = inner["mcmContainer"]["responseContainer"]["manouevreResponse"]
-                success = (response == 0)
                 ts = time.strftime("%H:%M:%S")
-                print(f"[{ts}] [{vehicle_id}] execution_status recebido de MC={sender_id} success={success}")
-                with protocol_lock:
-                    protocol_state["in_conflict"] = False
-                    slowed = protocol_state.get("slowed_down", False)
-                    if success and slowed:
-                        road_spd = vehicle_state.get("road_speed_ms", vehicle_state["speed_ms"])
-                        vehicle_state["target_speed_ms"] = road_spd
-                        protocol_state["slowed_down"] = False
-                        print(f"[{ts}] [{vehicle_id}] velocidade retomada após merge executado ({road_spd * 3.6:.1f} km/h)")
-                    if demo_mode and success:
-                        protocol_state["demo_active"] = False
+
+                if response == 2:
+                    # EXECUTION_STATUS: MC trocou de faixa → retomar velocidade
+                    print(f"[{ts}] [{vehicle_id}] execution_status de MC={sender_id} — a retomar velocidade")
+                    with protocol_lock:
+                        slowed = protocol_state.get("slowed_down", False)
+                        if slowed:
+                            road_spd = vehicle_state.get("road_speed_ms", vehicle_state["speed_ms"])
+                            vehicle_state["target_speed_ms"] = road_spd
+                            protocol_state["slowed_down"] = False
+                            print(f"[{ts}] [{vehicle_id}] velocidade retomada ({road_spd * 3.6:.1f} km/h)")
+
+                elif response == 0:
+                    # MERGE_CONFIRMED: acordo alcançado → terminar demo, conflito resolvido
+                    print(f"[{ts}] [{vehicle_id}] merge_confirmed de MC={sender_id} — acordo alcançado")
+                    with protocol_lock:
+                        protocol_state["in_conflict"] = False
+                        if demo_mode:
+                            protocol_state["demo_active"] = False
+
+                elif response == 1:
+                    # MERGE_CONFIRMED(ABORT): timeout/fallback
+                    print(f"[{ts}] [{vehicle_id}] merge_confirmed(abort) de MC={sender_id}")
+
                 return
 
             if is_ramp:
@@ -486,6 +498,7 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         vehicle_state["target_speed_ms"] = apply_speed
                         with protocol_lock:
                             protocol_state["slowed_down"] = True
+                        print("[{ts}] [{vehicle_id}] aceita: sem informação de distância, a aplicar velocidade sugerida")
                         print(f"[{ts}] [{vehicle_id}] velocidade alvo aplicada: {apply_speed * 3.6:.1f} km/h (fim de cadeia)")
                         print(f"[{ts}] [{vehicle_id}] Fim de cadeia — a enviar SLOWDOWN_GRANT para stationID={sender_id}")
                         _send_slowdown_grant(sender_id)
@@ -787,7 +800,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                             ts = time.strftime("%H:%M:%S")
                             if valid:
                                 print(f"[{ts}] [{vehicle_id}] MERGE_GRANT validado — a executar merge grants={sorted(grants)}")
-                                status = build_execution_status(
+                                status = build_merge_confirmed(
                                     own_station_id, lat, lon,
                                     manoeuvre_state["manoeuvre_id"], success=True,
                                 )
@@ -805,7 +818,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                             ts = time.strftime("%H:%M:%S")
                             print(f"[{ts}] [{vehicle_id}] MERGE_GRANT timeout — fallback "
                                   f"(grants={sorted(grants)}, esperados={sorted(last_conflict_set)})")
-                            status = build_execution_status(
+                            status = build_merge_confirmed(
                                 own_station_id, lat, lon,
                                 manoeuvre_state["manoeuvre_id"], success=False,
                             )
@@ -843,6 +856,10 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         ts = time.strftime("%H:%M:%S")
         if decided:
             print(f"[{ts}] [{vehicle_id}] MERGE EXECUTADO COM SUCESSO")
+            exec_status = build_execution_status(
+                own_station_id, lat, lon, manoeuvre_state["manoeuvre_id"],
+            )
+            vanetza_session.put("vanetza/in/mcm", json.dumps(exec_status).encode())
             if main_road is not None:
                 t2 = project_t(lat, lon, main_road)
                 t2 = max(0.0, min(t2, 1.0))

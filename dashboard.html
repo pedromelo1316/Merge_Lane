@@ -147,6 +147,7 @@
 
     function mcmColor(type) {
       if (type.startsWith('EXECUTION_STATUS')) return '#9c27b0';
+      if (type.startsWith('MERGE_CONFIRMED'))  return '#e91e63';
       return MCM_COLORS[type] || '#666';
     }
 

@@ -17,16 +17,16 @@ echo "==> A arrancar containers (com rebuild das imagens Python)..."
 docker-compose up -d --build
 
 echo "==> À espera que o Zenoh router esteja disponível (127.0.0.1:7446)..."
-until nc -z 127.0.0.1 7446 2>/dev/null; do
+until nc -z -w 1 127.0.0.1 7446 2>/dev/null; do
     printf "."
-    sleep 1
+    sleep 0.5
 done
 echo " pronto."
 
 echo "==> À espera que o Zenoh broker Vanetza esteja disponível (192.168.98.10:7447)..."
-until nc -z 192.168.98.10 7447 2>/dev/null; do
+until nc -z -w 1 192.168.98.10 7447 2>/dev/null; do
     printf "."
-    sleep 1
+    sleep 0.5
 done
 echo " pronto."
 
@@ -41,9 +41,9 @@ HTTP_PID=$!
 echo "    http PID: $HTTP_PID"
 
 echo "==> À espera que o WebSocket da bridge esteja disponível (localhost:8765)..."
-until nc -z 127.0.0.1 8765 2>/dev/null; do
+until nc -z -w 1 127.0.0.1 8765 2>/dev/null; do
     printf "."
-    sleep 0.5
+    sleep 0.3
 done
 echo " pronto."
 

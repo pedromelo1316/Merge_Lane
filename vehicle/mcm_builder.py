@@ -242,11 +242,11 @@ def build_merge_grant(station_id, lat, lon, manoeuvre_id, success=True):
     }
 
 
-def build_execution_status(station_id, lat, lon, manoeuvre_id, success=True):
+def build_merge_confirmed(station_id, lat, lon, manoeuvre_id, success=True):
     """
-    MC → road vehicles. Reports the outcome of the merge manoeuvre.
+    MC → road vehicles. Agreement reached (all grants validated) or aborted.
 
-    success=True → manouevreResponse=0 (executed successfully)
+    success=True → manouevreResponse=0 (agreed)
     success=False → manouevreResponse=1 (aborted / timed out)
 
     Returns a dict ready for json.dumps(). No side effects.
@@ -258,5 +258,24 @@ def build_execution_status(station_id, lat, lon, manoeuvre_id, success=True):
         ),
         "mcmContainer": {
             "responseContainer": {"manouevreResponse": 0 if success else 1}
+        },
+    }
+
+
+def build_execution_status(station_id, lat, lon, manoeuvre_id):
+    """
+    MC → road vehicles. MC is actually changing lanes now.
+
+    manouevreResponse=2 distinguishes this from MERGE_CONFIRMED (0/1).
+
+    Returns a dict ready for json.dumps(). No side effects.
+    """
+    return {
+        "basicContainer": _make_basic_container(
+            station_id, lat, lon, mcm_type=2, its_role=1,
+            manoeuvre_id=manoeuvre_id,
+        ),
+        "mcmContainer": {
+            "responseContainer": {"manouevreResponse": 2}
         },
     }

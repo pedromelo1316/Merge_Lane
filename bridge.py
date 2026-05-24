@@ -72,9 +72,10 @@ def _classify_mcm(mcm_type, its_role, inner):
         resp = (inner.get("mcmContainer", {})
                      .get("responseContainer", {})
                      .get("manouevreResponse", -1))
-        success = (resp == 0)
-        result = "OK" if success else "ABORT"
-        return f"EXECUTION_STATUS({result})", "all", success
+        if resp == 2:
+            return "EXECUTION_STATUS(OK)", "all", True
+        result = "OK" if resp == 0 else "ABORT"
+        return f"MERGE_CONFIRMED({result})", "all", (resp == 0)
 
     return f"MCM_{mcm_type}_ROLE_{its_role}", None, None
 
@@ -170,46 +171,53 @@ async def broadcast_loop():
         await asyncio.sleep(0.1)
 
 
-async def connect_zenoh():
-    loop = asyncio.get_event_loop()
+_zenoh_sessions: list = []
 
-    def _open_vanetza():
-        config = f'{{"mode":"client","connect":{{"endpoints":["{ZENOH_BROKER}"]}}}}'
-        s = zenoh.open(zenoh.Config.from_json5(config))
-        s.declare_subscriber("vanetza/out/cam", on_cam)
-        s.declare_subscriber("vanetza/time/cam", on_cam)
-        s.declare_subscriber("vanetza/out/mcm", on_mcm)
-        s.declare_subscriber("vanetza/time/mcm", on_mcm)
-        return s
 
-    def _open_coord():
-        config = f'{{"mode":"client","connect":{{"endpoints":["{COORDINATOR_ZENOH_URL}"]}}}}'
-        s = zenoh.open(zenoh.Config.from_json5(config))
-        s.declare_subscriber("coordinator/scenario", on_coordinator_scenario)
-        return s
+def _open_zenoh_sync() -> tuple:
+    """Blocking: opens both Zenoh sessions and registers all subscribers."""
+    config_vanetza = f'{{"mode":"client","connect":{{"endpoints":["{ZENOH_BROKER}"]}}}}'
+    s = zenoh.open(zenoh.Config.from_json5(config_vanetza))
+    s.declare_subscriber("vanetza/out/cam", on_cam)
+    s.declare_subscriber("vanetza/time/cam", on_cam)
+    s.declare_subscriber("vanetza/out/mcm", on_mcm)
+    s.declare_subscriber("vanetza/time/mcm", on_mcm)
 
-    print(f"[bridge] A ligar ao Zenoh ({ZENOH_BROKER} e {COORDINATOR_ZENOH_URL})...")
-    session       = await loop.run_in_executor(None, _open_vanetza)
-    coord_session = await loop.run_in_executor(None, _open_coord)
-    print(f"[bridge] Zenoh ligado.")
-    return session, coord_session
+    config_coord = f'{{"mode":"client","connect":{{"endpoints":["{COORDINATOR_ZENOH_URL}"]}}}}'
+    c = zenoh.open(zenoh.Config.from_json5(config_coord))
+    c.declare_subscriber("coordinator/scenario", on_coordinator_scenario)
+    return s, c
+
+
+async def _zenoh_background():
+    """Connect to Zenoh in the background so the WebSocket is immediately usable."""
+    loop = asyncio.get_running_loop()
+    while True:
+        try:
+            print(f"[bridge] A ligar ao Zenoh ({ZENOH_BROKER} e {COORDINATOR_ZENOH_URL})...")
+            s, c = await loop.run_in_executor(None, _open_zenoh_sync)
+            _zenoh_sessions.extend([s, c])
+            print("[bridge] Zenoh ligado.")
+            return
+        except Exception as exc:
+            print(f"[bridge] Zenoh falhou ({exc}). Nova tentativa em 5s...")
+            await asyncio.sleep(5)
 
 
 async def main():
     print("WebSocket a ouvir em ws://localhost:8765")
-    session = coord_session = None
     try:
         async with websockets.serve(ws_handler, "localhost", 8765):
-            # Liga ao Zenoh em paralelo com o WebSocket já a aceitar clientes
-            session, coord_session = await connect_zenoh()
+            asyncio.create_task(_zenoh_background())
             await broadcast_loop()
     except asyncio.CancelledError:
         pass
     finally:
-        if session:
-            session.close()
-        if coord_session:
-            coord_session.close()
+        for s in _zenoh_sessions:
+            try:
+                s.close()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
