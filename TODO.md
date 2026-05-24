@@ -203,10 +203,7 @@ Após o merge, os veículos que abrandaram devem retomar a velocidade limite da 
 
 ---
 
-## Etapa 17 — Estado do protocolo por veículo no dashboard `[requer Docker]` (opcional)
-
-- [ ] Bridge infere estado do protocolo por veículo a partir dos MCMs recebidos
-- [ ] Dashboard mostra badge por veículo: `NORMAL` / `SLOWING` / `WAITING_GRANT` / `MERGING`
+## Etapa 17 — Ver TODO_dashboard.md
 
 ---
 

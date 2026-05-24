@@ -331,23 +331,25 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                             protocol_state["grant_timeout"] = time.time() + effective_timeout
                 return
 
-            # ── mcmType=2, itssRole=1: merge_confirmed ou execution_status do MC
+            # ── mcmType=7, itssRole=1: EXECUTION_STATUS do MC ──────────────────
+            if mcm_type == 7 and its_role == 1:
+                ts = time.strftime("%H:%M:%S")
+                print(f"[{ts}] [{vehicle_id}] execution_status de MC={sender_id} — a retomar velocidade")
+                with protocol_lock:
+                    slowed = protocol_state.get("slowed_down", False)
+                    if slowed:
+                        road_spd = vehicle_state.get("road_speed_ms", vehicle_state["speed_ms"])
+                        vehicle_state["target_speed_ms"] = road_spd
+                        protocol_state["slowed_down"] = False
+                        print(f"[{ts}] [{vehicle_id}] velocidade retomada ({road_spd * 3.6:.1f} km/h)")
+                return
+
+            # ── mcmType=2, itssRole=1: merge_confirmed do MC
             if mcm_type == 2 and its_role == 1:
                 response = inner["mcmContainer"]["responseContainer"]["manouevreResponse"]
                 ts = time.strftime("%H:%M:%S")
 
-                if response == 2:
-                    # EXECUTION_STATUS: MC trocou de faixa → retomar velocidade
-                    print(f"[{ts}] [{vehicle_id}] execution_status de MC={sender_id} — a retomar velocidade")
-                    with protocol_lock:
-                        slowed = protocol_state.get("slowed_down", False)
-                        if slowed:
-                            road_spd = vehicle_state.get("road_speed_ms", vehicle_state["speed_ms"])
-                            vehicle_state["target_speed_ms"] = road_spd
-                            protocol_state["slowed_down"] = False
-                            print(f"[{ts}] [{vehicle_id}] velocidade retomada ({road_spd * 3.6:.1f} km/h)")
-
-                elif response == 0:
+                if response == 0:
                     # MERGE_CONFIRMED: acordo alcançado → terminar demo, conflito resolvido
                     print(f"[{ts}] [{vehicle_id}] merge_confirmed de MC={sender_id} — acordo alcançado")
                     with protocol_lock:
@@ -738,14 +740,18 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
             cur_speed = vehicle_state["speed_ms"]
             if cur_speed > target + 0.01:
                 cur_speed = max(target, cur_speed - DECELERATION_MS2 * DT)
+                accel_ms2 = -DECELERATION_MS2
             elif cur_speed < target - 0.01:
                 cur_speed = min(target, cur_speed + ACCELERATION_MS2 * DT)
+                accel_ms2 = ACCELERATION_MS2
+            else:
+                accel_ms2 = 0.0
             vehicle_state["lat"]      = lat
             vehicle_state["lon"]      = lon
             vehicle_state["speed_ms"] = cur_speed
             vehicle_state["bearing"]  = bearing
 
-            cam = build_cam(lat, lon, bearing, cur_speed, road.get("lane_position"))
+            cam = build_cam(lat, lon, bearing, cur_speed, road.get("lane_position"), accel_ms2)
             vanetza_session.put("vanetza/in/cam", json.dumps(cam).encode())
 
             should_advance = True
@@ -878,13 +884,19 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                 while t2 < 1.0:
                     lat = main_road["start"]["lat"] + t2 * (main_road["end"]["lat"] - main_road["start"]["lat"])
                     lon = main_road["start"]["lon"] + t2 * (main_road["end"]["lon"] - main_road["start"]["lon"])
-                    if speed2 < target2 - 0.01:
+                    if speed2 > target2 + 0.01:
+                        speed2 = max(target2, speed2 - DECELERATION_MS2 * DT)
+                        accel_ms2 = -DECELERATION_MS2
+                    elif speed2 < target2 - 0.01:
                         speed2 = min(target2, speed2 + ACCELERATION_MS2 * DT)
+                        accel_ms2 = ACCELERATION_MS2
+                    else:
+                        accel_ms2 = 0.0
                     vehicle_state["lat"]      = lat
                     vehicle_state["lon"]      = lon
                     vehicle_state["speed_ms"] = speed2
                     vehicle_state["bearing"]  = bearing2
-                    cam = build_cam(lat, lon, bearing2, speed2, main_road.get("lane_position"))
+                    cam = build_cam(lat, lon, bearing2, speed2, main_road.get("lane_position"), accel_ms2)
                     vanetza_session.put("vanetza/in/cam", json.dumps(cam).encode())
                     dt_t2 = speed2 * DT / L2
                     t2 += dt_t2

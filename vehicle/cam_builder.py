@@ -1,7 +1,7 @@
 import time
 
 
-def build_cam(lat, lon, heading, speed_ms, lane_position=None):
+def build_cam(lat, lon, heading, speed_ms, lane_position=None, accel_ms2=0.0):
     """
     Constrói um payload CAM ETSI C-ITS.
 
@@ -11,6 +11,8 @@ def build_cam(lat, lon, heading, speed_ms, lane_position=None):
     speed_ms      : float — velocidade em m/s
     lane_position : int | None — faixa de rodagem (1 = mais à direita/única faixa,
                     até 14; None = campo omitido)
+    accel_ms2     : float — aceleração longitudinal em m/s² (negativa = travagem,
+                    positiva = aceleração, 0 = velocidade constante)
 
     Retorna um dict pronto para json.dumps(). Sem I/O nem side effects.
     """
@@ -51,7 +53,7 @@ def build_cam(lat, lon, heading, speed_ms, lane_position=None):
                     },
                     "vehicleWidth": 62,
                     "longitudinalAcceleration": {
-                        "value": 0.0,
+                        "value": round(accel_ms2, 2),
                         "confidence": 102,
                     },
                     "curvature": {

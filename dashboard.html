@@ -227,13 +227,19 @@
       }
     }
 
+    function stateColor(vehicleId, state) {
+      if (state === 'SLOWING')  return '#ff9800';
+      if (state === 'MERGING')  return '#4caf50';
+      if (state === 'SPEEDING') return '#2196f3';
+      return vehicleId === 'MC' ? '#ff1744' : '#ffffff';
+    }
+
     function drawVehicles(ctx, vehicles, bounds, W, H) {
-      const vehicleColor = {MC: '#00bcd4'};
       function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
 
       for (const v of vehicles) {
         const pt = toC(v.lat, v.lon);
-        const color = vehicleColor[v.id] || '#ffffff';
+        const color = stateColor(v.id, v.state || 'NORMAL');
 
         // Brilho estático (substitui o shadowBlur que causava lag)
         const gradient = ctx.createRadialGradient(pt.x, pt.y, 5, pt.x, pt.y, 20);
@@ -256,6 +262,45 @@
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         ctx.fillText(v.id, pt.x, pt.y);
+      }
+    }
+
+    function drawLegend(ctx, W, H) {
+      const boxX = W - 140;
+      const boxY = 10;
+      const boxW = 130;
+      const boxH = 110;
+
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
+      ctx.fillRect(boxX, boxY, boxW, boxH);
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(boxX, boxY, boxW, boxH);
+
+      const items = [
+        { color: '#ffffff', label: 'Normal' },
+        { color: '#ff9800', label: 'Slowing' },
+        { color: '#2196f3', label: 'Speeding' },
+        { color: '#4caf50', label: 'Merging' },
+        { color: '#ff1744', label: 'MC (Normal)' }
+      ];
+
+      let y = boxY + 8;
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'left';
+
+      for (const item of items) {
+        ctx.fillStyle = item.color;
+        ctx.fillRect(boxX + 8, y + 1, 14, 14);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(boxX + 8, y + 1, 14, 14);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.textBaseline = 'top';
+        ctx.fillText(item.label, boxX + 28, y);
+
+        y += 18;
       }
     }
 
@@ -328,6 +373,7 @@
         ctx.clearRect(0, 0, W, H);
         if (offscreen) ctx.drawImage(offscreen, 0, 0);
         if (bounds)    drawVehicles(ctx, vehicles, bounds, W, H);
+        drawLegend(ctx, W, H);
       }
 
       render([]);

@@ -266,16 +266,16 @@ def build_execution_status(station_id, lat, lon, manoeuvre_id):
     """
     MC → road vehicles. MC is actually changing lanes now.
 
-    manouevreResponse=2 distinguishes this from MERGE_CONFIRMED (0/1).
+    Uses mcmType=7 (executionStatus per ASN.1) with manouevreResponse=0.
 
     Returns a dict ready for json.dumps(). No side effects.
     """
     return {
         "basicContainer": _make_basic_container(
-            station_id, lat, lon, mcm_type=2, its_role=1,
+            station_id, lat, lon, mcm_type=7, its_role=1,
             manoeuvre_id=manoeuvre_id,
         ),
         "mcmContainer": {
-            "responseContainer": {"manouevreResponse": 2}
+            "responseContainer": {"manouevreResponse": 0}
         },
     }

@@ -15,6 +15,7 @@ ZENOH_BROKER          = "tcp/192.168.98.10:7447"
 COORDINATOR_ZENOH_URL = "tcp/127.0.0.1:7446"
 
 vehicle_states        = {}
+vehicle_protocol_states = {}  # {name → "NORMAL"|"SLOWING"|"SPEEDING"|"MERGING"}
 ws_clients            = set()
 MCM_PENDING           = []  # new events since last broadcast, cleared each cycle
 current_roads             = []
@@ -41,6 +42,25 @@ def on_cam(sample):
         ref = _extract_ref_position(payload)
         name = STATION_IDS[station_id]
         vehicle_states[name] = {"id": name, "lat": ref["latitude"], "lon": ref["longitude"]}
+
+        # Inferir estado físico (SLOWING/SPEEDING) a partir da aceleração longitudinal nas CAMs
+        # Se o estado atual é MERGING (protocolo override), manter sem alterar
+        hfc = (payload.get("fields", {})
+                      .get("cam", {})
+                      .get("camParameters", {})
+                      .get("highFrequencyContainer", {})
+                      .get("basicVehicleContainerHighFrequency", {}))
+        accel = hfc.get("longitudinalAcceleration", {}).get("value", 161)
+
+        ACCEL_UNAVAILABLE = 161
+        current = vehicle_protocol_states.get(name, "NORMAL")
+        if current != "MERGING" and accel != ACCEL_UNAVAILABLE:
+            if accel < 0:
+                vehicle_protocol_states[name] = "SLOWING"
+            elif accel > 0:
+                vehicle_protocol_states[name] = "SPEEDING"
+            else:
+                vehicle_protocol_states[name] = "NORMAL"
     except Exception:
         pass
 
@@ -68,12 +88,13 @@ def _classify_mcm(mcm_type, its_role, inner):
             return f"SLOWDOWN_GRANT({result})", None, success
         return f"MERGE_GRANT({result})", "MC", success
 
+    if mcm_type == 7 and its_role == 1:
+        return "EXECUTION_STATUS(OK)", "all", True
+
     if mcm_type == 2 and its_role == 1:
         resp = (inner.get("mcmContainer", {})
                      .get("responseContainer", {})
                      .get("manouevreResponse", -1))
-        if resp == 2:
-            return "EXECUTION_STATUS(OK)", "all", True
         result = "OK" if resp == 0 else "ABORT"
         return f"MERGE_CONFIRMED({result})", "all", (resp == 0)
 
@@ -89,6 +110,7 @@ def on_coordinator_scenario(sample):
         current_scenario_vehicles = {v["id"] for v in data.get("vehicles", [])}
 
         vehicle_states.clear()
+        vehicle_protocol_states.clear()
         del MCM_PENDING[:]
         _slowdown_sent_to.clear()
 
@@ -127,6 +149,11 @@ def on_mcm(sample):
 
         print(f"[MCM] {label:<30}  {sender_name} → {to_str or '?'}  (manoeuvre_id={manoeuvre_id})")
 
+        if label.startswith("MERGE_CONFIRMED") and success:
+            vehicle_protocol_states["MC"] = "MERGING"
+        elif label.startswith("EXECUTION_STATUS"):
+            vehicle_protocol_states["MC"] = "NORMAL"
+
         event = {
             "ts":           time.strftime("%H:%M:%S"),
             "type":         label,
@@ -157,7 +184,8 @@ async def broadcast_loop():
             "t":          round(time.time() - start, 2),
             "scenario":   current_scenario_name,
             "roads":      current_roads,
-            "vehicles":   [v for v in vehicle_states.values()
+            "vehicles":   [{**v, "state": vehicle_protocol_states.get(v["id"], "NORMAL")}
+                           for v in vehicle_states.values()
                            if not current_scenario_vehicles or v["id"] in current_scenario_vehicles],
             "mcm_events": new_events,
         })
