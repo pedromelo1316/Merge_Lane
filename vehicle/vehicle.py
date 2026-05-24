@@ -594,7 +594,13 @@ def send_merge_request(session, vehicle_id, own_station_id,
     retry_after_s = manoeuvre_state.get("retry_after_s", 0.0)
     set_changed   = conflict_set != manoeuvre_state["last_conflict_set"]
 
+    ts = time.strftime("%H:%M:%S")
+    if now >= retry_after_s - 0.5 and now < retry_after_s + 1.0:
+        print(f"[{ts}] [{vehicle_id}] DEBUG: conflict_set={sorted(conflict_set)}, last_conflict_set={sorted(manoeuvre_state['last_conflict_set'])}, set_changed={set_changed}")
+
     if now < retry_after_s:
+        if now >= retry_after_s - 0.5:
+            print(f"[{ts}] [{vehicle_id}] DEBUG send_merge_request: aguardando retry, now={now:.2f}, retry_after_s={retry_after_s:.2f}, delta={retry_after_s-now:.2f}s")
         return
 
     if not set_changed:
@@ -635,6 +641,7 @@ def send_merge_request(session, vehicle_id, own_station_id,
         f"manoeuvre_id={manoeuvre_state['manoeuvre_id']} "
         f"conflitos={sorted(conflict_set)} eta={eta_s:.1f}s"
     )
+    return True
 
 
 CONFLICT_ZONE_M    = 50.0
@@ -810,7 +817,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                     decided = protocol_state["merge_decided"]
 
                 if not decided:
-                    send_merge_request(
+                    sent = send_merge_request(
                         vanetza_session, vehicle_id, own_station_id,
                         lat, lon, bearing, cur_speed,
                         t, L_m,
@@ -819,7 +826,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                         manoeuvre_state,
                         demo_step_delay,
                     )
-                    if demo_mode and last_conflict_set:
+                    if sent and demo_mode:
                         with protocol_lock:
                             if not protocol_state["demo_active"]:
                                 protocol_state["demo_active"] = True
