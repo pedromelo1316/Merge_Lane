@@ -111,7 +111,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                       neighbour_lock, neighbour_states,
                       protocol_lock, protocol_state,
                       merge_lat=None, merge_lon=None, main_road_ref=None, L_main=None,
-                      demo_mode=False, demo_step_delay=0.0):
+                      demo_mode=False, demo_step_delay=0.0,
+                      manoeuvre_state=None, demo_speed_divisor=1.0):
 
     def _demo_pause():
         if not demo_mode:
@@ -320,13 +321,28 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                             protocol_state["grants_received"] = set()
                             protocol_state["grant_timeout"] = None
                             protocol_state["merge_grant_sent"] = False
+                            if demo_mode:
+                                protocol_state["demo_active"] = False
+                                print(f"[{ts}] [{vehicle_id}] DEBUG: demo_active -> FALSE (veículos podem mover durante retry)")
+                        if manoeuvre_state is not None:
+                            manoeuvre_state["last_conflict_set"] = frozenset()
+                            retry_delay = 10 * 0.1 * (demo_speed_divisor if demo_mode else 1.0)
+                            manoeuvre_state["retry_after_s"] = time.time() + retry_delay
+                            print(f"[{ts}] [{vehicle_id}] DEBUG: retry_delay={retry_delay:.2f}s, demo_mode={demo_mode}, demo_speed_divisor={demo_speed_divisor}, retry_after_s agendado")
+                            # Notificar todos os veículos que o merge abortou
+                            abort_msg = build_merge_confirmed(
+                                own_station_id,
+                                vehicle_state["lat"],
+                                vehicle_state["lon"],
+                                manoeuvre_state["manoeuvre_id"] - 1,
+                                success=False
+                            )
+                            session.put("vanetza/in/mcm", json.dumps(abort_msg).encode())
+                            print(f"[{ts}] [{vehicle_id}] MERGE_CONFIRMED(ABORT) enviado para descongelar todos os veículos")
                         return
                     print(f"[{ts}] [{vehicle_id}] MERGE_GRANT recebido de stationID={sender_id} manoeuvre_id={manoeuvre_id}")
                     with protocol_lock:
                         protocol_state["grants_received"].add(sender_id)
-                        if protocol_state["grant_timeout"] is None:
-                            effective_timeout = GRANT_TIMEOUT_S + (demo_step_delay * 10 if demo_mode else 0.0)
-                            protocol_state["grant_timeout"] = time.time() + effective_timeout
                 return
 
             # ── mcmType=7, itssRole=1: EXECUTION_STATUS do MC ──────────────────
@@ -366,6 +382,9 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     print(f"[{ts}] [{vehicle_id}] merge_confirmed(abort) de MC={sender_id}")
                     with protocol_lock:
                         protocol_state["pending_slowdown_speed_ms"] = None
+                        if demo_mode:
+                            protocol_state["demo_active"] = False
+                            print(f"[{ts}] [{vehicle_id}] DEBUG: demo_active -> FALSE (ABORT recebido)")
 
                 return
 
@@ -415,8 +434,20 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     protocol_state["mc_advice"] = advice
                     protocol_state["mc_eta_s"] = mc_eta_s
                     protocol_state["own_target_speed_ms"] = own_target
+                    # Reset per-round flags so second attempt works
+                    protocol_state["merge_grant_sent"] = False
+                    protocol_state["slowdown_received"] = False
+                    protocol_state["slowdown_sender_id"] = None
+                    protocol_state["slowdown_delta_time"] = None
+                    protocol_state["slowdown_sent"] = False
+                    protocol_state["slowdown_sent_to"] = None
+                    protocol_state["slowdown_grant_received"] = False
+                    protocol_state["slowdown_grant_sender_id"] = None
+                    protocol_state["slowdown_grant_sent"] = False
+                    protocol_state["pending_slowdown_speed_ms"] = None
                     if demo_mode:
                         protocol_state["demo_active"] = True
+                        print(f"[{ts}] [{vehicle_id}] DEBUG: demo_active -> TRUE (MERGE_REQUEST id={manoeuvre_id} recebido)")
 
                 if not in_conflict:
                     _send_merge_grant()
@@ -554,24 +585,25 @@ def send_merge_request(session, vehicle_id, own_station_id,
                        t_mc, L_ramp,
                        conflict_set, neighbour_lock, neighbour_states,
                        manoeuvre_state, demo_step_delay=0.0):
-    RESEND_INTERVAL_S      = 2.0 + 120
     SUGGESTED_SPEED_FACTOR = 0.7
 
     if not conflict_set:
         return
 
     now = time.time()
-    set_changed  = conflict_set != manoeuvre_state["last_conflict_set"]
-    time_elapsed = (now - manoeuvre_state["last_send_time"]) >= RESEND_INTERVAL_S
+    retry_after_s = manoeuvre_state.get("retry_after_s", 0.0)
+    set_changed   = conflict_set != manoeuvre_state["last_conflict_set"]
 
-    if not set_changed and not time_elapsed:
+    if now < retry_after_s:
         return
 
-    if set_changed:
-        manoeuvre_state["manoeuvre_id"]     += 1
-        manoeuvre_state["last_conflict_set"] = conflict_set
+    if not set_changed:
+        return
 
+    manoeuvre_state["manoeuvre_id"] += 1
+    manoeuvre_state["last_conflict_set"] = conflict_set
     manoeuvre_state["last_send_time"] = now
+    manoeuvre_state["retry_after_s"] = 0.0
 
     with neighbour_lock:
         snapshot = dict(neighbour_states)
@@ -681,6 +713,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         "last_conflict_set": frozenset(),
         "manoeuvre_id":      0,
         "last_send_time":    0.0,
+        "retry_after_s":     0.0,
     }
 
     initial_lat = road["start"]["lat"] + t * (road["end"]["lat"] - road["start"]["lat"])
@@ -733,7 +766,8 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                           protocol_lock, protocol_state,
                           merge_lat=merge_lat, merge_lon=merge_lon,
                           main_road_ref=main_road, L_main=L_main,
-                          demo_mode=demo_mode, demo_step_delay=demo_step_delay),
+                          demo_mode=demo_mode, demo_step_delay=demo_step_delay,
+                          manoeuvre_state=manoeuvre_state, demo_speed_divisor=demo_speed_divisor),
     )
 
     try:
@@ -798,7 +832,6 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
 
                     if not decided:
                         all_granted = last_conflict_set.issubset(grants)
-                        timed_out   = timeout is not None and time.time() > timeout
                         approaching = (1.0 - t) * L_m <= CONFLICT_ZONE_M
 
                         if all_granted:
@@ -827,19 +860,6 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                                 with protocol_lock:
                                     protocol_state["grants_received"] = set()
                                     protocol_state["grant_timeout"]   = None
-                        elif timed_out:
-                            ts = time.strftime("%H:%M:%S")
-                            print(f"[{ts}] [{vehicle_id}] MERGE_GRANT timeout — fallback "
-                                  f"(grants={sorted(grants)}, esperados={sorted(last_conflict_set)})")
-                            status = build_merge_confirmed(
-                                own_station_id, lat, lon,
-                                manoeuvre_state["manoeuvre_id"], success=False,
-                            )
-                            vanetza_session.put("vanetza/in/mcm", json.dumps(status).encode())
-                            with protocol_lock:
-                                protocol_state["grants_received"] = set()
-                                protocol_state["grant_timeout"]   = None
-                            manoeuvre_state["manoeuvre_id"] += 1
                         elif approaching:
                             ts = time.strftime("%H:%M:%S")
                             print(f"[{ts}] [{vehicle_id}] a aguardar MERGE_GRANT... "
@@ -850,6 +870,9 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                 demo_active = protocol_state.get("demo_active", False)
             if demo_active:
                 should_advance = False
+                ts = time.strftime("%H:%M:%S")
+                if demo_mode and elapsed > 0.5:  # only log after a bit to avoid spam
+                    print(f"[{ts}] [{vehicle_id}] DEBUG: demo_active=TRUE congelando movimento (elapsed={elapsed:.2f}s, t={t:.4f})")
 
             dt_t = (cur_speed / demo_speed_divisor) * DT / L_m
             if should_advance:
