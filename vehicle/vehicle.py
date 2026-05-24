@@ -49,7 +49,8 @@ def open_zenoh_session_with_retry(url, retries=15, delay=2.0):
         try:
             return open_zenoh_session(url)
         except Exception as e:
-            print(f"Zenoh connect to {url} falhou ({e}), retry {attempt + 1}/{retries}...")
+            ts = time.strftime("%H:%M:%S")
+            print(f"[{ts}] Zenoh connect to {url} falhou ({e}), retry {attempt + 1}/{retries}...")
             time.sleep(delay)
     raise RuntimeError(f"Não foi possível ligar a {url} após {retries} tentativas")
 
@@ -77,6 +78,7 @@ def make_cam_callback(vehicle_id, own_station_id, neighbour_lock, neighbour_stat
         except Exception:
             pass
     return on_cam
+
 
 
 MCM_TYPE_NAMES = {1: "request", 2: "response", 9: "acknowledgment"}
@@ -323,12 +325,10 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                             protocol_state["merge_grant_sent"] = False
                             if demo_mode:
                                 protocol_state["demo_active"] = False
-                                print(f"[{ts}] [{vehicle_id}] DEBUG: demo_active -> FALSE (veículos podem mover durante retry)")
                         if manoeuvre_state is not None:
                             manoeuvre_state["last_conflict_set"] = frozenset()
                             retry_delay = 10 * 0.1 * (demo_speed_divisor if demo_mode else 1.0)
                             manoeuvre_state["retry_after_s"] = time.time() + retry_delay
-                            print(f"[{ts}] [{vehicle_id}] DEBUG: retry_delay={retry_delay:.2f}s, demo_mode={demo_mode}, demo_speed_divisor={demo_speed_divisor}, retry_after_s agendado")
                             # Notificar todos os veículos que o merge abortou
                             abort_msg = build_merge_confirmed(
                                 own_station_id,
@@ -384,7 +384,6 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         protocol_state["pending_slowdown_speed_ms"] = None
                         if demo_mode:
                             protocol_state["demo_active"] = False
-                            print(f"[{ts}] [{vehicle_id}] DEBUG: demo_active -> FALSE (ABORT recebido)")
 
                 return
 
@@ -447,7 +446,6 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                     protocol_state["pending_slowdown_speed_ms"] = None
                     if demo_mode:
                         protocol_state["demo_active"] = True
-                        print(f"[{ts}] [{vehicle_id}] DEBUG: demo_active -> TRUE (MERGE_REQUEST id={manoeuvre_id} recebido)")
 
                 if not in_conflict:
                     _send_merge_grant()
@@ -541,7 +539,8 @@ def make_mcm_callback(vehicle_id, own_station_id, session,
                         _send_slowdown_grant(sender_id)
 
         except Exception as e:
-            print(f"[{vehicle_id}] Erro no MCM callback: {e}")
+            ts = time.strftime("%H:%M:%S")
+            print(f"[{ts}] [{vehicle_id}] Erro no MCM callback: {e}")
 
     return on_mcm
 
@@ -573,10 +572,11 @@ def detect_conflicts(vehicle_id, t_mc, L_ramp, speed_mc_ms,
 
     current_set = frozenset(current_conflicts)
     if current_set != last_conflict_set:
+        ts = time.strftime("%H:%M:%S")
         for sid in sorted(current_set - last_conflict_set):
-            print(f"[{vehicle_id}] detetei conflito com veículo stationID={sid} (ETA={eta_s:.1f}s)")
+            print(f"[{ts}] [{vehicle_id}] detetei conflito com veículo stationID={sid} (ETA={eta_s:.1f}s)")
         for sid in sorted(last_conflict_set - current_set):
-            print(f"[{vehicle_id}] conflito resolvido com veículo stationID={sid}")
+            print(f"[{ts}] [{vehicle_id}] conflito resolvido com veículo stationID={sid}")
     return current_set
 
 
@@ -595,12 +595,7 @@ def send_merge_request(session, vehicle_id, own_station_id,
     set_changed   = conflict_set != manoeuvre_state["last_conflict_set"]
 
     ts = time.strftime("%H:%M:%S")
-    if now >= retry_after_s - 0.5 and now < retry_after_s + 1.0:
-        print(f"[{ts}] [{vehicle_id}] DEBUG: conflict_set={sorted(conflict_set)}, last_conflict_set={sorted(manoeuvre_state['last_conflict_set'])}, set_changed={set_changed}")
-
     if now < retry_after_s:
-        if now >= retry_after_s - 0.5:
-            print(f"[{ts}] [{vehicle_id}] DEBUG send_merge_request: aguardando retry, now={now:.2f}, retry_after_s={retry_after_s:.2f}, delta={retry_after_s-now:.2f}s")
         return
 
     if not set_changed:
@@ -667,7 +662,8 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         None,
     )
     if vehicle_cfg is None:
-        print(f"[{vehicle_id}] Aviso: station_id={own_station_id} não encontrado no cenário — a saltar")
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] [{vehicle_id}] Aviso: station_id={own_station_id} não encontrado no cenário — a saltar")
         return
 
     speed_factor       = max(float(scenario.get("speed_multiplier", 1.0)), 0.1)
@@ -757,7 +753,8 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         "demo_active":              False,
     }
 
-    print(f"[{vehicle_id}] Cenário iniciado: road={vehicle_cfg['road']} "
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] [{vehicle_id}] Cenário iniciado: road={vehicle_cfg['road']} "
           f"pos=({vehicle_cfg['lat']:.5f}, {vehicle_cfg['lon']:.5f}) "
           f"speed={speed_ms:.1f}m/s speed_factor={speed_factor}")
 
@@ -877,9 +874,6 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                 demo_active = protocol_state.get("demo_active", False)
             if demo_active:
                 should_advance = False
-                ts = time.strftime("%H:%M:%S")
-                if demo_mode and elapsed > 0.5:  # only log after a bit to avoid spam
-                    print(f"[{ts}] [{vehicle_id}] DEBUG: demo_active=TRUE congelando movimento (elapsed={elapsed:.2f}s, t={t:.4f})")
 
             dt_t = (cur_speed / demo_speed_divisor) * DT / L_m
             if should_advance:
@@ -943,7 +937,8 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                 lon = main_road["end"]["lon"]
         else:
             print(f"[{ts}] [{vehicle_id}] MERGE: chegou ao fim da rampa sem grants suficientes")
-    print(f"[{vehicle_id}] t={elapsed:6.2f}s  lat={lat:.5f}  lon={lon:.5f}  [CHEGOU]")
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] [{vehicle_id}] t={elapsed:6.2f}s  lat={lat:.5f}  lon={lon:.5f}  [CHEGOU]")
 
 
 def main():
@@ -953,18 +948,23 @@ def main():
     coord_url      = os.environ.get("COORDINATOR_ZENOH_URL")
 
     if not vehicle_id or own_station_id is None:
-        print("Erro: VEHICLE_ID e STATION_ID são obrigatórios")
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] Erro: VEHICLE_ID e STATION_ID são obrigatórios")
         sys.exit(1)
 
     own_station_id = int(own_station_id)
 
-    print(f"[{vehicle_id}] A ligar ao Vanetza ({vanetza_url})...")
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] [{vehicle_id}] A ligar ao Vanetza ({vanetza_url})...")
     vanetza_session = open_zenoh_session_with_retry(vanetza_url)
-    print(f"[{vehicle_id}] Vanetza ligado.")
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] [{vehicle_id}] Vanetza ligado.")
 
-    print(f"[{vehicle_id}] A ligar ao coordenador ({coord_url})...")
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] [{vehicle_id}] A ligar ao coordenador ({coord_url})...")
     coord_session = open_zenoh_session(coord_url)
-    print(f"[{vehicle_id}] Coordenador ligado.")
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] [{vehicle_id}] Coordenador ligado.")
 
     scenario_event = threading.Event()
     pending        = {}
@@ -975,7 +975,8 @@ def main():
             data   = json.loads(bytes(sample.payload).decode())
             active = data.get("active_vehicles", [])
             if own_station_id not in active:
-                print(f"[{vehicle_id}] Cenário recebido mas station_id={own_station_id} "
+                ts = time.strftime("%H:%M:%S")
+                print(f"[{ts}] [{vehicle_id}] Cenário recebido mas station_id={own_station_id} "
                       f"não está em active_vehicles — a saltar")
                 pending_skip[0] = True
             else:
@@ -984,10 +985,12 @@ def main():
                 pending_skip[0] = False
             scenario_event.set()
         except Exception as e:
-            print(f"[{vehicle_id}] Erro ao processar cenário: {e}")
+            ts = time.strftime("%H:%M:%S")
+            print(f"[{ts}] [{vehicle_id}] Erro ao processar cenário: {e}")
 
     coord_session.declare_subscriber("coordinator/scenario", on_scenario)
-    print(f"[{vehicle_id}] Pronto. A aguardar cenário do coordenador...")
+    ts = time.strftime("%H:%M:%S")
+    print(f"[{ts}] [{vehicle_id}] Pronto. A aguardar cenário do coordenador...")
 
     def ready_loop():
         ready_payload = json.dumps({"station_id": own_station_id}).encode()
@@ -1010,17 +1013,20 @@ def main():
             continue
 
         scenario = dict(pending)
-        print(f"[{vehicle_id}] Cenário recebido: {scenario.get('name', '?')}")
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] [{vehicle_id}] Cenário recebido: {scenario.get('name', '?')}")
         try:
             run_scenario(scenario, vehicle_id, own_station_id, vanetza_session)
         except Exception as e:
-            print(f"[{vehicle_id}] Erro no cenário: {e}")
+            ts = time.strftime("%H:%M:%S")
+            print(f"[{ts}] [{vehicle_id}] Erro no cenário: {e}")
 
         coord_session.put(
             f"coordinator/done/{own_station_id}",
             json.dumps({"station_id": own_station_id, "vehicle_id": vehicle_id}).encode(),
         )
-        print(f"[{vehicle_id}] Done publicado — a aguardar próximo cenário")
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] [{vehicle_id}] Done publicado — a aguardar próximo cenário")
 
 
 if __name__ == "__main__":
