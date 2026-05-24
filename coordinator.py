@@ -117,6 +117,8 @@ def main():
                         help="Demo mode: insert a step delay between protocol messages")
     parser.add_argument("--demo-delay", type=float, default=5.0,
                         help="Seconds to wait before each protocol response (default 5)")
+    parser.add_argument("--demo-speed-divisor", type=float, default=5.0,
+                        help="Divide vehicle movement speed by this factor in demo mode (default 10.0)")
     args = parser.parse_args()
 
     if args.demo:
@@ -143,6 +145,7 @@ def main():
         if args.demo:
             scenario["demo_mode"] = True
             scenario["demo_step_delay_s"] = args.demo_delay
+            scenario["demo_speed_divisor"] = args.demo_speed_divisor
 
         print(f"[coordinator] À espera que todos os veículos do pool estejam prontos...")
         wait_for_pool_ready(session, POOL)

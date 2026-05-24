@@ -627,9 +627,10 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
         print(f"[{vehicle_id}] Aviso: station_id={own_station_id} não encontrado no cenário — a saltar")
         return
 
-    speed_factor    = max(float(scenario.get("speed_multiplier", 1.0)), 0.1)
-    demo_mode       = bool(scenario.get("demo_mode", False))
-    demo_step_delay = float(scenario.get("demo_step_delay_s", 0.0)) if demo_mode else 0.0
+    speed_factor       = max(float(scenario.get("speed_multiplier", 1.0)), 0.1)
+    demo_mode          = bool(scenario.get("demo_mode", False))
+    demo_step_delay    = float(scenario.get("demo_step_delay_s", 0.0)) if demo_mode else 0.0
+    demo_speed_divisor = float(scenario.get("demo_speed_divisor", 10.0)) if demo_mode else 1.0
 
     road = roads[vehicle_cfg["road"]]
     L_m = haversine(
@@ -738,11 +739,12 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
 
             target    = vehicle_state["target_speed_ms"]
             cur_speed = vehicle_state["speed_ms"]
+            accel_divisor = demo_speed_divisor
             if cur_speed > target + 0.01:
-                cur_speed = max(target, cur_speed - DECELERATION_MS2 * DT)
+                cur_speed = max(target, cur_speed - (DECELERATION_MS2 / accel_divisor) * DT)
                 accel_ms2 = -DECELERATION_MS2
             elif cur_speed < target - 0.01:
-                cur_speed = min(target, cur_speed + ACCELERATION_MS2 * DT)
+                cur_speed = min(target, cur_speed + (ACCELERATION_MS2 / accel_divisor) * DT)
                 accel_ms2 = ACCELERATION_MS2
             else:
                 accel_ms2 = 0.0
@@ -844,11 +846,11 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
             if demo_active:
                 should_advance = False
 
-            dt_t = cur_speed * DT / L_m
+            dt_t = (cur_speed / demo_speed_divisor) * DT / L_m
             if should_advance:
                 t += dt_t
             elapsed += DT
-            time.sleep(DT / speed_factor + (demo_step_delay if demo_active else 0.0))
+            time.sleep(DT / speed_factor)
 
     finally:
         cam_sub.undeclare()
@@ -885,10 +887,10 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                     lat = main_road["start"]["lat"] + t2 * (main_road["end"]["lat"] - main_road["start"]["lat"])
                     lon = main_road["start"]["lon"] + t2 * (main_road["end"]["lon"] - main_road["start"]["lon"])
                     if speed2 > target2 + 0.01:
-                        speed2 = max(target2, speed2 - DECELERATION_MS2 * DT)
+                        speed2 = max(target2, speed2 - (DECELERATION_MS2 / demo_speed_divisor) * DT)
                         accel_ms2 = -DECELERATION_MS2
                     elif speed2 < target2 - 0.01:
-                        speed2 = min(target2, speed2 + ACCELERATION_MS2 * DT)
+                        speed2 = min(target2, speed2 + (ACCELERATION_MS2 / demo_speed_divisor) * DT)
                         accel_ms2 = ACCELERATION_MS2
                     else:
                         accel_ms2 = 0.0
@@ -898,7 +900,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                     vehicle_state["bearing"]  = bearing2
                     cam = build_cam(lat, lon, bearing2, speed2, main_road.get("lane_position"), accel_ms2)
                     vanetza_session.put("vanetza/in/cam", json.dumps(cam).encode())
-                    dt_t2 = speed2 * DT / L2
+                    dt_t2 = (speed2 / demo_speed_divisor) * DT / L2
                     t2 += dt_t2
                     elapsed += DT
                     time.sleep(DT / speed_factor)

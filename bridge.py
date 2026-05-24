@@ -1,6 +1,7 @@
 import asyncio
 import json
 import logging
+import math
 import time
 
 import websockets
@@ -25,6 +26,19 @@ current_scenario_vehicles = set()  # IDs dos veículos activos no cenário actua
 _slowdown_sent_to = {}  # {executant_station_id → sender_name} — para SLOWDOWN_GRANTs
 
 
+def _nearest_road_id(lat, lon):
+    best_id, best_dist = None, math.inf
+    for road in current_roads:
+        ax, ay = road["start"]["lon"], road["start"]["lat"]
+        bx, by = road["end"]["lon"],   road["end"]["lat"]
+        abx, aby = bx - ax, by - ay
+        t = max(0.0, min(1.0, ((lon-ax)*abx + (lat-ay)*aby) / (abx**2 + aby**2 + 1e-15)))
+        dist = math.hypot(lon - (ax + t*abx), lat - (ay + t*aby))
+        if dist < best_dist:
+            best_dist, best_id = dist, road.get("id", "?")
+    return best_id or "?"
+
+
 def _extract_ref_position(payload):
     # vanetza/out/cam wraps the CAM in fields.cam; vanetza/own/cam may use the raw structure
     try:
@@ -41,23 +55,40 @@ def on_cam(sample):
             return
         ref = _extract_ref_position(payload)
         name = STATION_IDS[station_id]
-        vehicle_states[name] = {"id": name, "lat": ref["latitude"], "lon": ref["longitude"]}
 
-        # Inferir estado físico (SLOWING/SPEEDING) a partir da aceleração longitudinal nas CAMs
-        # Se o estado atual é MERGING (protocolo override), manter sem alterar
+        # Extract speed from high-frequency container
         hfc = (payload.get("fields", {})
                       .get("cam", {})
                       .get("camParameters", {})
                       .get("highFrequencyContainer", {})
                       .get("basicVehicleContainerHighFrequency", {}))
-        accel = hfc.get("longitudinalAcceleration", {}).get("value", 161)
+        speed_ms = hfc.get("speed", {}).get("speedValue", 0)
+        speed_kmh = round(speed_ms * 3.6, 1)
 
+        # Extract acceleration (already in m/s²)
         ACCEL_UNAVAILABLE = 161
+        accel_raw = hfc.get("longitudinalAcceleration", {}).get("value", ACCEL_UNAVAILABLE)
+        accel_ms2 = round(accel_raw, 1) if accel_raw != ACCEL_UNAVAILABLE else None
+
+        # Find nearest road
+        road_id = _nearest_road_id(ref["latitude"], ref["longitude"])
+
+        vehicle_states[name] = {
+            "id": name,
+            "lat": ref["latitude"],
+            "lon": ref["longitude"],
+            "speed_kmh": speed_kmh,
+            "accel_ms2": accel_ms2,
+            "road_id": road_id,
+        }
+
+        # Inferir estado físico (SLOWING/SPEEDING) a partir da aceleração longitudinal nas CAMs
+        # Se o estado atual é MERGING (protocolo override), manter sem alterar
         current = vehicle_protocol_states.get(name, "NORMAL")
-        if current != "MERGING" and accel != ACCEL_UNAVAILABLE:
-            if accel < 0:
+        if current != "MERGING" and accel_raw != ACCEL_UNAVAILABLE:
+            if accel_raw < 0:
                 vehicle_protocol_states[name] = "SLOWING"
-            elif accel > 0:
+            elif accel_raw > 0:
                 vehicle_protocol_states[name] = "SPEEDING"
             else:
                 vehicle_protocol_states[name] = "NORMAL"

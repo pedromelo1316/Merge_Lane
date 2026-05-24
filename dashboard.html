@@ -163,6 +163,45 @@
     }
     .mcm-card { cursor: pointer; }
     .mcm-card:hover { background: #1e1e35; }
+    #vehicle-panel {
+      display: flex;
+      flex-direction: row;
+      gap: 12px;
+      margin: 16px 0 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .vcard {
+      background: #0f0f1a;
+      border: 2px solid #333;
+      border-radius: 8px;
+      padding: 12px 16px;
+      min-width: 155px;
+      font-size: 0.78rem;
+      transition: border-color 0.3s;
+    }
+    .vcard-id {
+      font-size: 1rem;
+      font-weight: bold;
+      margin-bottom: 8px;
+      letter-spacing: 0.1em;
+    }
+    .vcard-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 3px;
+    }
+    .vcard-lbl { color: #666; }
+    .vcard-val { color: #fff; text-align: right; }
+    .vcard-badge {
+      display: inline-block;
+      margin-top: 7px;
+      padding: 2px 8px;
+      border-radius: 3px;
+      font-size: 0.68rem;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -181,6 +220,8 @@
       </div>
     </div>
   </div>
+
+  <div id="vehicle-panel"></div>
 
   <div id="modal-overlay">
     <div id="modal-card">
@@ -421,6 +462,43 @@
       }
     }
 
+    const VCARD_ORDER = ['MC', 'A', 'B', 'C'];
+
+    function updateVehiclePanel(vehicles) {
+      const panel = document.getElementById('vehicle-panel');
+      const sorted = [...vehicles].sort((a, b) => {
+        return (VCARD_ORDER.indexOf(a.id) + 1 || 999) - (VCARD_ORDER.indexOf(b.id) + 1 || 999);
+      });
+
+      for (const v of sorted) {
+        const cardId = `vcard-${v.id}`;
+        let card = document.getElementById(cardId);
+        if (!card) {
+          card = document.createElement('div');
+          card.id = cardId;
+          card.className = 'vcard';
+          panel.appendChild(card);
+        }
+        const state = v.state || 'NORMAL';
+        const color = stateColor(v.id, state);
+        card.style.borderColor = color + '66';
+        card.innerHTML =
+          `<div class="vcard-id" style="color:${color}">${v.id}</div>` +
+          `<div class="vcard-row"><span class="vcard-lbl">speed</span><span class="vcard-val">${v.speed_kmh != null ? v.speed_kmh + ' km/h' : '—'}</span></div>` +
+          `<div class="vcard-row"><span class="vcard-lbl">accel</span><span class="vcard-val">${v.accel_ms2 != null ? v.accel_ms2 + ' m/s²' : '—'}</span></div>` +
+          `<div class="vcard-row"><span class="vcard-lbl">lat</span><span class="vcard-val">${v.lat.toFixed(4)}</span></div>` +
+          `<div class="vcard-row"><span class="vcard-lbl">lon</span><span class="vcard-val">${v.lon.toFixed(4)}</span></div>` +
+          `<div class="vcard-row"><span class="vcard-lbl">road</span><span class="vcard-val">${v.road_id || '—'}</span></div>` +
+          `<div><span class="vcard-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${state}</span></div>`;
+      }
+
+      // Remove stale cards
+      const active = new Set(vehicles.map(v => v.id));
+      for (const card of [...panel.querySelectorAll('.vcard')]) {
+        if (!active.has(card.id.replace('vcard-', ''))) card.remove();
+      }
+    }
+
     let hiddenSigs = new Set();
     let currentEvents = [];
 
@@ -528,6 +606,7 @@
             rebuildRoads(msg.roads);
           }
           render(msg.vehicles);
+          updateVehiclePanel(msg.vehicles);
           if (msg.mcm_events && msg.mcm_events.length > 0) {
             currentEvents = [...currentEvents, ...msg.mcm_events];
             renderMcmEvents(currentEvents);

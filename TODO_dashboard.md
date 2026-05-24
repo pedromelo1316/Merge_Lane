@@ -50,15 +50,16 @@ Melhorias incrementais ao dashboard. Implementar uma de cada vez.
 
 **Contexto:** bridge só envia posição. Dashboard não tem painel de estado dos veículos.
 
-- [ ] `bridge.py`: em `on_cam()`, extrair velocidade do `highFrequencyContainer`:
+- [x] `bridge.py`: em `on_cam()`, extrair velocidade do `highFrequencyContainer`:
   ```python
   speed_ms = hf.get("speed", {}).get("speedValue", 0) / 100.0  # ASN.1: cm/s → m/s
   speed_kmh = round(speed_ms * 3.6, 1)
   ```
-- [ ] `bridge.py`: incluir `"speed_kmh"` e `"road_id"` (estrada mais próxima) em `vehicle_states`
-- [ ] `dashboard.html`: adicionar `#vehicle-panel` abaixo do `.main-row` com um card por veículo:
+- [x] `bridge.py`: extrair aceleração e incluir `"speed_kmh"`, `"accel_ms2"` e `"road_id"` (estrada mais próxima) em `vehicle_states`
+- [x] `dashboard.html`: adicionar `#vehicle-panel` abaixo do `.main-row` com um card por veículo:
   - ID colorido pelo estado do protocolo
   - Velocidade atual (km/h)
+  - Aceleração (m/s²)
   - Posição GPS (lat/lon com 4 casas decimais)
   - Badge de estado (`NORMAL` / `SLOWING` / etc.)
   - Nome da estrada
