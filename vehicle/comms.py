@@ -37,10 +37,13 @@ class NeighbourTable:
             self._table[station_id] = {"lat": lat, "lon": lon, "speed_ms": speed_ms,
                                        "heading": heading, "ts": time.time()}
 
-    def snapshot(self):
-        """Devolve uma cópia do estado actual — seguro iterar fora do lock."""
+    def snapshot(self, max_age_s: float = 0.2):
+        """Devolve apenas entradas recebidas nos últimos max_age_s segundos.
+        CAMs são enviados a cada 0.1 s; 0.2 s tolera 1 CAM perdido."""
+        now = time.time()
         with self._lock:
-            return dict(self._table)
+            return {sid: s for sid, s in self._table.items()
+                    if now - s["ts"] <= max_age_s}
 
 
 def make_cam_callback(own_station_id, table: NeighbourTable):

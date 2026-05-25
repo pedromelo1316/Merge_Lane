@@ -52,6 +52,16 @@ def advance_speed(cur, target, dt):
     return cur, 0.0
 
 
+def _on_same_road(state, s, dlat, dlon, L2, t_n):
+    """True se state está nesta estrada.
+    Na simulação os veículos movem-se por interpolação exacta, pelo que a distância
+    entre a posição GPS e o ponto projectado na linha é ~0 m.
+    Threshold de 0.05 m absorve apenas erros de vírgula flutuante."""
+    proj_lat = s["lat"] + t_n * dlat
+    proj_lon = s["lon"] + t_n * dlon
+    return haversine(proj_lat, proj_lon, state["lat"], state["lon"]) < 0.05
+
+
 def find_vehicle_behind(own_t, own_station_id, road, neighbours_snapshot):
     """Veículo imediatamente atrás de own_t na estrada.
     Retorna (station_id, state_dict) ou None se nenhum dentro de 200m."""
@@ -65,14 +75,33 @@ def find_vehicle_behind(own_t, own_station_id, road, neighbours_snapshot):
         if sid == own_station_id:
             continue
         t_n = ((state["lat"] - s["lat"]) * dlat + (state["lon"] - s["lon"]) * dlon) / L2
-        if not (t_n < own_t and (own_t - t_n) * L <= 200.0 and t_n > best_t):
+        if t_n >= own_t or (own_t - t_n) * L > 200.0 or t_n <= best_t:
             continue
-        proj_lat = s["lat"] + t_n * dlat
-        proj_lon = s["lon"] + t_n * dlon
-        if haversine(proj_lat, proj_lon, state["lat"], state["lon"]) > 25.0:
+        if not _on_same_road(state, s, dlat, dlon, L2, t_n):
             continue
         best_t, best_sid = t_n, sid
     return (best_sid, neighbours_snapshot[best_sid]) if best_sid is not None else None
+
+
+def gap_ahead(own_t, own_sid, road, snap, L):
+    """Metros (frente-a-traseira) até ao veículo mais próximo à frente na mesma estrada."""
+    s, e  = road["start"], road["end"]
+    dlat  = e["lat"] - s["lat"]
+    dlon  = e["lon"] - s["lon"]
+    L2    = dlat ** 2 + dlon ** 2
+    best_t = float("inf")
+    for sid, state in snap.items():
+        if sid == own_sid:
+            continue
+        t_n = ((state["lat"] - s["lat"]) * dlat + (state["lon"] - s["lon"]) * dlon) / L2
+        if t_n <= own_t:
+            continue
+        if not _on_same_road(state, s, dlat, dlon, L2, t_n):
+            continue
+        best_t = min(best_t, t_n)
+    if best_t == float("inf"):
+        return float("inf")
+    return (best_t - own_t) * L - VEHICLE_LENGTH_M
 
 
 def conflict_zone_t(merge_lat, merge_lon, main_road, before_m, after_m):

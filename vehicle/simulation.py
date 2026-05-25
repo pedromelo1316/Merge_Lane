@@ -5,39 +5,14 @@ from cam_builder import build_cam
 from comms import NeighbourTable, make_cam_callback
 from geo import (
     DT, VEHICLE_LENGTH_M, SAFETY_GAP_M,
-    advance_speed, compute_bearing, haversine, project_t, road_length,
+    advance_speed, compute_bearing, gap_ahead, project_t, road_length,
 )
 from protocol import MCProtocol
 
 
-def _gap_ahead(own_t, own_sid, road, snap, L):
-    """Metros (frente-a-traseira) até ao veículo mais próximo à frente na mesma estrada.
-    Confirma que o vizinho está nesta estrada pela distância ao ponto projetado (< 25 m),
-    consistente com find_vehicle_behind em geo.py."""
-    s, e  = road["start"], road["end"]
-    dlat  = e["lat"] - s["lat"]
-    dlon  = e["lon"] - s["lon"]
-    L2    = dlat ** 2 + dlon ** 2
-    best_t = float("inf")
-    for sid, state in snap.items():
-        if sid == own_sid:
-            continue
-        t_n = ((state["lat"] - s["lat"]) * dlat + (state["lon"] - s["lon"]) * dlon) / L2
-        if t_n <= own_t:
-            continue
-        proj_lat = s["lat"] + t_n * dlat
-        proj_lon = s["lon"] + t_n * dlon
-        if haversine(proj_lat, proj_lon, state["lat"], state["lon"]) > 25.0:
-            continue
-        best_t = min(best_t, t_n)
-    if best_t == float("inf"):
-        return float("inf")
-    return (best_t - own_t) * L - VEHICLE_LENGTH_M  # gap frente-a-traseira
-
-
 def _move_loop(road, t0, speed0, target_speed, station_id,
                vanetza_session, stop_event, label,
-               neighbours=None, roads=None, vehicle_length_m=VEHICLE_LENGTH_M,
+               neighbours=None, vehicle_length_m=VEHICLE_LENGTH_M,
                protocol=None):
     """Loop de movimento ao longo de road a partir de t0. Retorna (lat, lon) final."""
     s, e = road["start"], road["end"]
@@ -58,7 +33,7 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
         # Car-following: manter gap mínimo ao veículo da frente (todos os veículos)
         if neighbours:
             snap = neighbours.snapshot()
-            gap  = _gap_ahead(t, station_id, road, snap, L)
+            gap  = gap_ahead(t, station_id, road, snap, L)
             if gap < SAFETY_GAP_M:
                 effective_target = min(effective_target,
                                        speed * max(0.0, gap / SAFETY_GAP_M))
@@ -125,7 +100,7 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
     try:
         lat, lon = _move_loop(road, t0, target_speed, target_speed,
                               station_id, vanetza_session, stop_event, vehicle_id,
-                              neighbours=neighbours, roads=roads,
+                              neighbours=neighbours,
                               vehicle_length_m=vehicle_length, protocol=protocol)
 
         # Transição automática rampa → main road sem verificação de protocolo (task 3 concluída,
@@ -139,7 +114,7 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
             print(f"[{ts}] [{vehicle_id}] a transitar para '{main_road['id']}' t={t2:.3f}")
             _move_loop(main_road, t2, target_speed, target_speed2,
                        station_id, vanetza_session, stop_event, vehicle_id,
-                       neighbours=neighbours, roads=roads,
+                       neighbours=neighbours,
                        vehicle_length_m=vehicle_length, protocol=None)
     finally:
         cam_sub.undeclare()
