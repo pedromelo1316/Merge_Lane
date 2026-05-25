@@ -20,7 +20,7 @@ from mcm_builder import (
 
 CONFLICT_HORIZON_S     = 4.0   # segundos antes do merge point para iniciar negociação
 MERGE_REQUEST_RESEND_S = 1.0   # reenviar MERGE_REQUEST se sem grants após X segundos
-RETRY_COOLDOWN_S       = 0.3   # esperar após recusa antes de reiniciar negociação
+RETRY_COOLDOWN_S       = 1.0   # esperar após recusa antes de reiniciar negociação
 
 
 class MCProtocol:
@@ -45,10 +45,11 @@ class MCProtocol:
 
         v_mc_ms   = ramp["speed_limit_kmh"] / 3.6
         v_main_ms = main_road["speed_limit_kmh"] / 3.6
-        zone_half = vehicle_length_m / 2 + SAFETY_GAP_M + merge_entry_margin(v_mc_ms, v_main_ms)
+        before_m  = vehicle_length_m / 2 + SAFETY_GAP_M + merge_entry_margin(v_mc_ms, v_main_ms)
+        after_m   = vehicle_length_m / 2 + SAFETY_GAP_M
         self.cz_t_start, self.cz_t_end = conflict_zone_t(
             self.merge_lat, self.merge_lon, main_road,
-            before_m=zone_half, after_m=zone_half,
+            before_m=before_m, after_m=after_m,
         )
         self.L_main = road_length(main_road)
 
@@ -58,7 +59,7 @@ class MCProtocol:
         self.zone_start_lon = s["lon"] + self.cz_t_start * (e["lon"] - s["lon"])
         self.zone_end_lat   = s["lat"] + self.cz_t_end   * (e["lat"] - s["lat"])
         self.zone_end_lon   = s["lon"] + self.cz_t_end   * (e["lon"] - s["lon"])
-        self.zone_length_m  = zone_half * 2
+        self.zone_length_m  = before_m + after_m
 
         self._lock         = threading.Lock()
         self._manoeuvre_id = 0
@@ -258,10 +259,11 @@ class RoadVehicleProtocol:
         L_main = road_length(road)
         self.L_main = L_main
 
-        zone_half = VEHICLE_LENGTH_M / 2 + SAFETY_GAP_M
+        before_m = VEHICLE_LENGTH_M / 2 + SAFETY_GAP_M
+        after_m  = VEHICLE_LENGTH_M / 2 + SAFETY_GAP_M
         self.cz_t_start, self.cz_t_end = conflict_zone_t(
             merge_lat, merge_lon, road,
-            before_m=zone_half, after_m=zone_half,
+            before_m=before_m, after_m=after_m,
         )
 
         self._lock = threading.Lock()
