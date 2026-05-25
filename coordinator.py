@@ -36,9 +36,11 @@ def wait_for_pool_ready(session, pool, timeout=DEFAULT_TIMEOUT_S):
 
     subs = [session.declare_subscriber(f"coordinator/ready/{sid}", make_handler(sid))
             for sid in pool]
-    all_rdy.wait(timeout=timeout)
-    for sub in subs:
-        sub.undeclare()
+    try:
+        all_rdy.wait(timeout=timeout)
+    finally:
+        for sub in subs:
+            sub.undeclare()
 
     if not all_rdy.is_set():
         with lock:
@@ -63,10 +65,12 @@ def wait_for_done(session, active, timeout, after_subscribe):
 
     subs = [session.declare_subscriber(f"coordinator/done/{sid}", make_handler(sid))
             for sid in active]
-    after_subscribe()
-    all_done.wait(timeout=timeout)
-    for sub in subs:
-        sub.undeclare()
+    try:
+        after_subscribe()
+        all_done.wait(timeout=timeout)
+    finally:
+        for sub in subs:
+            sub.undeclare()
 
     if not all_done.is_set():
         with lock:
@@ -130,12 +134,15 @@ def main():
     scenarios = load_scenarios(args.scenario)
     print(f"[coordinator] {len(scenarios)} cenário(s) encontrado(s).")
 
-    for name, scenario in scenarios:
-        run_scenario(session, name, scenario)
-        time.sleep(1.0)
-
-    print("\n[coordinator] Todos os cenários concluídos.")
-    session.close()
+    try:
+        for name, scenario in scenarios:
+            run_scenario(session, name, scenario)
+            time.sleep(1.0)
+        print("\n[coordinator] Todos os cenários concluídos.")
+    except KeyboardInterrupt:
+        print("\n[coordinator] Interrompido.")
+    finally:
+        session.close()
 
 
 if __name__ == "__main__":

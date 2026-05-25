@@ -5,7 +5,7 @@ import time
 
 from geo import (
     VEHICLE_LENGTH_M, SAFETY_GAP_M,
-    road_length,
+    road_length, project_t,
     conflict_zone_t, vehicle_in_zone, mc_stop_t, merge_entry_margin,
     find_vehicle_behind, can_brake_in_time,
 )
@@ -18,9 +18,9 @@ from mcm_builder import (
     build_merge_grant,
 )
 
-CONFLICT_HORIZON_S     = 6.0   # segundos antes do merge point para iniciar negociação
-MERGE_REQUEST_RESEND_S = 3.0   # reenviar MERGE_REQUEST se sem grants após X segundos
-RETRY_COOLDOWN_S       = 5.0   # esperar após recusa antes de reiniciar negociação
+CONFLICT_HORIZON_S     = 4.0   # segundos antes do merge point para iniciar negociação
+MERGE_REQUEST_RESEND_S = 1.0   # reenviar MERGE_REQUEST se sem grants após X segundos
+RETRY_COOLDOWN_S       = 0.3   # esperar após recusa antes de reiniciar negociação
 
 
 class MCProtocol:
@@ -52,6 +52,14 @@ class MCProtocol:
         )
         self.L_main = road_length(main_road)
 
+        # Coordenadas GPS do início e fim da zona de conflito na main road
+        s, e = main_road["start"], main_road["end"]
+        self.zone_start_lat = s["lat"] + self.cz_t_start * (e["lat"] - s["lat"])
+        self.zone_start_lon = s["lon"] + self.cz_t_start * (e["lon"] - s["lon"])
+        self.zone_end_lat   = s["lat"] + self.cz_t_end   * (e["lat"] - s["lat"])
+        self.zone_end_lon   = s["lon"] + self.cz_t_end   * (e["lon"] - s["lon"])
+        self.zone_length_m  = zone_half * 2
+
         self._lock         = threading.Lock()
         self._manoeuvre_id = 0
         self._request_sent = False
@@ -82,12 +90,18 @@ class MCProtocol:
 
         eta_s = (1.0 - t) * self.L_ramp / speed_ms if speed_ms > 0 else float("inf")
 
+        active_peers = frozenset(neighbours_snapshot.keys())
+
         if eta_s <= CONFLICT_HORIZON_S:
-            self._maybe_send_merge_request(t, speed_ms, lat, lon, bearing,
-                                           eta_s, neighbours_snapshot)
+            if not active_peers and not self.merge_decided:
+                ts = time.strftime("%H:%M:%S")
+                print(f"[{ts}] [{self.vehicle_id}] sem peers na estrada — merge direto")
+                self._on_all_granted(lat, lon)
+            else:
+                self._maybe_send_merge_request(t, speed_ms, lat, lon, bearing,
+                                               eta_s, neighbours_snapshot)
 
         # verificar se todos os peers activos já concederam
-        active_peers = frozenset(neighbours_snapshot.keys())
         with self._lock:
             granted = frozenset(self.grants_received)
         if active_peers and active_peers.issubset(granted) and not self.merge_decided:
@@ -136,6 +150,11 @@ class MCProtocol:
             conflict_vehicles = conflict_vehicles,
             eta_start_ms      = eta_start_ms,
             eta_end_ms        = eta_end_ms,
+            zone_start_lat    = self.zone_start_lat,
+            zone_start_lon    = self.zone_start_lon,
+            zone_end_lat      = self.zone_end_lat,
+            zone_end_lon      = self.zone_end_lon,
+            zone_length_m     = self.zone_length_m,
         )
         self.vanetza_session.put("vanetza/in/mcm", json.dumps(mcm).encode())
 
@@ -362,10 +381,32 @@ class RoadVehicleProtocol:
         t_end    = temporal.get("tRROccupancyEndTime",   5000)
         mc_eta_s = (t_start + t_end) / 2 / 1000.0
 
+        # Zona de conflito: usa o TRR enviado pelo MC; fallback para valor local
+        mc_pos = inner["basicContainer"]["position"]
+        mc_lat = mc_pos["latitude"]
+        mc_lon = mc_pos["longitude"]
+        cz_t_start = self.cz_t_start
+        cz_t_end   = self.cz_t_end
+        trr = subs[0].get("targetRoadResourceIContainer") if subs else None
+        if trr:
+            wps = trr.get("waypoints", [])
+            if len(wps) >= 2:
+                d0 = wps[0]["pathPosition"]
+                d1 = wps[1]["pathPosition"]
+                zs_lat = mc_lat + d0["deltaLatitude"]
+                zs_lon = mc_lon + d0["deltaLongitude"]
+                ze_lat = mc_lat + d1["deltaLatitude"]
+                ze_lon = mc_lon + d1["deltaLongitude"]
+                cz_t_start = project_t(zs_lat, zs_lon, self.road)
+                cz_t_end   = project_t(ze_lat, ze_lon, self.road)
+                with self._lock:
+                    self.cz_t_start = cz_t_start
+                    self.cz_t_end   = cz_t_end
+
         # posição prevista no instante do merge
-        t_pred   = min(t + speed * mc_eta_s / self.L_main, 1.0)
+        t_pred      = min(t + speed * mc_eta_s / self.L_main, 1.0)
         in_conflict = vehicle_in_zone(t_pred, self.L_main, VEHICLE_LENGTH_M,
-                                      self.cz_t_start, self.cz_t_end)
+                                      cz_t_start, cz_t_end)
 
         # velocidade sugerida pelo MC para este veículo
         advice = vmc.get("manoeuvreAdvice", [])
@@ -508,8 +549,9 @@ class RoadVehicleProtocol:
     def _available_dist(self):
         """Metros desde posição actual até ao início da zona de conflito."""
         with self._lock:
-            t = self._t
-        return max(0.0, (self.cz_t_start - t) * self.L_main - VEHICLE_LENGTH_M / 2)
+            t          = self._t
+            cz_t_start = self.cz_t_start
+        return max(0.0, (cz_t_start - t) * self.L_main - VEHICLE_LENGTH_M / 2)
 
     def _extract_suggested_speed(self, advice, fallback_speed):
         """Extrai velocidade sugerida do MC para este veículo; fallback 70% da vel. actual."""

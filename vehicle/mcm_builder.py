@@ -60,29 +60,39 @@ def _vehicle_state(speed_ms, heading):
     }
 
 
-def _trr_description(heading):
-    """Descreve o Target Road Resource (TRR) — zona da via ocupada durante a manobra.
+def _trr_description(heading, mc_lat, mc_lon,
+                     zone_start_lat, zone_start_lon,
+                     zone_end_lat, zone_end_lon,
+                     zone_length_m):
+    """Descreve o Target Road Resource (TRR) com a zona de conflito real.
 
-    trrType=2 → trrType3 (ASN.1 enum base-0: 0=trrType1, 1=trrType2, 2=trrType3)
-    waypoints com deltaLatitude/Longitude=0 → offsets nulos relativos à posição do basicContainer
-    (máx offset ~0.013 graus ≈ 1.46 km; acima causa constraint violation silenciosa)
-    heading.confidence=1 → valor de teste (range 1..127, 126=outOfRange, 127=unavailable)
+    waypoints[0] = início da zona de conflito na main road (offset em graus relativos ao MC).
+    waypoints[1] = fim da zona de conflito na main road.
+    trrLength = comprimento total da zona em 0.1 m (inclui safety gap, conforme ASN.1).
+    Offsets máximos: ±0.013 graus ≈ ±1.46 km — zona de ~100 m está dentro do limite.
+    heading.confidence=1 → valor de teste (range 1..127).
     """
     return {
-        "trrType": 2,      # trrType3 (base-0)
-        "laneCount": 2,    # número de faixas cobertas pelo TRR
+        "trrType": 2,
+        "laneCount": 2,
         "waypoints": [
-            {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
-            {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
-            {"pathPosition": {"deltaLatitude": 0, "deltaLongitude": 0, "deltaAltitude": 0}},
+            {"pathPosition": {
+                "deltaLatitude":  zone_start_lat - mc_lat,
+                "deltaLongitude": zone_start_lon - mc_lon,
+                "deltaAltitude": 0,
+            }},
+            {"pathPosition": {
+                "deltaLatitude":  zone_end_lat - mc_lat,
+                "deltaLongitude": zone_end_lon - mc_lon,
+                "deltaAltitude": 0,
+            }},
         ],
         "heading": [
             {"value": heading, "confidence": 1},
             {"value": heading, "confidence": 1},
-            {"value": heading, "confidence": 1},
         ],
-        "trrWidth": 1,   # largura em unidades de faixa
-        "trrLength": 1,  # comprimento em 0.1 m (TRRLength ASN.1 range 0..4095)
+        "trrWidth": 1,
+        "trrLength": min(4095, round(zone_length_m * 10)),
     }
 
 
@@ -112,14 +122,17 @@ def _advised_submanoeuvre(suggested_speed_ms):
 
 
 def build_merge_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, conflict_vehicles,
-                        eta_start_ms=2000, eta_end_ms=5000):
+                        eta_start_ms=2000, eta_end_ms=5000,
+                        zone_start_lat=0.0, zone_start_lon=0.0,
+                        zone_end_lat=0.0, zone_end_lon=0.0,
+                        zone_length_m=0.0):
     """
     MC → veículos da estrada. Pede permissão para fazer merge (mcmType=1/request, itssRole=1/coordinatingItss).
 
-    conflict_vehicles : list[(executant_id, suggested_speed_ms)] — um por veículo em conflito;
-                        a velocidade sugerida vai em manoeuvreAdvice e é validada/ajustada pelo receptor.
-    eta_start_ms      : ms desde agora até início estimado de ocupação da zona de conflito.
-    eta_end_ms        : ms desde agora até fim estimado de ocupação (janela temporal na via).
+    conflict_vehicles : list[(executant_id, suggested_speed_ms)] — um por veículo em conflito.
+    eta_start_ms/end  : janela temporal (ms desde agora) em que o MC ocupa a zona de conflito.
+    zone_start/end    : GPS (graus) do início e fim da zona de conflito na main road.
+    zone_length_m     : comprimento total da zona em metros (inclui safety gap).
 
     Returns a dict ready for json.dumps(). No side effects.
     """
@@ -147,7 +160,12 @@ def build_merge_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, c
                                 {"speedValue": speed_ms, "speedConfidence": 127},
                             ],
                         },
-                        "targetRoadResourceIContainer": _trr_description(heading),
+                        "targetRoadResourceIContainer": _trr_description(
+                            heading, lat, lon,
+                            zone_start_lat, zone_start_lon,
+                            zone_end_lat, zone_end_lon,
+                            zone_length_m,
+                        ),
                         "temporalCharateristics": {
                             "tRROccupancyStartTime": eta_start_ms,
                             "tRROccupancyEndTime": eta_end_ms,

@@ -4,7 +4,7 @@ DECEL_MS2        = 4.0
 ACCEL_MS2        = 2.0
 DT               = 0.1   # tick in seconds
 VEHICLE_LENGTH_M = 4.5   # comprimento padrão do veículo (metros)
-SAFETY_GAP_M     = 10.0  # gap mínimo frente-a-traseira entre veículos (metros)
+SAFETY_GAP_M     = 50.0  # gap mínimo frente-a-traseira entre veículos (metros)
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -118,14 +118,6 @@ def vehicle_in_zone(t_vehicle, L_road, vehicle_length_m, t_start, t_end):
     return t_vehicle + half_t >= t_start and t_vehicle - half_t <= t_end
 
 
-def can_brake_in_time(cur_speed_ms, target_speed_ms, avail_dist_m):
-    """(can_brake: bool, braking_dist_m: float) — distância de travagem com DECEL_MS2."""
-    if cur_speed_ms <= target_speed_ms:
-        return True, 0.0
-    d = (cur_speed_ms ** 2 - target_speed_ms ** 2) / (2 * DECEL_MS2)
-    return d <= avail_dist_m, d
-
-
 def merge_entry_margin(v_mc_ms, v_main_ms):
     """Margem extra na zona de conflito pelo diferencial de velocidade à entrada.
     Distância que o veículo atrás precisa para travar de v_main até v_mc."""
@@ -133,7 +125,15 @@ def merge_entry_margin(v_mc_ms, v_main_ms):
     return delta_v ** 2 / (2 * DECEL_MS2)
 
 
-def mc_stop_t(L_ramp, vehicle_length_m=VEHICLE_LENGTH_M, safety_gap_m=SAFETY_GAP_M):
+def can_brake_in_time(cur_speed_ms, target_speed_ms, avail_dist_m):
+    """Retorna (pode_travar: bool, dist_travagem_m: float)."""
+    if cur_speed_ms <= target_speed_ms:
+        return True, 0.0
+    d = (cur_speed_ms ** 2 - target_speed_ms ** 2) / (2 * DECEL_MS2)
+    return d <= avail_dist_m, d
+
+
+def mc_stop_t(L_ramp, vehicle_length_m=VEHICLE_LENGTH_M):
     """t paramétrico na rampa onde o MC para a aguardar grants.
-    Frontal do veículo fica a safety_gap_m antes do merge point (t=1.0 na rampa)."""
-    return 1.0 - (safety_gap_m + vehicle_length_m / 2) / L_ramp
+    Frontal do veículo fica no merge point (t=1.0 na rampa)."""
+    return 1.0 - vehicle_length_m / L_ramp
