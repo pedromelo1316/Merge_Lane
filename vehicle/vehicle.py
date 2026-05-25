@@ -575,7 +575,7 @@ def send_merge_request(session, vehicle_id, own_station_id,
                        lat, lon, bearing, speed_ms,
                        t_mc, L_ramp,
                        all_peers, neighbour_lock, neighbour_states,
-                       manoeuvre_state, demo_step_delay=0.0):
+                       manoeuvre_state, demo_step_delay=0.0, demo_mode=False):
 
     if not all_peers:
         return
@@ -588,7 +588,8 @@ def send_merge_request(session, vehicle_id, own_station_id,
         return
 
     last_send_time = manoeuvre_state.get("last_send_time", 0.0)
-    if now - last_send_time < 1.0:
+    min_interval = (demo_step_delay * len(all_peers) + 1.0) if demo_mode else 1.0
+    if now - last_send_time < min_interval:
         return
 
     manoeuvre_state["manoeuvre_id"] += 1
@@ -824,6 +825,7 @@ def run_scenario(scenario, vehicle_id, own_station_id, vanetza_session):
                             neighbour_lock, neighbour_states,
                             manoeuvre_state,
                             demo_step_delay,
+                            demo_mode,
                         )
                         if sent and demo_mode:
                             with protocol_lock:

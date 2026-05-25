@@ -117,7 +117,7 @@ def main():
                         help="Demo mode: insert a step delay between protocol messages")
     parser.add_argument("--demo-delay", type=float, default=5.0,
                         help="Seconds to wait before each protocol response (default 5)")
-    parser.add_argument("--demo-speed-divisor", type=float, default=3.0,
+    parser.add_argument("--demo-speed-divisor", type=float, default=1.0,
                         help="Divide vehicle movement speed by this factor in demo mode (default 10.0)")
     args = parser.parse_args()
 
