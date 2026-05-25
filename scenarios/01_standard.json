@@ -1,6 +1,5 @@
 {
   "name": "Standard merge — MC vs A B C",
-  "speed_multiplier": 2.0,
   "timeout_s": 120,
   "active_vehicles": [10, 11, 12, 13],
   "roads": [
@@ -23,9 +22,9 @@
     }
   ],
   "vehicles": [
-    {"id": "MC", "station_id": 10, "road": "ramp", "lat": 40.6370, "lon": -8.6510},
-    {"id": "A",  "station_id": 11, "road": "main", "lat": 40.6380, "lon": -8.6518},
-    {"id": "B",  "station_id": 12, "road": "main", "lat": 40.6380, "lon": -8.6532},
-    {"id": "C",  "station_id": 13, "road": "main", "lat": 40.6380, "lon": -8.6547}
+    {"id": "MC", "station_id": 10, "road": "ramp", "lat": 40.6370, "lon": -8.6510, "length_m": 4.5},
+    {"id": "A",  "station_id": 11, "road": "main", "lat": 40.6380, "lon": -8.6518, "length_m": 4.5},
+    {"id": "B",  "station_id": 12, "road": "main", "lat": 40.6380, "lon": -8.6532, "length_m": 4.5},
+    {"id": "C",  "station_id": 13, "road": "main", "lat": 40.6380, "lon": -8.6547, "length_m": 4.5}
   ]
 }
