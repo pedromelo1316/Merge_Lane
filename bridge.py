@@ -178,7 +178,8 @@ def on_mcm(sample):
         if to_str is None and label.startswith("SLOWDOWN_GRANT"):
             to_str = _slowdown_sent_to.get(station_id, "?")
 
-        print(f"[MCM] {label:<30}  {sender_name} → {to_str or '?'}  (manoeuvre_id={manoeuvre_id})")
+        ts = time.strftime("%H:%M:%S")
+        print(f"[{ts}] [MCM] {label:<30}  {sender_name} → {to_str or '?'}  (manoeuvre_id={manoeuvre_id})")
 
         if label.startswith("MERGE_CONFIRMED") and success:
             vehicle_protocol_states["MC"] = "MERGING"
