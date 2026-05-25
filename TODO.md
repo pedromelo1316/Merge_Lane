@@ -56,25 +56,25 @@ vehicle/
 ---
 
 ### 4. Detetar aproximação ao merge point e enviar MERGE_REQUEST
-- [ ] Definir zona de conflito como intervalo linear na main road (X metros antes e Y metros depois do merge point, ao longo da via)
-- [ ] MC calcula ETA ao merge point a cada tick
-- [ ] Ao entrar no horizonte de conflito, identificar peers activos (CAMs recentes) e enviar `MERGE_REQUEST`
-- [ ] Definir ponto de paragem do MC na rampa (calculado à inicialização): se não houver grants, o MC pára aqui
-- [ ] `find_vehicle_behind` em `geo.py`: dado o próprio `t` e snapshot de vizinhos, devolver o veículo imediatamente atrás
+- [x] Definir zona de conflito como intervalo linear na main road (X metros antes e Y metros depois do merge point, ao longo da via)
+- [x] MC calcula ETA ao merge point a cada tick
+- [x] Ao entrar no horizonte de conflito, identificar peers activos (CAMs recentes) e enviar `MERGE_REQUEST`
+- [x] Definir ponto de paragem do MC na rampa (calculado à inicialização): se não houver grants, o MC pára aqui
+- [x] `find_vehicle_behind` em `geo.py`: dado o próprio `t` e snapshot de vizinhos, devolver o veículo imediatamente atrás
 
 **Teste:** MC aproxima-se, envia MERGE_REQUEST visível no dashboard/logs, para no ponto definido se não receber resposta
 
 ---
 
 ### 5. Protocolo completo de merge
-- [ ] Veículos da estrada recebem `MERGE_REQUEST`: verificar conflito com a zona linear, calcular velocidade alvo, responder com MERGE_GRANT se não em conflito
-- [ ] Veículos em conflito propagam `SLOWDOWN_REQUEST` para o veículo imediatamente atrás
-- [ ] Cadeia de `SLOWDOWN_GRANT` / `SLOWDOWN_REFUSE` propaga de volta para a frente
-- [ ] MC recolhe grants; quando os tem todos envia `MERGE_CONFIRMED` e avança
-- [ ] Veículos da estrada recebem `MERGE_CONFIRMED`: aplicar velocidade pendente (abrandar)
-- [ ] MC envia `EXECUTION_STATUS` após concluir a transição para a main road
-- [ ] Veículos da estrada recebem `EXECUTION_STATUS`: retomar velocidade normal
-- [ ] Verificação de viabilidade de travagem antes de aceitar slowdown
-- [ ] Retry com cooldown se algum veículo recusar
+- [x] Veículos da estrada recebem `MERGE_REQUEST`: verificar conflito com a zona linear, calcular velocidade alvo, responder com MERGE_GRANT se não em conflito
+- [x] Veículos em conflito propagam `SLOWDOWN_REQUEST` para o veículo imediatamente atrás
+- [x] Cadeia de `SLOWDOWN_GRANT` / `SLOWDOWN_REFUSE` propaga de volta para a frente
+- [x] MC recolhe grants; quando os tem todos envia `MERGE_CONFIRMED` e avança
+- [x] Veículos da estrada recebem `MERGE_CONFIRMED`: aplicar velocidade pendente (abrandar)
+- [x] MC envia `EXECUTION_STATUS` após concluir a transição para a main road
+- [x] Veículos da estrada recebem `EXECUTION_STATUS`: retomar velocidade normal
+- [x] Verificação de viabilidade de travagem antes de aceitar slowdown
+- [x] Retry com cooldown se algum veículo recusar
 
 **Teste:** cenário `01_standard.json` completo — MC executa merge sem sobreposição, veículos abrandam e retomam, dashboard mostra tudo

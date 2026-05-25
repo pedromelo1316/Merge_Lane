@@ -7,7 +7,7 @@ from geo import (
     DT, VEHICLE_LENGTH_M, SAFETY_GAP_M,
     advance_speed, compute_bearing, gap_ahead, project_t, road_length,
 )
-from protocol import MCProtocol
+from protocol import MCProtocol, RoadVehicleProtocol
 
 
 def _move_loop(road, t0, speed0, target_speed, station_id,
@@ -30,7 +30,7 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
         effective_target = target_speed
         should_advance   = True
 
-        # Car-following: manter gap mínimo ao veículo da frente (todos os veículos)
+        # Car-following: manter gap mínimo ao veículo da frente
         if neighbours:
             snap = neighbours.snapshot()
             gap  = gap_ahead(t, station_id, road, snap, L)
@@ -38,7 +38,7 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
                 effective_target = min(effective_target,
                                        speed * max(0.0, gap / SAFETY_GAP_M))
 
-        # Tick do protocolo (apenas MC)
+        # Tick do protocolo (MC ou road vehicle)
         if protocol:
             snap = neighbours.snapshot() if neighbours else {}
             result = protocol.tick(t, speed, lat, lon, bearing, snap)
@@ -63,10 +63,8 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
 
 
 def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
-    """Entry point de simulação para um veículo num cenário.
-
-    Inicializa a NeighbourTable, subscreve CAMs, cria MCProtocol se for veículo na rampa,
-    executa o loop de movimento e trata a transição automática rampa → main road."""
+    """Entry point de simulação. Inicializa NeighbourTable, subscriptions CAM/MCM,
+    cria o protocolo adequado (MCProtocol ou RoadVehicleProtocol) e executa o loop."""
     roads = {r["id"]: r for r in scenario["roads"]}
 
     cfg = next((v for v in scenario["vehicles"] if v["station_id"] == station_id), None)
@@ -81,17 +79,37 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
     vehicle_length = cfg.get("length_m", VEHICLE_LENGTH_M)
 
     neighbours = NeighbourTable()
-    cam_sub = vanetza_session.declare_subscriber(
+    cam_sub    = vanetza_session.declare_subscriber(
         "vanetza/out/cam",
         make_cam_callback(station_id, neighbours),
     )
 
-    # MCProtocol apenas para veículo na rampa (MC); veículos na main road não têm protocolo
+    # detectar rampa que faz merge nesta estrada (para veículos na main road)
+    ramp = next(
+        (r for r in scenario["roads"] if r.get("merges_into") == road["id"]),
+        None,
+    )
+
     protocol = None
+    mcm_sub  = None
+
     if road.get("type") == "ramp" and road.get("merges_into"):
         main_road = roads[road["merges_into"]]
-        protocol = MCProtocol(station_id, vehicle_id, road, main_road,
-                              vanetza_session, vehicle_length_m=vehicle_length)
+        protocol  = MCProtocol(station_id, vehicle_id, road, main_road,
+                               vanetza_session, vehicle_length_m=vehicle_length)
+        mcm_sub   = vanetza_session.declare_subscriber(
+            "vanetza/out/mcm", protocol.make_mcm_callback()
+        )
+    elif ramp is not None:
+        merge_lat = ramp["end"]["lat"]
+        merge_lon = ramp["end"]["lon"]
+        protocol  = RoadVehicleProtocol(
+            station_id, vehicle_id, road, merge_lat, merge_lon,
+            vanetza_session, target_speed, neighbours,
+        )
+        mcm_sub   = vanetza_session.declare_subscriber(
+            "vanetza/out/mcm", protocol.make_mcm_callback()
+        )
 
     ts = time.strftime("%H:%M:%S")
     print(f"[{ts}] [{vehicle_id}] a mover em '{road['id']}' t0={t0:.3f} "
@@ -103,18 +121,22 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
                               neighbours=neighbours,
                               vehicle_length_m=vehicle_length, protocol=protocol)
 
-        # Transição automática rampa → main road sem verificação de protocolo (task 3 concluída,
-        # task 5 irá bloquear aqui até grants estarem validados)
+        # transição rampa → main road; só avança se merge foi decidido
         if road.get("type") == "ramp" and road.get("merges_into") and not stop_event.is_set():
+            if not protocol or not protocol.merge_decided:
+                return
             main_road     = roads[road["merges_into"]]
             t2            = project_t(lat, lon, main_road)
             t2            = max(0.0, min(t2, 1.0))
             target_speed2 = main_road["speed_limit_kmh"] / 3.6
             ts = time.strftime("%H:%M:%S")
             print(f"[{ts}] [{vehicle_id}] a transitar para '{main_road['id']}' t={t2:.3f}")
+            protocol.on_merge_completed(lat, lon)  # → envia EXECUTION_STATUS
             _move_loop(main_road, t2, target_speed, target_speed2,
                        station_id, vanetza_session, stop_event, vehicle_id,
                        neighbours=neighbours,
                        vehicle_length_m=vehicle_length, protocol=None)
     finally:
         cam_sub.undeclare()
+        if mcm_sub:
+            mcm_sub.undeclare()
