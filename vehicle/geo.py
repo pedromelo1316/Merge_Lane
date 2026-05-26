@@ -4,6 +4,7 @@ DECEL_MS2        = 4.0
 ACCEL_MS2        = 2.0
 DT               = 0.1   # tick in seconds
 SAFETY_GAP_M     = 10.0  # gap mínimo frente-a-traseira entre veículos (metros)
+LANE_WIDTH_M    = 3.5   # largura de faixa típica (metros)
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -154,8 +155,9 @@ def can_brake_in_time(cur_speed_ms, target_speed_ms, avail_dist_m):
     return ok, d
 
 
-def mc_stop_t(L_ramp, vehicle_length_m):
+def mc_stop_t(L_ramp, vehicle_length_m, buffer_m=8):
     """t paramétrico na rampa onde o MC para a aguardar grants.
-    Frontal do veículo fica no merge point (t=1.0 na rampa)."""
-    t_stop = 1.0 - vehicle_length_m / L_ramp
-    return t_stop
+    Assume referência no centro do veículo; a frente fica em t=1.0.
+    buffer_m recua ligeiramente a frente antes do merge."""
+    
+    return 1.0 - (vehicle_length_m + buffer_m) / L_ramp

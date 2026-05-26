@@ -255,8 +255,15 @@ class MergeProtocol:
         if active_peers and active_peers.issubset(granted) and not self.merge_decided and not has_ahead:
             self._on_all_granted(lat, lon)
 
-        if self.stop_t is not None and t >= self.stop_t and not self.merge_decided:
-            result["advance"] = False
+        if self.stop_t is not None and not self.merge_decided:
+            dist_to_stop = max(0.0, (self.stop_t - t) * self.L_current)
+            if dist_to_stop <= 0.0:
+                result["advance"] = False
+                result["target_speed"] = 0.0
+            else:
+                _, brake_d = can_brake_in_time(speed_ms, 0.0, dist_to_stop)
+                if dist_to_stop <= brake_d + 0.5:
+                    result["target_speed"] = 0.0
 
         return result
 
