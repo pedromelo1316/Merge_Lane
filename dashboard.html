@@ -410,11 +410,11 @@
       }
     }
 
-    function stateColor(vehicleId, state) {
+    function stateColor(vehicleRole, state) {
       if (state === 'SLOWING')  return '#ff9800';
       if (state === 'MERGING')  return '#4caf50';
       if (state === 'SPEEDING') return '#2196f3';
-      return vehicleId === 'MC' ? '#ff1744' : '#ffffff';
+      return vehicleRole === 'MC' ? '#ff1744' : '#ffffff';
     }
 
     function drawVehicles(ctx, vehicles, roads, bounds, W, H, pxPerMeter) {
@@ -425,7 +425,7 @@
 
       for (const v of vehicles) {
         const pt    = toC(v.lat, v.lon);
-        const color = stateColor(v.id, v.state || 'NORMAL');
+        const color = stateColor(v.role, v.state || 'NORMAL');
 
         const lenM     = v.length_m ?? 4.5;
         const vehLenPx = lenM * pxPerMeter * exag;
@@ -512,7 +512,15 @@
     function updateVehiclePanel(vehicles) {
       const panel = document.getElementById('vehicle-panel');
       const sorted = [...vehicles].sort((a, b) => {
-        return (VCARD_ORDER.indexOf(a.id) + 1 || 999) - (VCARD_ORDER.indexOf(b.id) + 1 || 999);
+        const roleA = a.role === 'MC' ? 0 : 1;
+        const roleB = b.role === 'MC' ? 0 : 1;
+        if (roleA !== roleB) return roleA - roleB;
+        const idxA = VCARD_ORDER.indexOf(a.id);
+        const idxB = VCARD_ORDER.indexOf(b.id);
+        const rankA = idxA === -1 ? 999 : idxA;
+        const rankB = idxB === -1 ? 999 : idxB;
+        if (rankA !== rankB) return rankA - rankB;
+        return (a.id || '').localeCompare(b.id || '');
       });
 
       for (const v of sorted) {
@@ -525,7 +533,7 @@
           panel.appendChild(card);
         }
         const state = v.state || 'NORMAL';
-        const color = stateColor(v.id, state);
+        const color = stateColor(v.role, state);
         card.style.borderColor = color + '66';
         card.innerHTML =
           `<div class="vcard-id" style="color:${color}">${v.id}</div>` +

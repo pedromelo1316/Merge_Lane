@@ -11,7 +11,8 @@ import websockets
 logging.getLogger("websockets.server").setLevel(logging.CRITICAL)
 import zenoh
 
-STATION_IDS           = {10: "MC", 11: "A", 12: "B", 13: "C"}
+STATION_IDS_BASE      = {10: "MC", 11: "A", 12: "B", 13: "C"}
+STATION_IDS           = dict(STATION_IDS_BASE)
 ZENOH_BROKER          = "tcp/192.168.98.10:7447"
 COORDINATOR_ZENOH_URL = "tcp/127.0.0.1:7446"
 
@@ -27,6 +28,8 @@ current_scenario_name     = ""
 current_scenario_vehicles = set()  # IDs dos veículos activos no cenário actual (e.g. {"A","B","C"})
 
 _slowdown_sent_to = {}  # {executant_station_id → sender_name} — para SLOWDOWN_GRANTs
+_merge_request_by_mid = {}  # {manoeuvre_id → (sender_name, ts)}
+MERGE_REQUEST_TTL_S = 5.0
 
 
 def _nearest_road_id(lat, lon):
@@ -42,6 +45,20 @@ def _nearest_road_id(lat, lon):
     return best_id or "?"
 
 
+def _road_by_id(road_id):
+    for road in current_roads:
+        if road.get("id") == road_id:
+            return road
+    return None
+
+
+def _vehicle_role(state):
+    road = _road_by_id(state.get("road_id"))
+    if road and road.get("type") == "ramp" and road.get("merges_into"):
+        return "MC"
+    return "ROAD"
+
+
 def _extract_ref_position(payload):
     # vanetza/out/cam wraps the CAM in fields.cam; vanetza/own/cam may use the raw structure
     try:
@@ -54,10 +71,8 @@ def on_cam(sample):
     try:
         payload = json.loads(bytes(sample.payload).decode())
         station_id = payload.get("stationID") or payload.get("stationId")
-        if station_id not in STATION_IDS:
-            return
         ref = _extract_ref_position(payload)
-        name = STATION_IDS[station_id]
+        name = STATION_IDS.get(station_id, str(station_id))
 
         # Extract speed from high-frequency container
         hfc = (payload.get("fields", {})
@@ -143,18 +158,26 @@ def _classify_mcm(mcm_type, its_role, inner):
 
 
 def on_coordinator_scenario(sample):
-    global current_roads, current_scenario_name, current_scenario_vehicles
+    global current_roads, current_scenario_name, current_scenario_vehicles, STATION_IDS
     try:
         data = json.loads(bytes(sample.payload).decode())
         current_roads             = data.get("roads", [])
         current_scenario_name     = data.get("name", "")
         current_scenario_vehicles = {v["id"] for v in data.get("vehicles", [])}
 
+        STATION_IDS = dict(STATION_IDS_BASE)
+        for v in data.get("vehicles", []):
+            sid = v.get("station_id")
+            vid = v.get("id")
+            if sid is not None and vid is not None:
+                STATION_IDS[sid] = vid
+
         vehicle_states.clear()
         vehicle_last_cam.clear()
         vehicle_protocol_states.clear()
         del MCM_PENDING[:]
         _slowdown_sent_to.clear()
+        _merge_request_by_mid.clear()
 
         print(f"[bridge] Cenário recebido: {current_scenario_name!r} ({len(current_roads)} estradas, veículos: {current_scenario_vehicles})")
     except Exception:
@@ -177,6 +200,9 @@ def on_mcm(sample):
 
         label, to_str, success = _classify_mcm(mcm_type, its_role, inner)
 
+        if label == "MERGE_REQUEST":
+            _merge_request_by_mid[manoeuvre_id] = (sender_name, time.time())
+
         if label.startswith("SLOWDOWN_REQUEST"):
             advice = (inner.get("mcmContainer", {})
                           .get("vehicleManoeuvreContainer", {})
@@ -189,13 +215,20 @@ def on_mcm(sample):
         if to_str is None and label.startswith("SLOWDOWN_GRANT"):
             to_str = _slowdown_sent_to.get(station_id, "?")
 
+        if label.startswith("MERGE_GRANT") and to_str == "MC":
+            cached = _merge_request_by_mid.get(manoeuvre_id)
+            if cached:
+                mc_name, ts_cached = cached
+                if time.time() - ts_cached <= MERGE_REQUEST_TTL_S:
+                    to_str = mc_name
+
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [MCM] {label:<30}  {sender_name} → {to_str or '?'}  (manoeuvre_id={manoeuvre_id})")
 
         if label.startswith("MERGE_CONFIRMED") and success:
-            vehicle_protocol_states["MC"] = "MERGING"
+            vehicle_protocol_states[sender_name] = "MERGING"
         elif label.startswith("EXECUTION_STATUS"):
-            vehicle_protocol_states["MC"] = "NORMAL"
+            vehicle_protocol_states[sender_name] = "NORMAL"
 
         # Extract additional fields for modal enrichment
         extras = {}
@@ -252,7 +285,9 @@ async def broadcast_loop():
             "t":          round(time.time() - start, 2),
             "scenario":   current_scenario_name,
             "roads":      current_roads,
-            "vehicles":   [{**v, "state": vehicle_protocol_states.get(v["id"], "NORMAL")}
+            "vehicles":   [{**v,
+                             "state": vehicle_protocol_states.get(v["id"], "NORMAL"),
+                             "role": _vehicle_role(v)}
                            for v in vehicle_states.values()
                            if (not current_scenario_vehicles or v["id"] in current_scenario_vehicles)
                            and time.time() - vehicle_last_cam.get(v["id"], 0) <= CAM_TIMEOUT_S],

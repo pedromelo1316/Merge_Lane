@@ -7,7 +7,7 @@ from geo import (
     DT, SAFETY_GAP_M,
     advance_speed, compute_bearing, gap_ahead, project_t, road_length,
 )
-from protocol import MCProtocol, RoadVehicleProtocol
+from protocol import MergeProtocol
 
 
 def _move_loop(road, t0, speed0, target_speed, station_id,
@@ -30,21 +30,21 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
         effective_target = target_speed
         should_advance   = True
 
-        # Car-following: manter gap mínimo ao veículo da frente
-        if neighbours:
-            snap = neighbours.snapshot()
-            gap  = gap_ahead(t, station_id, road, snap, L, vehicle_length_m)
-            if gap < SAFETY_GAP_M:
-                effective_target = min(effective_target,
-                                       speed * max(0.0, gap / SAFETY_GAP_M))
+        snap = neighbours.snapshot() if neighbours else {}
 
         # Tick do protocolo (MC ou road vehicle)
         if protocol:
-            snap = neighbours.snapshot() if neighbours else {}
             result = protocol.tick(t, speed, lat, lon, bearing, snap)
             if result.get("target_speed") is not None:
                 effective_target = result["target_speed"]
             should_advance = result.get("advance", True)
+
+        # Car-following: manter gap minimo ao veiculo da frente
+        if neighbours:
+            gap = gap_ahead(t, station_id, road, snap, L, vehicle_length_m)
+            if gap < SAFETY_GAP_M:
+                effective_target = min(effective_target,
+                                       speed * max(0.0, gap / SAFETY_GAP_M))
 
         speed, accel = advance_speed(speed, effective_target, DT)
 
@@ -64,7 +64,7 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
 
 def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
     """Entry point de simulação. Inicializa NeighbourTable, subscriptions CAM/MCM,
-    cria o protocolo adequado (MCProtocol ou RoadVehicleProtocol) e executa o loop."""
+    cria o protocolo unificado e executa o loop."""
     roads = {r["id"]: r for r in scenario["roads"]}
 
     cfg = next((v for v in scenario["vehicles"] if v["station_id"] == station_id), None)
@@ -95,17 +95,22 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
 
     if road.get("type") == "ramp" and road.get("merges_into"):
         main_road = roads[road["merges_into"]]
-        protocol  = MCProtocol(station_id, vehicle_id, road, main_road,
-                               vanetza_session, vehicle_length_m=vehicle_length)
+        protocol  = MergeProtocol(
+            station_id, vehicle_id, road,
+            ramp_road=road, main_road=main_road,
+            vanetza_session=vanetza_session,
+            road_speed_ms=target_speed, neighbours=neighbours,
+            vehicle_length_m=vehicle_length,
+        )
         mcm_sub   = vanetza_session.declare_subscriber(
             "vanetza/out/mcm", protocol.make_mcm_callback()
         )
     elif ramp is not None:
-        merge_lat = ramp["end"]["lat"]
-        merge_lon = ramp["end"]["lon"]
-        protocol  = RoadVehicleProtocol(
-            station_id, vehicle_id, road, merge_lat, merge_lon,
-            vanetza_session, target_speed, neighbours,
+        protocol  = MergeProtocol(
+            station_id, vehicle_id, road,
+            ramp_road=ramp, main_road=road,
+            vanetza_session=vanetza_session,
+            road_speed_ms=target_speed, neighbours=neighbours,
             vehicle_length_m=vehicle_length,
         )
         mcm_sub   = vanetza_session.declare_subscriber(
@@ -133,10 +138,11 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
             ts = time.strftime("%H:%M:%S")
             print(f"[{ts}] [{vehicle_id}] a transitar para '{main_road['id']}' t={t2:.3f}")
             protocol.on_merge_completed(lat, lon)  # → envia EXECUTION_STATUS
+            protocol.set_current_road(main_road, target_speed2)
             _move_loop(main_road, t2, target_speed, target_speed2,
                        station_id, vanetza_session, stop_event, vehicle_id,
                        neighbours=neighbours,
-                       vehicle_length_m=vehicle_length, protocol=None)
+                       vehicle_length_m=vehicle_length, protocol=protocol)
     finally:
         cam_sub.undeclare()
         if mcm_sub:

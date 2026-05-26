@@ -62,6 +62,16 @@ def _on_same_road(state, s, dlat, dlon, L2, t_n):
     return haversine(proj_lat, proj_lon, state["lat"], state["lon"]) < 0.05
 
 
+def is_on_road(state, road):
+    """True se state projeta para esta estrada com erro minimo."""
+    s, e = road["start"], road["end"]
+    dlat = e["lat"] - s["lat"]
+    dlon = e["lon"] - s["lon"]
+    L2   = dlat ** 2 + dlon ** 2
+    t_n = ((state["lat"] - s["lat"]) * dlat + (state["lon"] - s["lon"]) * dlon) / L2
+    return _on_same_road(state, s, dlat, dlon, L2, t_n)
+
+
 def find_vehicle_behind(own_t, own_station_id, road, neighbours_snapshot):
     """Veículo imediatamente atrás de own_t na estrada.
     Retorna (station_id, state_dict) ou None se nenhum dentro de 200m."""
