@@ -46,7 +46,7 @@ class MCProtocol:
         v_mc_ms   = ramp["speed_limit_kmh"] / 3.6
         v_main_ms = main_road["speed_limit_kmh"] / 3.6
         before_m  = vehicle_length_m / 2 + SAFETY_GAP_M + merge_entry_margin(v_mc_ms, v_main_ms)
-        after_m   = vehicle_length_m / 2 + SAFETY_GAP_M
+        after_m   = vehicle_length_m / 2 + SAFETY_GAP_M / 2
         self.cz_t_start, self.cz_t_end = conflict_zone_t(
             self.merge_lat, self.merge_lon, main_road,
             before_m=before_m, after_m=after_m,
@@ -259,8 +259,8 @@ class RoadVehicleProtocol:
         L_main = road_length(road)
         self.L_main = L_main
 
-        before_m = VEHICLE_LENGTH_M / 2 + SAFETY_GAP_M
-        after_m  = VEHICLE_LENGTH_M / 2 + SAFETY_GAP_M
+        before_m = vehicle_length_m / 2 + SAFETY_GAP_M
+        after_m  = vehicle_length_m / 2 + SAFETY_GAP_M / 2
         self.cz_t_start, self.cz_t_end = conflict_zone_t(
             merge_lat, merge_lon, road,
             before_m=before_m, after_m=after_m,
@@ -407,7 +407,7 @@ class RoadVehicleProtocol:
 
         # posição prevista no instante do merge
         t_pred      = min(t + speed * mc_eta_s / self.L_main, 1.0)
-        in_conflict = vehicle_in_zone(t_pred, self.L_main, VEHICLE_LENGTH_M,
+        in_conflict = vehicle_in_zone(t_pred, self.L_main, self.vehicle_length_m,
                                       cz_t_start, cz_t_end)
 
         # velocidade sugerida pelo MC para este veículo
@@ -553,7 +553,7 @@ class RoadVehicleProtocol:
         with self._lock:
             t          = self._t
             cz_t_start = self.cz_t_start
-        return max(0.0, (cz_t_start - t) * self.L_main - VEHICLE_LENGTH_M / 2)
+        return max(0.0, (cz_t_start - t) * self.L_main - self.vehicle_length_m / 2)
 
     def _extract_suggested_speed(self, advice, fallback_speed):
         """Extrai velocidade sugerida do MC para este veículo; fallback 70% da vel. actual."""

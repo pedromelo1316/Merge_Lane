@@ -4,7 +4,7 @@ DECEL_MS2        = 4.0
 ACCEL_MS2        = 2.0
 DT               = 0.1   # tick in seconds
 VEHICLE_LENGTH_M = 4.5   # comprimento padrão do veículo (metros)
-SAFETY_GAP_M     = 50.0  # gap mínimo frente-a-traseira entre veículos (metros)
+SAFETY_GAP_M     = 30.0  # gap mínimo frente-a-traseira entre veículos (metros)
 
 
 def haversine(lat1, lon1, lat2, lon2):
