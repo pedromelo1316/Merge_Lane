@@ -22,7 +22,8 @@ def project_t(lat, lon, road):
     dlat = e["lat"] - s["lat"]
     dlon = e["lon"] - s["lon"]
     L2 = dlat ** 2 + dlon ** 2
-    return ((lat - s["lat"]) * dlat + (lon - s["lon"]) * dlon) / L2
+    t = ((lat - s["lat"]) * dlat + (lon - s["lon"]) * dlon) / L2
+    return t
 
 
 def compute_bearing(lat1, lon1, lat2, lon2):
@@ -79,7 +80,9 @@ def find_vehicle_behind(own_t, own_station_id, road, neighbours_snapshot):
         if not _on_same_road(state, s, dlat, dlon, L2, t_n):
             continue
         best_t, best_sid = t_n, sid
-    return (best_sid, neighbours_snapshot[best_sid]) if best_sid is not None else None
+    if best_sid is not None:
+        return best_sid, neighbours_snapshot[best_sid]
+    return None
 
 
 def gap_ahead(own_t, own_sid, road, snap, L, vehicle_length_m):
@@ -102,7 +105,8 @@ def gap_ahead(own_t, own_sid, road, snap, L, vehicle_length_m):
     if best_t == float("inf"):
         return float("inf")
     ahead_len_m = snap[best_sid].get("length_m") or vehicle_length_m
-    return (best_t - own_t) * L - vehicle_length_m / 2 - ahead_len_m / 2
+    gap = (best_t - own_t) * L - vehicle_length_m / 2 - ahead_len_m / 2
+    return gap
 
 
 def conflict_zone_t(merge_lat, merge_lon, main_road, before_m, after_m):
@@ -110,13 +114,16 @@ def conflict_zone_t(merge_lat, merge_lon, main_road, before_m, after_m):
     before_m: metros atrás do merge point; after_m: metros à frente."""
     L       = road_length(main_road)
     t_merge = project_t(merge_lat, merge_lon, main_road)
-    return (t_merge - before_m / L, t_merge + after_m / L)
+    t_start = t_merge - before_m / L
+    t_end   = t_merge + after_m / L
+    return t_start, t_end
 
 
 def vehicle_in_zone(t_vehicle, L_road, vehicle_length_m, t_start, t_end):
     """True se o veículo (centrado em t_vehicle) se sobrepõe fisicamente a [t_start, t_end]."""
     half_t = (vehicle_length_m / 2) / L_road
-    return t_vehicle + half_t >= t_start and t_vehicle - half_t <= t_end
+    in_zone = t_vehicle + half_t >= t_start and t_vehicle - half_t <= t_end
+    return in_zone
 
 
 def merge_entry_margin(v_mc_ms, v_main_ms):
@@ -124,7 +131,8 @@ def merge_entry_margin(v_mc_ms, v_main_ms):
     Distância cinemática de travagem de v_main até v_mc: (v_main²-v_mc²)/(2a)."""
     if v_main_ms <= v_mc_ms:
         return 0.0
-    return (v_main_ms ** 2 - v_mc_ms ** 2) / (2 * DECEL_MS2)
+    margin = (v_main_ms ** 2 - v_mc_ms ** 2) / (2 * DECEL_MS2)
+    return margin
 
 
 def can_brake_in_time(cur_speed_ms, target_speed_ms, avail_dist_m):
@@ -132,10 +140,12 @@ def can_brake_in_time(cur_speed_ms, target_speed_ms, avail_dist_m):
     if cur_speed_ms <= target_speed_ms:
         return True, 0.0
     d = (cur_speed_ms ** 2 - target_speed_ms ** 2) / (2 * DECEL_MS2)
-    return d <= avail_dist_m, d
+    ok = d <= avail_dist_m
+    return ok, d
 
 
 def mc_stop_t(L_ramp, vehicle_length_m):
     """t paramétrico na rampa onde o MC para a aguardar grants.
     Frontal do veículo fica no merge point (t=1.0 na rampa)."""
-    return 1.0 - vehicle_length_m / L_ramp
+    t_stop = 1.0 - vehicle_length_m / L_ramp
+    return t_stop
