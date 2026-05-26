@@ -83,13 +83,13 @@ def find_vehicle_behind(own_t, own_station_id, road, neighbours_snapshot):
     return (best_sid, neighbours_snapshot[best_sid]) if best_sid is not None else None
 
 
-def gap_ahead(own_t, own_sid, road, snap, L):
+def gap_ahead(own_t, own_sid, road, snap, L, vehicle_length_m):
     """Metros (frente-a-traseira) até ao veículo mais próximo à frente na mesma estrada."""
     s, e  = road["start"], road["end"]
     dlat  = e["lat"] - s["lat"]
     dlon  = e["lon"] - s["lon"]
     L2    = dlat ** 2 + dlon ** 2
-    best_t = float("inf")
+    best_t, best_sid = float("inf"), None
     for sid, state in snap.items():
         if sid == own_sid:
             continue
@@ -98,10 +98,12 @@ def gap_ahead(own_t, own_sid, road, snap, L):
             continue
         if not _on_same_road(state, s, dlat, dlon, L2, t_n):
             continue
-        best_t = min(best_t, t_n)
+        if t_n < best_t:
+            best_t, best_sid = t_n, sid
     if best_t == float("inf"):
         return float("inf")
-    return (best_t - own_t) * L - VEHICLE_LENGTH_M
+    ahead_len_m = snap[best_sid].get("length_m") or vehicle_length_m
+    return (best_t - own_t) * L - vehicle_length_m / 2 - ahead_len_m / 2
 
 
 def conflict_zone_t(merge_lat, merge_lon, main_road, before_m, after_m):
@@ -133,7 +135,7 @@ def can_brake_in_time(cur_speed_ms, target_speed_ms, avail_dist_m):
     return d <= avail_dist_m, d
 
 
-def mc_stop_t(L_ramp, vehicle_length_m=VEHICLE_LENGTH_M):
+def mc_stop_t(L_ramp, vehicle_length_m):
     """t paramétrico na rampa onde o MC para a aguardar grants.
     Frontal do veículo fica no merge point (t=1.0 na rampa)."""
     return 1.0 - vehicle_length_m / L_ramp

@@ -4,7 +4,7 @@ import time
 from cam_builder import build_cam
 from comms import NeighbourTable, make_cam_callback
 from geo import (
-    DT, VEHICLE_LENGTH_M, SAFETY_GAP_M,
+    DT, SAFETY_GAP_M,
     advance_speed, compute_bearing, gap_ahead, project_t, road_length,
 )
 from protocol import MCProtocol, RoadVehicleProtocol
@@ -12,7 +12,7 @@ from protocol import MCProtocol, RoadVehicleProtocol
 
 def _move_loop(road, t0, speed0, target_speed, station_id,
                vanetza_session, stop_event, label,
-               neighbours=None, vehicle_length_m=VEHICLE_LENGTH_M,
+               neighbours=None, vehicle_length_m=None,
                protocol=None):
     """Loop de movimento ao longo de road a partir de t0. Retorna (lat, lon) final."""
     s, e = road["start"], road["end"]
@@ -33,7 +33,7 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
         # Car-following: manter gap mínimo ao veículo da frente
         if neighbours:
             snap = neighbours.snapshot()
-            gap  = gap_ahead(t, station_id, road, snap, L)
+            gap  = gap_ahead(t, station_id, road, snap, L, vehicle_length_m)
             if gap < SAFETY_GAP_M:
                 effective_target = min(effective_target,
                                        speed * max(0.0, gap / SAFETY_GAP_M))
@@ -48,7 +48,7 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
 
         speed, accel = advance_speed(speed, effective_target, DT)
 
-        cam = build_cam(lat, lon, bearing, speed, lane, accel)
+        cam = build_cam(lat, lon, bearing, speed, vehicle_length_m, lane, accel)
         vanetza_session.put("vanetza/in/cam", json.dumps(cam).encode())
 
         if should_advance:
@@ -76,7 +76,7 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
     road           = roads[cfg["road"]]
     t0             = project_t(cfg["lat"], cfg["lon"], road)
     target_speed   = road["speed_limit_kmh"] / 3.6
-    vehicle_length = cfg.get("length_m", VEHICLE_LENGTH_M)
+    vehicle_length = cfg["length_m"]
 
     neighbours = NeighbourTable()
     cam_sub    = vanetza_session.declare_subscriber(
@@ -106,6 +106,7 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
         protocol  = RoadVehicleProtocol(
             station_id, vehicle_id, road, merge_lat, merge_lon,
             vanetza_session, target_speed, neighbours,
+            vehicle_length_m=vehicle_length,
         )
         mcm_sub   = vanetza_session.declare_subscriber(
             "vanetza/out/mcm", protocol.make_mcm_callback()

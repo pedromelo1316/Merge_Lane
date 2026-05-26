@@ -70,6 +70,11 @@ def on_cam(sample):
         accel_raw = hfc.get("longitudinalAcceleration", {}).get("value", ACCEL_UNAVAILABLE)
         accel_ms2 = round(accel_raw, 1) if accel_raw != ACCEL_UNAVAILABLE else None
 
+        # Extract vehicle length (vehicleLengthValue in 0.1 m units; 1023 = unavailable)
+        VEHICLE_LENGTH_UNAVAILABLE = 1023
+        veh_len_raw = hfc.get("vehicleLength", {}).get("vehicleLengthValue", VEHICLE_LENGTH_UNAVAILABLE)
+        length_m = round(veh_len_raw / 10, 1) if 0 < veh_len_raw < VEHICLE_LENGTH_UNAVAILABLE else 4.5
+
         # Find nearest road
         road_id = _nearest_road_id(ref["latitude"], ref["longitude"])
 
@@ -80,6 +85,7 @@ def on_cam(sample):
             "speed_kmh": speed_kmh,
             "accel_ms2": accel_ms2,
             "road_id": road_id,
+            "length_m": length_m,
         }
 
         # Inferir estado físico (SLOWING/SPEEDING) a partir da aceleração longitudinal nas CAMs

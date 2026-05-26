@@ -1,7 +1,7 @@
 import time
 
 
-def build_cam(lat, lon, heading, speed_ms, lane_position=None, accel_ms2=0.0):
+def build_cam(lat, lon, heading, speed_ms, vehicle_length_m, lane_position=None, accel_ms2=0.0):
     """
     Constrói um payload CAM ETSI C-ITS (TS 103 900 V2.2.1).
 
@@ -55,7 +55,7 @@ def build_cam(lat, lon, heading, speed_ms, lane_position=None, accel_ms2=0.0):
                     },
                     "driveDirection": 0,  # 0 = forward
                     "vehicleLength": {
-                        "vehicleLengthValue": 1023,             # 1023 = unavailable sentinel
+                        "vehicleLengthValue": round(vehicle_length_m * 10),  # 0.1 m units (CAM codec não escala)
                         "vehicleLengthConfidenceIndication": 4, # 4 = unavailable
                     },
                     "vehicleWidth": 62,  # 62 = unavailable sentinel (normal: 0–61 → 0–6.1 m após ×10)

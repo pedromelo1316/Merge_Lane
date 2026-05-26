@@ -31,11 +31,11 @@ class NeighbourTable:
         self._lock  = threading.Lock()
         self._table = {}
 
-    def update(self, station_id, lat, lon, speed_ms, heading=None):
+    def update(self, station_id, lat, lon, speed_ms, heading=None, length_m=None):
         """Guarda ou substitui o estado de um vizinho (chamado pelo callback de CAM)."""
         with self._lock:
             self._table[station_id] = {"lat": lat, "lon": lon, "speed_ms": speed_ms,
-                                       "heading": heading, "ts": time.time()}
+                                       "heading": heading, "length_m": length_m, "ts": time.time()}
 
     def snapshot(self, max_age_s: float = 0.2):
         """Devolve apenas entradas recebidas nos últimos max_age_s segundos.
@@ -64,7 +64,9 @@ def make_cam_callback(own_station_id, table: NeighbourTable):
                    .get("basicVehicleContainerHighFrequency", {}))
             speed_ms = hfc.get("speed", {}).get("speedValue")
             heading  = hfc.get("heading", {}).get("headingValue")
-            table.update(sid, lat, lon, speed_ms, heading=heading)
+            vl = hfc.get("vehicleLength", {}).get("vehicleLengthValue")
+            length_m = vl / 10 if (vl is not None and vl != 1023) else None
+            table.update(sid, lat, lon, speed_ms, heading=heading, length_m=length_m)
         except Exception:
             pass
     return on_cam

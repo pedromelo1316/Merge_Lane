@@ -34,14 +34,14 @@ def _make_basic_container(station_id, lat, lon, mcm_type, its_role, manoeuvre_id
     return container
 
 
-def _vehicle_state(speed_ms, heading):
+def _vehicle_state(speed_ms, heading, vehicle_length_m):
     """Estado cinemático do veículo para VehicleCurrentStateContainer.
 
     speedValue  : m/s; codec MCM ×100 → 0.01 m/s (máx 163.83; acima falha silenciosamente)
     heading     : graus, sentido horário a partir do Norte (Wgs84Angle)
     vehicleHeight=15 → 15 × 0.1 m = 1.5 m (placeholder; codec sem escala — valor directo)
     vehicleWidth=1.8 m → codec ×10 → 18 (0.1 m units; sentinel 62 = unavailable)
-    vehicleLengthValue=4.5 m → codec ×10 → 45 (0.1 m units; sentinel 1023 = unavailable)
+    vehicle_length_m : metros; codec ×10 → 0.1 m units (sentinel 1023 = unavailable)
     vehicleLengthConfidenceIndication=4 → 4 = unavailable
     vehicleType=0 → 0 = unknown (Iso3833VehicleType)
     """
@@ -51,8 +51,8 @@ def _vehicle_state(speed_ms, heading):
         "vehicleSize": {
             "vehicleType": 0,  # 0 = unknown (Iso3833VehicleType)
             "vehicleLenth": {  # typo intencional: nome exacto do campo no schema ASN.1
-                "vehicleLengthValue": 4.5,              # metros; codec ×10 → 0.1 m units
-                "vehicleLengthConfidenceIndication": 4, # 4 = unavailable
+                "vehicleLengthValue": vehicle_length_m,         # metros; codec ×10 → 0.1 m units
+                "vehicleLengthConfidenceIndication": 4,         # 4 = unavailable
             },
             "vehicleWidth": 1.8,   # metros; codec ×10 → 0.1 m units (máx 6.0; 62 = unavailable)
             "vehicleHeight": 15,   # 0.1 m units directos (sem escala pelo codec); 15 = 1.5 m
@@ -122,6 +122,7 @@ def _advised_submanoeuvre(suggested_speed_ms):
 
 
 def build_merge_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, conflict_vehicles,
+                        vehicle_length_m,
                         eta_start_ms=2000, eta_end_ms=5000,
                         zone_start_lat=0.0, zone_start_lon=0.0,
                         zone_end_lat=0.0, zone_end_lon=0.0,
@@ -143,7 +144,7 @@ def build_merge_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, c
         ),
         "mcmContainer": {
             "vehicleManoeuvreContainer": {
-                "vehicleCurrentStateContainer": _vehicle_state(speed_ms, heading),
+                "vehicleCurrentStateContainer": _vehicle_state(speed_ms, heading, vehicle_length_m),
                 "submaneuvres": [
                     {
                         "submanoeuvreID": 0,
@@ -184,7 +185,7 @@ def build_merge_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, c
     }
 
 
-def build_slowdown_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, next_vehicle_id, suggested_speed_ms):
+def build_slowdown_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id, next_vehicle_id, suggested_speed_ms, vehicle_length_m):
     """
     Veículo em conflito → veículo imediatamente atrás. Propaga pedido de abrandamento na cadeia
     (mcmType=1/request, itssRole=3/targetVehicle).
@@ -202,7 +203,7 @@ def build_slowdown_request(station_id, lat, lon, heading, speed_ms, manoeuvre_id
         ),
         "mcmContainer": {
             "vehicleManoeuvreContainer": {
-                "vehicleCurrentStateContainer": _vehicle_state(speed_ms, heading),
+                "vehicleCurrentStateContainer": _vehicle_state(speed_ms, heading, vehicle_length_m),
                 "submaneuvres": [
                     {
                         "submanoeuvreID": 0,

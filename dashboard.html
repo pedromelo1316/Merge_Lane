@@ -234,9 +234,11 @@
   </div>
 
   <script>
-    // Mantém toda a lógica original do Script, apenas o CSS e as dimensões do Canvas mudaram.
-    const PADDING = 80; // Aumentado para lidar com o canvas maior
-    const WS_URL  = 'ws://localhost:8765';
+    const PADDING        = 80;
+    const WS_URL         = 'ws://localhost:8765';
+    const LANE_WIDTH_M   = 3.5;  // largura de faixa standard (m)
+    const VEH_WIDTH_M    = 1.8;  // largura do veículo (m)
+    const TARGET_LANE_PX = 18;   // largura visual alvo da faixa em píxeis (controla exag)
 
     const MCM_DESCRIPTIONS = {
       'MERGE_REQUEST':          'O MC solicita permissão para entrar na via principal. Inclui a janela temporal estimada de ocupação do ponto de conflito e a velocidade sugerida para cada veículo afetado.',
@@ -309,6 +311,25 @@
       return MCM_COLORS[type] || '#666';
     }
 
+    function haversineM(lat1, lon1, lat2, lon2) {
+      const R    = 6_371_000;
+      const phi1 = lat1 * Math.PI / 180, phi2 = lat2 * Math.PI / 180;
+      const dphi = (lat2 - lat1) * Math.PI / 180;
+      const dlam = (lon2 - lon1) * Math.PI / 180;
+      const a = Math.sin(dphi/2)**2 + Math.cos(phi1)*Math.cos(phi2)*Math.sin(dlam/2)**2;
+      return 2 * R * Math.asin(Math.sqrt(a));
+    }
+
+    function computeScale(roads, bounds, W, H) {
+      const ref = roads.find(r => r.type === 'main') || roads[0];
+      if (!ref) return 1;
+      const s = gpsToCanvas(ref.start.lat, ref.start.lon, bounds, W, H);
+      const e = gpsToCanvas(ref.end.lat,   ref.end.lon,   bounds, W, H);
+      const pxDist = Math.hypot(e.x - s.x, e.y - s.y);
+      const mDist  = haversineM(ref.start.lat, ref.start.lon, ref.end.lat, ref.end.lon);
+      return mDist > 0 ? pxDist / mDist : 1;
+    }
+
     function gpsToCanvas(lat, lon, bounds, w, h) {
       const latCenter = (bounds.minLat + bounds.maxLat) / 2;
       const cosLat = Math.cos(latCenter * Math.PI / 180);
@@ -349,39 +370,43 @@
       };
     }
 
-    function drawRoads(ctx, roads, bounds, W, H) {
+    function drawRoads(ctx, roads, bounds, W, H, pxPerMeter) {
       const roadStyles = {
-        main: {color: '#888888', width: 14, label: 'Via Principal'},
-        ramp: {color: '#e6a817', width: 10,  label: 'Rampa'},
+        main: {color: '#888888', label: 'Via Principal'},
+        ramp: {color: '#e6a817', label: 'Rampa'},
       };
+
+      const laneWidthPx = TARGET_LANE_PX;
 
       function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
 
       for (const road of roads) {
         const s = toC(road.start.lat, road.start.lon);
         const e = toC(road.end.lat, road.end.lon);
-        const style = roadStyles[road.type] || {color: '#ffffff', width: 8};
+        const style = roadStyles[road.type] || {color: '#ffffff'};
 
+        // Borda da estrada
+        ctx.beginPath();
+        ctx.moveTo(s.x, s.y);
+        ctx.lineTo(e.x, e.y);
+        ctx.strokeStyle = '#333333';
+        ctx.lineWidth = laneWidthPx + 4;
+        ctx.lineCap = 'butt';
+        ctx.stroke();
+
+        // Corpo da estrada
         ctx.beginPath();
         ctx.moveTo(s.x, s.y);
         ctx.lineTo(e.x, e.y);
         ctx.strokeStyle = style.color;
-        ctx.lineWidth = style.width;
-        ctx.lineCap = 'round';
+        ctx.lineWidth = laneWidthPx;
         ctx.stroke();
-
-        for (const pt of [s, e]) {
-          ctx.beginPath();
-          ctx.arc(pt.x, pt.y, 5, 0, Math.PI * 2);
-          ctx.fillStyle = style.color;
-          ctx.fill();
-        }
 
         const mid = {x: (s.x + e.x) / 2, y: (s.y + e.y) / 2};
         ctx.fillStyle = style.color;
         ctx.font = '13px monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(style.label + ' (' + road.speed_limit_kmh + ' km/h)', mid.x + 30, mid.y - 12);
+        ctx.fillText(style.label + ' (' + road.speed_limit_kmh + ' km/h)', mid.x + 14, mid.y - 10);
       }
     }
 
@@ -392,34 +417,54 @@
       return vehicleId === 'MC' ? '#ff1744' : '#ffffff';
     }
 
-    function drawVehicles(ctx, vehicles, bounds, W, H) {
+    function drawVehicles(ctx, vehicles, roads, bounds, W, H, pxPerMeter) {
       function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
 
+      const exag       = TARGET_LANE_PX / (LANE_WIDTH_M * pxPerMeter);
+      const vehWidPx   = VEH_WIDTH_M * pxPerMeter * exag;
+
       for (const v of vehicles) {
-        const pt = toC(v.lat, v.lon);
+        const pt    = toC(v.lat, v.lon);
         const color = stateColor(v.id, v.state || 'NORMAL');
 
-        // Brilho estático (substitui o shadowBlur que causava lag)
-        const gradient = ctx.createRadialGradient(pt.x, pt.y, 5, pt.x, pt.y, 20);
-        gradient.addColorStop(0, color + '66'); // Cor com transparência
-        gradient.addColorStop(1, 'transparent');
-        
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 20, 0, Math.PI * 2);
-        ctx.fillStyle = gradient;
-        ctx.fill();
+        const lenM     = v.length_m ?? 4.5;
+        const vehLenPx = lenM * pxPerMeter * exag;
 
-        // Círculo principal do veículo
-        ctx.beginPath();
-        ctx.arc(pt.x, pt.y, 12, 0, Math.PI * 2);
+        // Bearing em screen-space a partir da estrada do veículo
+        const road = roads.find(r => r.id === v.road_id);
+        let angle = 0;
+        if (road) {
+          const rs = toC(road.start.lat, road.start.lon);
+          const re = toC(road.end.lat,   road.end.lon);
+          angle = Math.atan2(re.y - rs.y, re.x - rs.x);
+        }
+
+        ctx.save();
+        ctx.translate(pt.x, pt.y);
+        ctx.rotate(angle);
+
+        // Glow
+        const g = ctx.createRadialGradient(0, 0, 2, 0, 0, vehLenPx);
+        g.addColorStop(0, color + '55');
+        g.addColorStop(1, 'transparent');
+        ctx.fillStyle = g;
+        ctx.fillRect(-vehLenPx, -vehLenPx, vehLenPx * 2, vehLenPx * 2);
+
+        // Corpo do veículo
         ctx.fillStyle = color;
-        ctx.fill();
+        ctx.fillRect(-vehLenPx / 2, -vehWidPx / 2, vehLenPx, vehWidPx);
+        ctx.strokeStyle = '#000000';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-vehLenPx / 2, -vehWidPx / 2, vehLenPx, vehWidPx);
 
-        ctx.font = 'bold 11px monospace';
+        // Label
         ctx.fillStyle = '#000000';
+        ctx.font = `bold ${Math.max(8, Math.round(vehWidPx * 0.9))}px monospace`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(v.id, pt.x, pt.y);
+        ctx.fillText(v.id, 0, 0);
+
+        ctx.restore();
       }
     }
 
@@ -559,23 +604,25 @@
       const H = canvas.height;
       const info = document.getElementById('info');
 
-      let roads     = [];
-      let bounds    = null;
-      let offscreen = null;
+      let roads      = [];
+      let bounds     = null;
+      let offscreen  = null;
+      let pxPerMeter = 1;
 
       function rebuildRoads(newRoads) {
         roads     = newRoads;
         bounds    = computeBounds(roads);
+        pxPerMeter = computeScale(roads, bounds, W, H);
         offscreen = document.createElement('canvas');
         offscreen.width  = W;
         offscreen.height = H;
-        drawRoads(offscreen.getContext('2d'), roads, bounds, W, H);
+        drawRoads(offscreen.getContext('2d'), roads, bounds, W, H, pxPerMeter);
       }
 
       function render(vehicles) {
         ctx.clearRect(0, 0, W, H);
         if (offscreen) ctx.drawImage(offscreen, 0, 0);
-        if (bounds)    drawVehicles(ctx, vehicles, bounds, W, H);
+        if (bounds)    drawVehicles(ctx, vehicles, roads, bounds, W, H, pxPerMeter);
         drawLegend(ctx, W, H);
       }
 

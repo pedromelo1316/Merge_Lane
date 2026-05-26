@@ -4,7 +4,7 @@ import threading
 import time
 
 from geo import (
-    VEHICLE_LENGTH_M, SAFETY_GAP_M,
+    SAFETY_GAP_M,
     road_length, project_t,
     conflict_zone_t, vehicle_in_zone, mc_stop_t, merge_entry_margin,
     find_vehicle_behind, can_brake_in_time,
@@ -31,10 +31,11 @@ class MCProtocol:
     """
 
     def __init__(self, station_id, vehicle_id, ramp, main_road, vanetza_session,
-                 vehicle_length_m=VEHICLE_LENGTH_M):
-        self.station_id      = station_id
-        self.vehicle_id      = vehicle_id
-        self.vanetza_session = vanetza_session
+                 vehicle_length_m):
+        self.station_id       = station_id
+        self.vehicle_id       = vehicle_id
+        self.vanetza_session  = vanetza_session
+        self.vehicle_length_m = vehicle_length_m
 
         L_ramp = road_length(ramp)
         self.L_ramp    = L_ramp
@@ -149,6 +150,7 @@ class MCProtocol:
             speed_ms          = speed_ms,
             manoeuvre_id      = mid,
             conflict_vehicles = conflict_vehicles,
+            vehicle_length_m  = self.vehicle_length_m,
             eta_start_ms      = eta_start_ms,
             eta_end_ms        = eta_end_ms,
             zone_start_lat    = self.zone_start_lat,
@@ -248,13 +250,17 @@ class RoadVehicleProtocol:
     """
 
     def __init__(self, station_id, vehicle_id, road, merge_lat, merge_lon,
-                 vanetza_session, road_speed_ms, neighbours):
-        self.station_id    = station_id
-        self.vehicle_id    = vehicle_id
-        self.road          = road
-        self.vanetza_session = vanetza_session
-        self.road_speed_ms = road_speed_ms
-        self.neighbours    = neighbours
+                 vanetza_session, road_speed_ms, neighbours,
+                 vehicle_length_m):
+        self.station_id       = station_id
+        self.vehicle_id       = vehicle_id
+        self.road             = road
+        self._merge_lat       = merge_lat
+        self._merge_lon       = merge_lon
+        self.vanetza_session  = vanetza_session
+        self.road_speed_ms    = road_speed_ms
+        self.neighbours       = neighbours
+        self.vehicle_length_m = vehicle_length_m
 
         L_main = road_length(road)
         self.L_main = L_main
@@ -383,7 +389,11 @@ class RoadVehicleProtocol:
         t_end    = temporal.get("tRROccupancyEndTime",   5000)
         mc_eta_s = (t_start + t_end) / 2 / 1000.0
 
-        # Zona de conflito: usa o TRR enviado pelo MC; fallback para valor local
+        # Comprimento do MC — obrigatório; KeyError intencional se ausente
+        mc_size  = vmc.get("vehicleCurrentStateContainer", {}).get("vehicleSize", {})
+        mc_len_m = mc_size["vehicleLenth"]["vehicleLengthValue"]
+
+        # Zona de conflito: usa o TRR enviado pelo MC; fallback recalcula com comprimento do MC
         mc_pos = inner["basicContainer"]["position"]
         mc_lat = mc_pos["latitude"]
         mc_lon = mc_pos["longitude"]
@@ -404,6 +414,16 @@ class RoadVehicleProtocol:
                 with self._lock:
                     self.cz_t_start = cz_t_start
                     self.cz_t_end   = cz_t_end
+        else:
+            before_m = mc_len_m / 2 + SAFETY_GAP_M
+            after_m  = mc_len_m / 2 + SAFETY_GAP_M / 2
+            cz_t_start, cz_t_end = conflict_zone_t(
+                self._merge_lat, self._merge_lon, self.road,
+                before_m=before_m, after_m=after_m,
+            )
+            with self._lock:
+                self.cz_t_start = cz_t_start
+                self.cz_t_end   = cz_t_end
 
         # posição prevista no instante do merge
         t_pred      = min(t + speed * mc_eta_s / self.L_main, 1.0)
@@ -584,14 +604,15 @@ class RoadVehicleProtocol:
             heading = self._bearing
             speed   = self._speed_ms
         msg = build_slowdown_request(
-            station_id        = self.station_id,
-            lat               = lat,
-            lon               = lon,
-            heading           = heading,
-            speed_ms          = speed,
-            manoeuvre_id      = manoeuvre_id,
-            next_vehicle_id   = target_id,
+            station_id         = self.station_id,
+            lat                = lat,
+            lon                = lon,
+            heading            = heading,
+            speed_ms           = speed,
+            manoeuvre_id       = manoeuvre_id,
+            next_vehicle_id    = target_id,
             suggested_speed_ms = suggested_speed_ms,
+            vehicle_length_m   = self.vehicle_length_m,
         )
         self.vanetza_session.put("vanetza/in/mcm", json.dumps(msg).encode())
         ts = time.strftime("%H:%M:%S")
