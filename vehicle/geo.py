@@ -3,8 +3,7 @@ import math
 DECEL_MS2        = 4.0
 ACCEL_MS2        = 2.0
 DT               = 0.1   # tick in seconds
-VEHICLE_LENGTH_M = 4.5   # comprimento padrão do veículo (metros)
-SAFETY_GAP_M     = 30.0  # gap mínimo frente-a-traseira entre veículos (metros)
+SAFETY_GAP_M     = 10.0  # gap mínimo frente-a-traseira entre veículos (metros)
 
 
 def haversine(lat1, lon1, lat2, lon2):
@@ -122,9 +121,10 @@ def vehicle_in_zone(t_vehicle, L_road, vehicle_length_m, t_start, t_end):
 
 def merge_entry_margin(v_mc_ms, v_main_ms):
     """Margem extra na zona de conflito pelo diferencial de velocidade à entrada.
-    Distância que o veículo atrás precisa para travar de v_main até v_mc."""
-    delta_v = max(0.0, v_main_ms - v_mc_ms)
-    return delta_v ** 2 / (2 * DECEL_MS2)
+    Distância cinemática de travagem de v_main até v_mc: (v_main²-v_mc²)/(2a)."""
+    if v_main_ms <= v_mc_ms:
+        return 0.0
+    return (v_main_ms ** 2 - v_mc_ms ** 2) / (2 * DECEL_MS2)
 
 
 def can_brake_in_time(cur_speed_ms, target_speed_ms, avail_dist_m):

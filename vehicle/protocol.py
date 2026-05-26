@@ -46,6 +46,8 @@ class MCProtocol:
 
         v_mc_ms   = ramp["speed_limit_kmh"] / 3.6
         v_main_ms = main_road["speed_limit_kmh"] / 3.6
+        # before_m garante SAFETY_GAP entre traseira do MC e frente do veículo atrás:
+        # MC_half + B_half (estimado igual) + SAFETY_GAP + margem de travagem
         before_m  = vehicle_length_m / 2 + SAFETY_GAP_M + merge_entry_margin(v_mc_ms, v_main_ms)
         after_m   = vehicle_length_m / 2 + SAFETY_GAP_M / 2
         self.cz_t_start, self.cz_t_end = conflict_zone_t(
@@ -130,8 +132,9 @@ class MCProtocol:
         if not neighbours_snapshot:
             return
 
+        # velocidade actual de cada vizinho (road vehicles calculam a sua própria velocidade-alvo)
         conflict_vehicles = [
-            (sid, max(0.0, (neighbours_snapshot[sid].get("speed_ms") or speed_ms) * 0.7))
+            (sid, neighbours_snapshot[sid].get("speed_ms") or speed_ms)
             for sid in sorted(neighbours_snapshot)
         ]
 
@@ -286,6 +289,7 @@ class RoadVehicleProtocol:
         self._slowed_down        = False
         self._manoeuvre_id       = None
         self._mc_station_id      = None
+        self._mc_eta_s           = None   # ETA do MC guardado para uso em _on_slowdown_request
         self._slowdown_sender_id = None   # quem nos enviou SLOWDOWN_REQUEST (None = 1º da cadeia)
         self._slowdown_sent_to   = None   # a quem reencaminámos SLOWDOWN_REQUEST
 
@@ -388,6 +392,8 @@ class RoadVehicleProtocol:
         t_start  = temporal.get("tRROccupancyStartTime", 2000)
         t_end    = temporal.get("tRROccupancyEndTime",   5000)
         mc_eta_s = (t_start + t_end) / 2 / 1000.0
+        with self._lock:
+            self._mc_eta_s = mc_eta_s
 
         # Comprimento do MC — obrigatório; KeyError intencional se ausente
         mc_size  = vmc.get("vehicleCurrentStateContainer", {}).get("vehicleSize", {})
@@ -415,7 +421,7 @@ class RoadVehicleProtocol:
                     self.cz_t_start = cz_t_start
                     self.cz_t_end   = cz_t_end
         else:
-            before_m = mc_len_m / 2 + SAFETY_GAP_M
+            before_m = mc_len_m / 2 + self.vehicle_length_m / 2 + SAFETY_GAP_M
             after_m  = mc_len_m / 2 + SAFETY_GAP_M / 2
             cz_t_start, cz_t_end = conflict_zone_t(
                 self._merge_lat, self._merge_lon, self.road,
@@ -430,17 +436,20 @@ class RoadVehicleProtocol:
         in_conflict = vehicle_in_zone(t_pred, self.L_main, self.vehicle_length_m,
                                       cz_t_start, cz_t_end)
 
-        # velocidade sugerida pelo MC para este veículo
-        advice = vmc.get("manoeuvreAdvice", [])
-        sugg_speed = self._extract_suggested_speed(advice, speed)
+        # velocidade cinemática própria: chegar ao limite da zona exatamente no ETA do MC
+        own_speed = self._calculate_target_speed(mc_eta_s)
 
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{self.vehicle_id}] MERGE_REQUEST de MC={sender_id} "
-              f"eta={mc_eta_s:.1f}s in_conflict={in_conflict}")
+              f"eta={mc_eta_s:.1f}s in_conflict={in_conflict} "
+              f"v_alvo={own_speed * 3.6:.1f} km/h")
 
         if not in_conflict:
             self._send_merge_grant(success=True)
             return
+
+        with self._lock:
+            self._pending_speed = own_speed
 
         snap   = self.neighbours.snapshot()
         behind = find_vehicle_behind(t, self.station_id, self.road, snap)
@@ -449,30 +458,38 @@ class RoadVehicleProtocol:
             behind_id = behind[0]
             with self._lock:
                 self._slowdown_sent_to = behind_id
-            self._send_slowdown_request(behind_id, sugg_speed, manoeuvre_id)
+            # cap: veículo atrás não pode ir mais rápido do que nós
+            self._send_slowdown_request(behind_id, own_speed, manoeuvre_id)
         else:
             # fim de cadeia — verificar viabilidade de travagem
             avail = self._available_dist()
-            ok, brake_d = can_brake_in_time(speed, sugg_speed, avail)
+            ok, brake_d = can_brake_in_time(speed, own_speed, avail)
             ts = time.strftime("%H:%M:%S")
             if ok:
                 print(f"[{ts}] [{self.vehicle_id}] aceita (dist_trav={brake_d:.1f}m avail={avail:.1f}m) "
-                      f"— pendente {sugg_speed * 3.6:.1f} km/h")
-                with self._lock:
-                    self._pending_speed = sugg_speed
+                      f"— pendente {own_speed * 3.6:.1f} km/h")
                 self._send_merge_grant(success=True)
             else:
                 print(f"[{ts}] [{self.vehicle_id}] recusa (dist_trav={brake_d:.1f}m > avail={avail:.1f}m)")
+                with self._lock:
+                    self._pending_speed = None
                 self._send_merge_grant(success=False)
 
     def _on_slowdown_request(self, sender_id, manoeuvre_id, sugg_speed):
         with self._lock:
             self._slowdown_sender_id = sender_id
             self._manoeuvre_id       = manoeuvre_id
-            t     = self._t
-            speed = self._speed_ms
-            if sugg_speed is None:
-                sugg_speed = speed * 0.7
+            t        = self._t
+            speed    = self._speed_ms
+            mc_eta_s = self._mc_eta_s
+
+        # velocidade cinemática própria com base na posição actual e ETA guardado
+        if mc_eta_s and mc_eta_s > 0:
+            own_speed = self._calculate_target_speed(mc_eta_s)
+        elif sugg_speed is not None:
+            own_speed = sugg_speed
+        else:
+            own_speed = speed * 0.7
 
         snap   = self.neighbours.snapshot()
         with self._lock:
@@ -481,27 +498,31 @@ class RoadVehicleProtocol:
 
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{self.vehicle_id}] SLOWDOWN_REQUEST de {sender_id} "
-              f"sugg={sugg_speed * 3.6:.1f} km/h")
+              f"v_alvo={own_speed * 3.6:.1f} km/h")
+
+        with self._lock:
+            self._pending_speed = own_speed
 
         if behind is not None:
             behind_id = behind[0]
             with self._lock:
                 self._slowdown_sent_to = behind_id
-            self._send_slowdown_request(behind_id, sugg_speed, manoeuvre_id)
+            # cap em cascata: veículo atrás não pode ir mais rápido do que nós
+            self._send_slowdown_request(behind_id, own_speed, manoeuvre_id)
         else:
             avail = self._available_dist()
-            ok, brake_d = can_brake_in_time(speed, sugg_speed, avail)
+            ok, brake_d = can_brake_in_time(speed, own_speed, avail)
             ts = time.strftime("%H:%M:%S")
             if ok:
                 print(f"[{ts}] [{self.vehicle_id}] aceita fim-de-cadeia "
                       f"(dist_trav={brake_d:.1f}m avail={avail:.1f}m) "
-                      f"— pendente {sugg_speed * 3.6:.1f} km/h")
-                with self._lock:
-                    self._pending_speed = sugg_speed
+                      f"— pendente {own_speed * 3.6:.1f} km/h")
                 self._send_slowdown_grant(sender_id, success=True)
             else:
                 print(f"[{ts}] [{self.vehicle_id}] recusa fim-de-cadeia "
                       f"(dist_trav={brake_d:.1f}m > avail={avail:.1f}m)")
+                with self._lock:
+                    self._pending_speed = None
                 self._send_slowdown_grant(sender_id, success=False)
 
     def _on_slowdown_grant(self, success):
@@ -516,23 +537,23 @@ class RoadVehicleProtocol:
 
         if not success:
             print(f"[{ts}] [{self.vehicle_id}] SLOWDOWN_GRANT(recusa) — propagar recusa")
+            with self._lock:
+                self._pending_speed = None
             if sender_ahead is not None:
                 self._send_slowdown_grant(sender_ahead, success=False)
             else:
                 self._send_merge_grant(success=False)
             return
 
-        # grant da cadeia — verificar própria viabilidade
-        sugg_speed = pending if pending is not None else speed * 0.7
+        # grant da cadeia — verificar própria viabilidade com velocidade cinemática já calculada
+        own_speed = pending if pending is not None else speed * 0.7
         avail = self._available_dist()
-        ok, brake_d = can_brake_in_time(speed, sugg_speed, avail)
+        ok, brake_d = can_brake_in_time(speed, own_speed, avail)
 
         if ok:
             print(f"[{ts}] [{self.vehicle_id}] SLOWDOWN_GRANT recebido — própria travagem ok "
                   f"(dist_trav={brake_d:.1f}m avail={avail:.1f}m) "
-                  f"— pendente {sugg_speed * 3.6:.1f} km/h")
-            with self._lock:
-                self._pending_speed = sugg_speed
+                  f"— pendente {own_speed * 3.6:.1f} km/h")
             if sender_ahead is not None:
                 self._send_slowdown_grant(sender_ahead, success=True)
             else:
@@ -540,6 +561,8 @@ class RoadVehicleProtocol:
         else:
             print(f"[{ts}] [{self.vehicle_id}] SLOWDOWN_GRANT recebido mas própria travagem falha "
                   f"(dist_trav={brake_d:.1f}m > avail={avail:.1f}m)")
+            with self._lock:
+                self._pending_speed = None
             if sender_ahead is not None:
                 self._send_slowdown_grant(sender_ahead, success=False)
             else:
@@ -574,6 +597,15 @@ class RoadVehicleProtocol:
             t          = self._t
             cz_t_start = self.cz_t_start
         return max(0.0, (cz_t_start - t) * self.L_main - self.vehicle_length_m / 2)
+
+    def _calculate_target_speed(self, mc_eta_s):
+        """Velocidade para chegar ao limite da zona de conflito exatamente no ETA do MC.
+        v = dist_até_cz_start / eta_mc  (cinemática; cada veículo usa a sua posição real)."""
+        with self._lock:
+            t          = self._t
+            cz_t_start = self.cz_t_start
+        dist = max(0.0, (cz_t_start - t) * self.L_main - self.vehicle_length_m / 2)
+        return dist / mc_eta_s if mc_eta_s > 0 else 0.0
 
     def _extract_suggested_speed(self, advice, fallback_speed):
         """Extrai velocidade sugerida do MC para este veículo; fallback 70% da vel. actual."""

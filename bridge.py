@@ -16,7 +16,10 @@ ZENOH_BROKER          = "tcp/192.168.98.10:7447"
 COORDINATOR_ZENOH_URL = "tcp/127.0.0.1:7446"
 
 vehicle_states        = {}
+vehicle_last_cam      = {}   # {name → time.time()} — timestamp do último CAM recebido
 vehicle_protocol_states = {}  # {name → "NORMAL"|"SLOWING"|"SPEEDING"|"MERGING"}
+
+CAM_TIMEOUT_S = 0.2  # remover veículo da dashboard após este silêncio
 ws_clients            = set()
 MCM_PENDING           = []  # new events since last broadcast, cleared each cycle
 current_roads             = []
@@ -78,6 +81,7 @@ def on_cam(sample):
         # Find nearest road
         road_id = _nearest_road_id(ref["latitude"], ref["longitude"])
 
+        vehicle_last_cam[name] = time.time()
         vehicle_states[name] = {
             "id": name,
             "lat": ref["latitude"],
@@ -147,6 +151,7 @@ def on_coordinator_scenario(sample):
         current_scenario_vehicles = {v["id"] for v in data.get("vehicles", [])}
 
         vehicle_states.clear()
+        vehicle_last_cam.clear()
         vehicle_protocol_states.clear()
         del MCM_PENDING[:]
         _slowdown_sent_to.clear()
@@ -249,7 +254,8 @@ async def broadcast_loop():
             "roads":      current_roads,
             "vehicles":   [{**v, "state": vehicle_protocol_states.get(v["id"], "NORMAL")}
                            for v in vehicle_states.values()
-                           if not current_scenario_vehicles or v["id"] in current_scenario_vehicles],
+                           if (not current_scenario_vehicles or v["id"] in current_scenario_vehicles)
+                           and time.time() - vehicle_last_cam.get(v["id"], 0) <= CAM_TIMEOUT_S],
             "mcm_events": new_events,
         })
         dead = set()
