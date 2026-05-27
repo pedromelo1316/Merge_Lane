@@ -50,6 +50,10 @@ echo " pronto."
 echo "==> A abrir dashboard no Firefox..."
 firefox "http://localhost:8000/dashboard.html" &
 
+echo "==> A arrancar coordinator GUI..."
+python3 coordinator.py &
+COORDINATOR_PID=$!
+echo "    coordinator PID: $COORDINATOR_PID"
+
 echo ""
-echo "Pronto. Para parar: kill $BRIDGE_PID $HTTP_PID"
-echo "Para correr os cenários: python3 coordinator.py"
+echo "Pronto. Para parar: kill $BRIDGE_PID $HTTP_PID $COORDINATOR_PID"
