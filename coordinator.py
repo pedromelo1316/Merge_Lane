@@ -124,6 +124,7 @@ class CoordinatorApp(tk.Tk):
         self._scenarios    = []
         self._vehicle_dots = {}     # sid -> tk.Label
         self._demo_var     = tk.BooleanVar(value=False)
+        self._pause_var    = tk.StringVar(value="3")
 
         self._build_ui()
         self._load_scenarios()
@@ -172,8 +173,13 @@ class CoordinatorApp(tk.Tk):
         demo_row.pack(fill=tk.X, pady=(4, 0))
         self._demo_cb = tk.Checkbutton(demo_row, text="Demo Mode",
                                         variable=self._demo_var,
-                                        font=("Helvetica", 9))
+                                        font=("Helvetica", 9),
+                                        command=self._on_demo_toggle)
         self._demo_cb.pack(side=tk.LEFT)
+        tk.Label(demo_row, text="Pausa (s):", font=("Helvetica", 9)).pack(side=tk.LEFT, padx=(8, 2))
+        self._pause_entry = tk.Entry(demo_row, textvariable=self._pause_var,
+                                     width=4, font=("Helvetica", 9), state=tk.DISABLED)
+        self._pause_entry.pack(side=tk.LEFT)
 
         # Right: vehicle status
         right = tk.LabelFrame(middle, text="Vehicle Status", padx=6, pady=6, width=210)
@@ -250,12 +256,20 @@ class CoordinatorApp(tk.Tk):
         for sid in POOL:
             self._set_vehicle(sid, "waiting" if sid in active else "idle")
 
+    def _on_demo_toggle(self):
+        state = tk.NORMAL if self._demo_var.get() else tk.DISABLED
+        self._pause_entry.config(state=state)
+
     def _set_buttons(self, enabled):
         state = tk.NORMAL if enabled else tk.DISABLED
         self._btn_all.config(state=state)
         self._demo_cb.config(state=state)
         sel = self._scenario_selected()
         self._btn_one.config(state=tk.NORMAL if (enabled and sel is not None) else tk.DISABLED)
+        if not enabled:
+            self._pause_entry.config(state=tk.DISABLED)
+        else:
+            self._pause_entry.config(state=tk.NORMAL if self._demo_var.get() else tk.DISABLED)
 
     def _set_conn_ui(self, state):
         if state == "connected":
@@ -337,10 +351,14 @@ class CoordinatorApp(tk.Tk):
             messagebox.showerror("Coordinator", "Sem ligação ao Zenoh.")
             return
         demo_mode = self._demo_var.get()
+        try:
+            demo_pause_s = float(self._pause_var.get())
+        except ValueError:
+            demo_pause_s = 3.0
         threading.Thread(target=self._run_worker,
-                         args=(session, scenarios, demo_mode), daemon=True).start()
+                         args=(session, scenarios, demo_mode, demo_pause_s), daemon=True).start()
 
-    def _run_worker(self, session, scenarios, demo_mode=False):
+    def _run_worker(self, session, scenarios, demo_mode=False, demo_pause_s=3.0):
         def log(msg):
             self.after(0, self._append_log, msg)
 
@@ -366,7 +384,7 @@ class CoordinatorApp(tk.Tk):
                 log("[coordinator] À espera que todos os veículos estejam prontos…")
                 wait_for_pool_ready(session, POOL, DEFAULT_TIMEOUT_S, log, vehicle_cb)
 
-                pub_scenario = {**scenario, "demo": True} if demo_mode else scenario
+                pub_scenario = {**scenario, "demo": True, "demo_pause_s": demo_pause_s} if demo_mode else scenario
                 payload      = json.dumps(pub_scenario).encode()
 
                 def publish(p=payload):

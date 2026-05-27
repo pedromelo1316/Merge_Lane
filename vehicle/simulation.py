@@ -8,6 +8,7 @@ from geo import (
     advance_speed, compute_bearing, gap_ahead, project_t, road_length,
 )
 from protocol import MergeProtocol
+from protocol_demo import DemoMergeProtocol
 
 
 def _move_loop(road, t0, speed0, target_speed, station_id,
@@ -62,9 +63,11 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
     return lat, lon, speed
 
 
-def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
+def run(scenario, vehicle_id, station_id, vanetza_session, stop_event, demo=False):
     """Entry point de simulação. Inicializa NeighbourTable, subscriptions CAM/MCM,
     cria o protocolo unificado e executa o loop."""
+    proto_class  = DemoMergeProtocol if demo else MergeProtocol
+    proto_kwargs = {"demo_pause_s": float(scenario.get("demo_pause_s", 3.0))} if demo else {}
     roads = {r["id"]: r for r in scenario["roads"]}
 
     cfg = next((v for v in scenario["vehicles"] if v["station_id"] == station_id), None)
@@ -95,23 +98,25 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
 
     if road.get("type") == "ramp" and road.get("merges_into"):
         main_road = roads[road["merges_into"]]
-        protocol  = MergeProtocol(
+        protocol  = proto_class(
             station_id, vehicle_id, road,
             ramp_road=road, main_road=main_road,
             vanetza_session=vanetza_session,
             road_speed_ms=target_speed, neighbours=neighbours,
             vehicle_length_m=vehicle_length,
+            **proto_kwargs,
         )
         mcm_sub   = vanetza_session.declare_subscriber(
             "vanetza/out/mcm", protocol.make_mcm_callback()
         )
     elif ramp is not None:
-        protocol  = MergeProtocol(
+        protocol  = proto_class(
             station_id, vehicle_id, road,
             ramp_road=ramp, main_road=road,
             vanetza_session=vanetza_session,
             road_speed_ms=target_speed, neighbours=neighbours,
             vehicle_length_m=vehicle_length,
+            **proto_kwargs,
         )
         mcm_sub   = vanetza_session.declare_subscriber(
             "vanetza/out/mcm", protocol.make_mcm_callback()

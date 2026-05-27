@@ -3,23 +3,20 @@ import time
 
 from protocol import MergeProtocol
 
-DEMO_PAUSE_S                 = 1.0
-DEMO_MERGE_REQUEST_RESEND_S  = 1.0 + 4 * DEMO_PAUSE_S 
-
-
 class DemoMergeProtocol(MergeProtocol):
     """
     Subclasse de MergeProtocol para modo demo.
 
     Quando um MERGE_REQUEST é enviado/recebido todos os veículos param.
-    Há um sleep(DEMO_PAUSE_S) antes de processar cada MCM recebido.
+    Há um sleep(demo_pause_s) antes de processar cada MCM recebido.
     O movimento retoma quando MERGE_CONFIRMED (agree ou abort) é recebido.
-    MERGE_REQUEST_RESEND_S efectivo é 21s (evita reenvios durante a demo).
     """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, demo_pause_s=3.0, **kwargs):
         super().__init__(*args, **kwargs)
-        self._demo_paused = False
+        self._demo_paused   = False
+        self._demo_pause_s  = demo_pause_s
+        self._demo_resend_s = 1.0 + 4 * demo_pause_s
 
     # ── tick ─────────────────────────────────────────────────────────────────
 
@@ -82,9 +79,9 @@ class DemoMergeProtocol(MergeProtocol):
 
                 if will_process:
                     ts = time.strftime("%H:%M:%S")
-                    print(f"[{ts}] [{self.vehicle_id}] [DEMO] a aguardar {DEMO_PAUSE_S:.0f}s "
+                    print(f"[{ts}] [{self.vehicle_id}] [DEMO] a aguardar {self._demo_pause_s:.0f}s "
                           f"antes de processar MCM mcmType={mcm_type} itssRole={its_role}")
-                    time.sleep(DEMO_PAUSE_S)
+                    time.sleep(self._demo_pause_s)
 
                 parent_cb(sample)
 
@@ -104,7 +101,7 @@ class DemoMergeProtocol(MergeProtocol):
             last_ts      = self._last_send_ts
 
         # throttle demo: 21s entre reenvios (substitui MERGE_REQUEST_RESEND_S=1.0 do pai)
-        if already_sent and (now - last_ts) < DEMO_MERGE_REQUEST_RESEND_S:
+        if already_sent and (now - last_ts) < self._demo_resend_s:
             return
 
         was_sent = already_sent

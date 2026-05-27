@@ -36,7 +36,8 @@ def _print_scenario_config(scenario, station_id, vehicle_id):
 
 def run_scenario(scenario, vehicle_id, station_id, vanetza_session, stop_event):
     """Wrapper fino para manter vehicle.py desacoplado dos internos de simulation.py."""
-    run_simulation(scenario, vehicle_id, station_id, vanetza_session, stop_event)
+    demo = scenario.get("demo", False)
+    run_simulation(scenario, vehicle_id, station_id, vanetza_session, stop_event, demo=demo)
 
 
 def main():
