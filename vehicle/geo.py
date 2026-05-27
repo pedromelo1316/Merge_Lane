@@ -53,6 +53,45 @@ def advance_speed(cur, target, dt):
     return cur, 0.0
 
 
+def predict_motion(cur_speed_ms, target_speed_ms, horizon_s, dt=DT):
+    """Distancia percorrida e velocidade final com aceleracao limitada."""
+    if horizon_s <= 0.0:
+        return 0.0, cur_speed_ms
+    dist = 0.0
+    speed = cur_speed_ms
+    steps = int(horizon_s // dt)
+    for _ in range(steps):
+        speed, _ = advance_speed(speed, target_speed_ms, dt)
+        dist += speed * dt
+    rem = horizon_s - steps * dt
+    if rem > 1e-9:
+        speed, _ = advance_speed(speed, target_speed_ms, rem)
+        dist += speed * rem
+    return dist, speed
+
+
+def time_to_cover_distance(cur_speed_ms, target_speed_ms, distance_m, dt=DT, max_time_s=300.0):
+    """Tempo para cobrir distance_m com aceleracao limitada; inf se nao for possivel."""
+    if distance_m <= 0.0:
+        return 0.0
+    if cur_speed_ms <= 1e-3 and target_speed_ms <= 1e-3:
+        return float("inf")
+    dist_left = distance_m
+    speed = cur_speed_ms
+    elapsed = 0.0
+    while dist_left > 0.0 and elapsed < max_time_s:
+        speed, _ = advance_speed(speed, target_speed_ms, dt)
+        step_dist = speed * dt
+        if step_dist <= 0.0:
+            return float("inf")
+        if dist_left <= step_dist:
+            elapsed += dt * (dist_left / step_dist)
+            return elapsed
+        dist_left -= step_dist
+        elapsed += dt
+    return float("inf") if dist_left > 0.0 else elapsed
+
+
 def _on_same_road(state, s, dlat, dlon, L2, t_n):
     """True se state está nesta estrada.
     Na simulação os veículos movem-se por interpolação exacta, pelo que a distância

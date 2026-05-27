@@ -1,4 +1,5 @@
 import json
+import math
 import random
 import threading
 import time
@@ -9,6 +10,7 @@ from geo import (
     conflict_zone_t, vehicle_in_zone, mc_stop_t, merge_entry_margin,
     find_vehicle_behind, can_brake_in_time,
     gap_ahead, is_on_road,
+    predict_motion, time_to_cover_distance,
 )
 from mcm_builder import (
     build_merge_request,
@@ -237,7 +239,8 @@ class MergeProtocol:
             holding_stop = self._holding_at_stop
 
         if speed_ms > 0.1:
-            eta_s = (1.0 - t) * self.L_current / speed_ms
+            remaining_m = max(0.0, (1.0 - t) * self.L_current)
+            eta_s = time_to_cover_distance(speed_ms, self.road_speed_ms, remaining_m)
         elif holding_stop and self.stop_t is not None:
             eta_s = 0.0
         elif self.stop_t is not None and t >= self.stop_t:
@@ -363,7 +366,13 @@ class MergeProtocol:
             for sid in sorted(neighbours_snapshot)
         ]
 
-        occupancy_s  = self.after_m / self.v_main_ms if self.v_main_ms else 0.0
+        _, entry_speed = predict_motion(speed_ms, self.road_speed_ms, eta_s)
+        if self.v_main_ms:
+            occupancy_s = time_to_cover_distance(entry_speed, self.v_main_ms, self.after_m)
+            if not math.isfinite(occupancy_s):
+                occupancy_s = self.after_m / max(entry_speed, 0.1)
+        else:
+            occupancy_s = 0.0
         eta_start_ms = int(eta_s * 1000)
         eta_end_ms   = int((eta_s + occupancy_s) * 1000)
 
@@ -485,12 +494,13 @@ class MergeProtocol:
             self.cz_t_start = cz_t_start
             self.cz_t_end   = cz_t_end
 
-        t_pred      = min(t + speed * mc_eta_s / self.L_current, 1.0)
-        in_zone_pred = vehicle_in_zone(t_pred, self.L_current, self.vehicle_length_m,
-                           cz_t_start, cz_t_end)
-        in_conflict = in_zone_pred
-
         own_speed = self._calculate_target_speed(mc_eta_s)
+        dist_pred, _ = predict_motion(speed, own_speed, mc_eta_s)
+        t_pred = min(t + dist_pred / self.L_current, 1.0)
+        in_zone_pred = vehicle_in_zone(
+            t_pred, self.L_current, self.vehicle_length_m, cz_t_start, cz_t_end
+        )
+        in_conflict = in_zone_pred
 
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{self.vehicle_id}] MERGE_REQUEST de MC={sender_id} "
@@ -696,6 +706,7 @@ class MergeProtocol:
             lon        = self._lon
             t          = self._t
             speed      = self._speed_ms
+            pending    = self._pending_speed
             mc_eta_s   = self._mc_eta_s or 0.0
             cz_t_start = self.cz_t_start
             cz_t_end   = self.cz_t_end
@@ -710,7 +721,9 @@ class MergeProtocol:
             zs_lon = s_r["lon"] + cz_t_start * (e_r["lon"] - s_r["lon"])
             ze_lat = s_r["lat"] + cz_t_end   * (e_r["lat"] - s_r["lat"])
             ze_lon = s_r["lon"] + cz_t_end   * (e_r["lon"] - s_r["lon"])
-            t_pred   = min(t + speed * mc_eta_s / self.L_current, 1.0) if mc_eta_s > 0 else t
+            target_speed = pending if pending is not None else speed
+            dist_pred, _ = predict_motion(speed, target_speed, mc_eta_s)
+            t_pred   = min(t + dist_pred / self.L_current, 1.0) if mc_eta_s > 0 else t
             pred_lat = s_r["lat"] + t_pred * (e_r["lat"] - s_r["lat"])
             pred_lon = s_r["lon"] + t_pred * (e_r["lon"] - s_r["lon"])
             pred_ts  = time.strftime("%H:%M:%S", time.localtime(time.time() + mc_eta_s))
