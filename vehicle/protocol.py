@@ -22,6 +22,7 @@ from mcm_builder import (
 CONFLICT_HORIZON_S     = 4.0   # segundos antes do merge point para iniciar negociação
 MERGE_REQUEST_RESEND_S = 1.0   # reenviar MERGE_REQUEST se sem grants após X segundos
 RETRY_COOLDOWN_S       = 1.0   # esperar após recusa antes de reiniciar negociação
+RAMP_SLOWDOWN_RESEND_S = 1.0   # throttle do SLOWDOWN_REQUEST na rampa
 
 
 class MergeProtocol:
@@ -92,6 +93,9 @@ class MergeProtocol:
         self._mc_eta_s           = None
         self._slowdown_sender_id = None
         self._slowdown_sent_to   = None
+        self._ramp_slowdown_sent_to = None
+        self._ramp_slowdown_last_ts = 0.0
+        self._ramp_slowdown_active = False
 
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{vehicle_id}] MergeProtocol ready")
@@ -164,8 +168,6 @@ class MergeProtocol:
 
                 # SLOWDOWN_REQUEST: veículo → veículo (mcmType=1, itssRole=3)
                 if mcm_type == 1 and its_role == 3:
-                    if self._is_ramp():
-                        return
                     vmc    = inner["mcmContainer"].get("vehicleManoeuvreContainer", {})
                     advice = vmc.get("manoeuvreAdvice", [])
                     if not advice or advice[0].get("executantID") != self.station_id:
@@ -174,7 +176,10 @@ class MergeProtocol:
                         sugg = advice[0]["submaneuvres"][0]["advisedTrajectory"]["speed"][0]["speedValue"]
                     except (KeyError, IndexError):
                         sugg = None
-                    self._on_slowdown_request(sender_id, manoeuvre_id, sugg)
+                    if self._is_ramp():
+                        self._on_ramp_slowdown_request(sugg)
+                    else:
+                        self._on_slowdown_request(sender_id, manoeuvre_id, sugg)
                     return
 
                 # MERGE_GRANT: estrada → MC (mcmType=2, itssRole=3, id<128)
@@ -199,10 +204,12 @@ class MergeProtocol:
 
                 # MERGE_CONFIRMED: MC → estrada (mcmType=2, itssRole=1)
                 if mcm_type == 2 and its_role == 1:
-                    if self._is_ramp():
-                        return
                     response = inner["mcmContainer"]["responseContainer"]["manouevreResponse"]
-                    self._on_merge_confirmed(success=(response == 0))
+                    success = (response == 0)
+                    if self._is_ramp():
+                        self._on_ramp_merge_confirmed(success)
+                    else:
+                        self._on_merge_confirmed(success=success)
                     return
 
                 # EXECUTION_STATUS: MC → estrada (mcmType=7, itssRole=1)
@@ -225,7 +232,12 @@ class MergeProtocol:
         if self.merge_decided:
             return result
 
-        eta_s = (1.0 - t) * self.L_current / speed_ms if speed_ms > 0 else float("inf")
+        if speed_ms > 0.1:
+            eta_s = (1.0 - t) * self.L_current / speed_ms
+        elif self.stop_t is not None and t >= self.stop_t:
+            eta_s = 0.0
+        else:
+            eta_s = float("inf")
 
         has_ahead = False
         if neighbours_snapshot:
@@ -255,8 +267,11 @@ class MergeProtocol:
         if active_peers and active_peers.issubset(granted) and not self.merge_decided and not has_ahead:
             self._on_all_granted(lat, lon)
 
-        if self.stop_t is not None and not self.merge_decided:
+        dist_to_stop = None
+        if self.stop_t is not None and not has_ahead:
             dist_to_stop = max(0.0, (self.stop_t - t) * self.L_current)
+
+        if dist_to_stop is not None and not self.merge_decided:
             if dist_to_stop <= 0.0:
                 result["advance"] = False
                 result["target_speed"] = 0.0
@@ -264,8 +279,55 @@ class MergeProtocol:
                 _, brake_d = can_brake_in_time(speed_ms, 0.0, dist_to_stop)
                 if dist_to_stop <= brake_d + 0.5:
                     result["target_speed"] = 0.0
+                    if not has_ahead:
+                        self._maybe_send_ramp_slowdown(t, speed_ms, neighbours_snapshot)
+
+        with self._lock:
+            ramp_active = self._ramp_slowdown_active
+            pending = self._pending_speed
+
+        if ramp_active:
+            if not has_ahead:
+                with self._lock:
+                    self._ramp_slowdown_active = False
+                    self._pending_speed = None
+            elif pending is not None:
+                if result["target_speed"] is None or pending < result["target_speed"]:
+                    result["target_speed"] = pending
 
         return result
+
+    def _maybe_send_ramp_slowdown(self, t, speed_ms, neighbours_snapshot):
+        if not neighbours_snapshot:
+            return
+        now = time.time()
+        with self._lock:
+            last_ts = self._ramp_slowdown_last_ts
+            last_to = self._ramp_slowdown_sent_to
+        if (now - last_ts) < RAMP_SLOWDOWN_RESEND_S:
+            return
+
+        behind = find_vehicle_behind(t, self.station_id, self.current_road, neighbours_snapshot)
+        if behind is None:
+            return
+        behind_id = behind[0]
+        self._send_slowdown_request(behind_id, 0.0, manoeuvre_id=self._manoeuvre_id)
+        with self._lock:
+            self._ramp_slowdown_last_ts = now
+            self._ramp_slowdown_sent_to = behind_id
+
+    def _on_ramp_slowdown_request(self, sugg_speed):
+        target = sugg_speed if sugg_speed is not None else 0.0
+        with self._lock:
+            self._pending_speed = target
+            self._ramp_slowdown_active = True
+
+    def _on_ramp_merge_confirmed(self, success):
+        if not success:
+            return
+        with self._lock:
+            self._ramp_slowdown_active = False
+            self._pending_speed = None
 
     def _maybe_send_merge_request(self, t, speed_ms, lat, lon, bearing,
                                   eta_s, neighbours_snapshot):
