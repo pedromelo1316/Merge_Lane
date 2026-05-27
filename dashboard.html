@@ -613,6 +613,7 @@
 
     document.getElementById('mcm-clear-btn').addEventListener('click', () => {
       hiddenSigs = new Set(currentEvents.map(evSig));
+      lastEventCount = 0;
       const panel  = document.getElementById('mcm-panel');
       const header = document.getElementById('mcm-panel-header');
       panel.innerHTML = '';
@@ -694,7 +695,8 @@
 
       render([]);
 
-      let currentScenario = null;
+      let currentScenario     = null;
+      let lastResetCounter    = null;
 
       function clearMcmLog() {
         currentEvents  = [];
@@ -713,9 +715,10 @@
         ws.onopen = () => { info.textContent = 'STATUS: LIGADO'; };
         ws.onmessage = (event) => {
           const msg = JSON.parse(event.data);
-          if (msg.scenario && msg.scenario !== currentScenario) {
-            currentScenario = msg.scenario;
-            clearMcmLog();
+          if (msg.scenario) currentScenario = msg.scenario;
+          if (msg.scenario_reset_counter != null && msg.scenario_reset_counter !== lastResetCounter) {
+            if (lastResetCounter !== null) clearMcmLog();
+            lastResetCounter = msg.scenario_reset_counter;
           }
           if (msg.roads && msg.roads.length > 0 && msg.roads !== roads) {
             rebuildRoads(msg.roads);

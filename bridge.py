@@ -28,6 +28,7 @@ current_scenario_name     = ""
 current_scenario_vehicles = set()  # IDs dos veículos activos no cenário actual (e.g. {"A","B","C"})
 conflict_zone             = None   # {start:{lat,lon}, end:{lat,lon}} ou None
 merge_point               = None   # {lat, lon} — interseção geométrica main ∩ ramp
+scenario_reset_counter    = 0      # incrementa em cada reset de cenário
 
 _slowdown_sent_to = {}  # {executant_station_id → sender_name} — para SLOWDOWN_GRANTs
 _merge_request_by_mid = {}  # {manoeuvre_id → (sender_name, ts)}
@@ -179,7 +180,7 @@ def _classify_mcm(mcm_type, its_role, inner):
 
 
 def on_coordinator_scenario(sample):
-    global current_roads, current_scenario_name, current_scenario_vehicles, STATION_IDS, conflict_zone, merge_point
+    global current_roads, current_scenario_name, current_scenario_vehicles, STATION_IDS, conflict_zone, merge_point, scenario_reset_counter
     try:
         data = json.loads(bytes(sample.payload).decode())
         current_roads             = data.get("roads", [])
@@ -201,6 +202,7 @@ def on_coordinator_scenario(sample):
         _merge_request_by_mid.clear()
         conflict_zone = None
         merge_point   = _compute_merge_point(current_roads)
+        scenario_reset_counter += 1
 
         print(f"[bridge] Cenário recebido: {current_scenario_name!r} ({len(current_roads)} estradas, veículos: {current_scenario_vehicles})")
     except Exception:
@@ -325,6 +327,7 @@ async def broadcast_loop():
         msg = json.dumps({
             "t":            round(time.time() - start, 2),
             "scenario":     current_scenario_name,
+            "scenario_reset_counter": scenario_reset_counter,
             "roads":        current_roads,
             "vehicles":     [{**v,
                                "state": vehicle_protocol_states.get(v["id"], "NORMAL"),

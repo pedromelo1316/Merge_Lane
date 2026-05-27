@@ -96,6 +96,7 @@ class MergeProtocol:
         self._ramp_slowdown_sent_to = None
         self._ramp_slowdown_last_ts = 0.0
         self._ramp_slowdown_active = False
+        self._holding_at_stop = False
 
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{vehicle_id}] MergeProtocol ready")
@@ -232,8 +233,13 @@ class MergeProtocol:
         if self.merge_decided:
             return result
 
+        with self._lock:
+            holding_stop = self._holding_at_stop
+
         if speed_ms > 0.1:
             eta_s = (1.0 - t) * self.L_current / speed_ms
+        elif holding_stop and self.stop_t is not None:
+            eta_s = 0.0
         elif self.stop_t is not None and t >= self.stop_t:
             eta_s = 0.0
         else:
@@ -268,19 +274,24 @@ class MergeProtocol:
             self._on_all_granted(lat, lon)
 
         dist_to_stop = None
-        if self.stop_t is not None and not has_ahead:
+        if self.stop_t is not None:
             dist_to_stop = max(0.0, (self.stop_t - t) * self.L_current)
 
+        holding_now = False
         if dist_to_stop is not None and not self.merge_decided:
             if dist_to_stop <= 0.0:
                 result["advance"] = False
                 result["target_speed"] = 0.0
+                holding_now = True
             else:
                 _, brake_d = can_brake_in_time(speed_ms, 0.0, dist_to_stop)
                 if dist_to_stop <= brake_d + 0.5:
                     result["target_speed"] = 0.0
-                    if not has_ahead:
-                        self._maybe_send_ramp_slowdown(t, speed_ms, neighbours_snapshot)
+                    self._maybe_send_ramp_slowdown(t, speed_ms, neighbours_snapshot)
+                    holding_now = True
+
+        with self._lock:
+            self._holding_at_stop = holding_now
 
         with self._lock:
             ramp_active = self._ramp_slowdown_active

@@ -1,6 +1,7 @@
 services:
     zenoh-router:
         image: eclipse/zenoh:1.1.0
+        init: true
         command: ["--listen", "tcp/0.0.0.0:7446"]
         ports:
             - "7446:7446"
@@ -12,6 +13,7 @@ services:
         hostname: mc
         restart: always
         image: ghcr.io/nap-it/vanetza-nap:latest
+        init: true
         cap_add:
             - "NET_ADMIN"
         environment:
@@ -36,6 +38,7 @@ services:
         hostname: vehicle-a
         restart: always
         image: ghcr.io/nap-it/vanetza-nap:latest
+        init: true
         cap_add:
             - "NET_ADMIN"
         environment:
@@ -60,6 +63,7 @@ services:
         hostname: vehicle-b
         restart: always
         image: ghcr.io/nap-it/vanetza-nap:latest
+        init: true
         cap_add:
             - "NET_ADMIN"
         environment:
@@ -84,6 +88,7 @@ services:
         hostname: vehicle-c
         restart: always
         image: ghcr.io/nap-it/vanetza-nap:latest
+        init: true
         cap_add:
             - "NET_ADMIN"
         environment:
@@ -108,6 +113,7 @@ services:
         build:
             context: .
             dockerfile: vehicle/Dockerfile
+        init: true
         depends_on:
             - mc
             - zenoh-router
@@ -124,6 +130,7 @@ services:
         build:
             context: .
             dockerfile: vehicle/Dockerfile
+        init: true
         depends_on:
             - vehicle-a
             - zenoh-router
@@ -140,6 +147,7 @@ services:
         build:
             context: .
             dockerfile: vehicle/Dockerfile
+        init: true
         depends_on:
             - vehicle-b
             - zenoh-router
@@ -156,6 +164,7 @@ services:
         build:
             context: .
             dockerfile: vehicle/Dockerfile
+        init: true
         depends_on:
             - vehicle-c
             - zenoh-router
