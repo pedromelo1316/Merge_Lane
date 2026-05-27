@@ -1,0 +1,81 @@
+merge_lane_vehicle-mc-py_1  | [14:48:32] [MC] [DEMO] MERGE_REQUEST enviado — a pausar
+merge_lane_vehicle-a-py_1   | [14:48:32] [A] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-b-py_1   | [14:48:32] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-c-py_1   | [14:48:32] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-mc-py_1  | [14:48:37] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-c-py_1   | [14:48:37] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:48:42] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-b-py_1   | [14:48:42] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:48:47] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:48:52] [MC] [DEMO] MERGE_GRANT(recusa) — a retomar para retry
+merge_lane_vehicle-a-py_1   | [14:48:52] [A] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-b-py_1   | [14:48:52] [B] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-c-py_1   | [14:48:52] [C] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-mc-py_1  | [14:48:53] [MC] [DEMO] MERGE_REQUEST enviado — a pausar
+merge_lane_vehicle-a-py_1   | [14:48:53] [A] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-b-py_1   | [14:48:53] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-c-py_1   | [14:48:53] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-mc-py_1  | [14:48:58] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-c-py_1   | [14:48:58] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:49:03] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-b-py_1   | [14:49:03] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:49:08] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:49:13] [MC] [DEMO] MERGE_GRANT(recusa) — a retomar para retry
+merge_lane_vehicle-a-py_1   | [14:49:13] [A] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-b-py_1   | [14:49:13] [B] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-c-py_1   | [14:49:13] [C] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-mc-py_1  | [14:49:14] [MC] [DEMO] MERGE_REQUEST enviado — a pausar
+merge_lane_vehicle-a-py_1   | [14:49:14] [A] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-b-py_1   | [14:49:14] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-c-py_1   | [14:49:14] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-mc-py_1  | [14:49:19] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-c-py_1   | [14:49:19] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:49:24] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-b-py_1   | [14:49:24] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:49:29] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:49:34] [MC] [DEMO] MERGE_GRANT(recusa) — a retomar para retry
+merge_lane_vehicle-a-py_1   | [14:49:34] [A] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-b-py_1   | [14:49:34] [B] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-c-py_1   | [14:49:34] [C] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-mc-py_1  | [14:49:35] [MC] [DEMO] MERGE_REQUEST enviado — a pausar
+merge_lane_vehicle-a-py_1   | [14:49:35] [A] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-b-py_1   | [14:49:35] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-c-py_1   | [14:49:35] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-mc-py_1  | [14:49:40] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-c-py_1   | [14:49:40] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:49:45] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-b-py_1   | [14:49:45] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:49:49] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:49:55] [MC] [DEMO] MERGE_GRANT(recusa) — a retomar para retry
+merge_lane_vehicle-a-py_1   | [14:49:55] [A] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-b-py_1   | [14:49:55] [B] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-c-py_1   | [14:49:55] [C] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-mc-py_1  | [14:49:56] [MC] [DEMO] MERGE_REQUEST enviado — a pausar
+merge_lane_vehicle-a-py_1   | [14:49:56] [A] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-b-py_1   | [14:49:56] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-c-py_1   | [14:49:56] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1
+merge_lane_vehicle-mc-py_1  | [14:50:01] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-c-py_1   | [14:50:01] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:50:06] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-b-py_1   | [14:50:06] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:50:11] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3
+merge_lane_vehicle-mc-py_1  | [14:50:16] [MC] [DEMO] MERGE_GRANT(recusa) — a retomar para retry
+merge_lane_vehicle-a-py_1   | [14:50:16] [A] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-b-py_1   | [14:50:16] [B] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-c-py_1   | [14:50:16] [C] [DEMO] MERGE_CONFIRMED — a retomar
+
+
+
+
+merge_lane_vehicle-mc-py_1  | [14:50:18] [MC] [DEMO] MERGE_REQUEST enviado — a pausar                               --- Enviou MERGE_REQUEST
+merge_lane_vehicle-b-py_1   | [14:50:18] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1       --- Recebeu MERGE_REQUEST
+merge_lane_vehicle-c-py_1   | [14:50:18] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=1 itssRole=1       --- Recebeu MERGE_REQUEST
+
+merge_lane_vehicle-mc-py_1  | [14:50:23] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3      --- Recebey MERGE_GRANT
+merge_lane_vehicle-mc-py_1  | [14:50:28] [MC] [DEMO] a aguardar 5s antes de processar MCM mcmType=2 itssRole=3      --- Recebeu MERGE_GRANT
+
+merge_lane_vehicle-mc-py_1  | [14:50:33] [MC] [DEMO] todos os grants recebidos — a retomar
+merge_lane_vehicle-b-py_1   | [14:50:33] [B] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-b-py_1   | [14:50:33] [B] [DEMO] a aguardar 5s antes de processar MCM mcmType=7 itssRole=1
+merge_lane_vehicle-c-py_1   | [14:50:33] [C] [DEMO] MERGE_CONFIRMED — a retomar
+merge_lane_vehicle-c-py_1   | [14:50:33] [C] [DEMO] a aguardar 5s antes de processar MCM mcmType=7 itssRole=1

@@ -12,6 +12,7 @@ SCENARIOS_DIR         = os.path.join(os.path.dirname(__file__), "scenarios")
 POOL                  = [10, 11, 12, 13]
 POOL_LABELS           = {10: "MC", 11: "A", 12: "B", 13: "C"}
 DEFAULT_TIMEOUT_S     = 60
+DEMO_TIMEOUT_EXTRA_S  = 120  # buffer para o modo demo (5s * N mensagens + retry 21s)
 
 _STATUS_COLOR = {
     "idle":    "#888888",
@@ -120,9 +121,9 @@ class CoordinatorApp(tk.Tk):
 
         self._session      = None
         self._session_lock = threading.Lock()
-        self._running      = False  # only written/read on main thread
         self._scenarios    = []
         self._vehicle_dots = {}     # sid -> tk.Label
+        self._demo_var     = tk.BooleanVar(value=False)
 
         self._build_ui()
         self._load_scenarios()
@@ -167,6 +168,13 @@ class CoordinatorApp(tk.Tk):
                                    command=self._run_all, state=tk.DISABLED)
         self._btn_all.pack(side=tk.LEFT, fill=tk.X, expand=True)
 
+        demo_row = tk.Frame(left)
+        demo_row.pack(fill=tk.X, pady=(4, 0))
+        self._demo_cb = tk.Checkbutton(demo_row, text="Demo Mode",
+                                        variable=self._demo_var,
+                                        font=("Helvetica", 9))
+        self._demo_cb.pack(side=tk.LEFT)
+
         # Right: vehicle status
         right = tk.LabelFrame(middle, text="Vehicle Status", padx=6, pady=6, width=210)
         right.pack(side=tk.LEFT, fill=tk.Y, padx=(10, 0))
@@ -208,6 +216,10 @@ class CoordinatorApp(tk.Tk):
         # Log panel
         log_frame = tk.LabelFrame(self, text="Log", padx=4, pady=4)
         log_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=8, pady=(0, 8))
+        log_toolbar = tk.Frame(log_frame)
+        log_toolbar.pack(fill=tk.X, pady=(0, 2))
+        tk.Button(log_toolbar, text="Clear", command=self._clear_log,
+                  pady=1).pack(side=tk.RIGHT)
         vsb = tk.Scrollbar(log_frame, orient=tk.VERTICAL)
         self._log = tk.Text(log_frame, height=9, state=tk.DISABLED,
                              wrap=tk.WORD, yscrollcommand=vsb.set,
@@ -217,6 +229,11 @@ class CoordinatorApp(tk.Tk):
         self._log.pack(fill=tk.X)
 
     # ── Helpers ───────────────────────────────────────────────────────────────
+
+    def _clear_log(self):
+        self._log.config(state=tk.NORMAL)
+        self._log.delete("1.0", tk.END)
+        self._log.config(state=tk.DISABLED)
 
     def _append_log(self, msg):
         self._log.config(state=tk.NORMAL)
@@ -236,6 +253,7 @@ class CoordinatorApp(tk.Tk):
     def _set_buttons(self, enabled):
         state = tk.NORMAL if enabled else tk.DISABLED
         self._btn_all.config(state=state)
+        self._demo_cb.config(state=state)
         sel = self._scenario_selected()
         self._btn_one.config(state=tk.NORMAL if (enabled and sel is not None) else tk.DISABLED)
 
@@ -257,7 +275,7 @@ class CoordinatorApp(tk.Tk):
     def _on_listbox_select(self, _event):
         with self._session_lock:
             has_session = self._session is not None
-        if self._scenario_selected() is not None and has_session and not self._running:
+        if self._scenario_selected() is not None and has_session:
             self._btn_one.config(state=tk.NORMAL)
 
     # ── Connection ────────────────────────────────────────────────────────────
@@ -318,12 +336,11 @@ class CoordinatorApp(tk.Tk):
         if not session:
             messagebox.showerror("Coordinator", "Sem ligação ao Zenoh.")
             return
-        self._running = True
-        self._set_buttons(False)
+        demo_mode = self._demo_var.get()
         threading.Thread(target=self._run_worker,
-                         args=(session, scenarios), daemon=True).start()
+                         args=(session, scenarios, demo_mode), daemon=True).start()
 
-    def _run_worker(self, session, scenarios):
+    def _run_worker(self, session, scenarios, demo_mode=False):
         def log(msg):
             self.after(0, self._append_log, msg)
 
@@ -334,8 +351,11 @@ class CoordinatorApp(tk.Tk):
             for i, (name, scenario) in enumerate(scenarios):
                 active    = scenario.get("active_vehicles", [])
                 timeout_s = float(scenario.get("timeout_s", DEFAULT_TIMEOUT_S))
+                if demo_mode:
+                    timeout_s += DEMO_TIMEOUT_EXTRA_S
 
-                log(f"\n[coordinator] === {name} | active={active} | timeout={timeout_s}s ===")
+                log(f"\n[coordinator] === {name} | active={active} | timeout={timeout_s}s"
+                    f"{' [DEMO]' if demo_mode else ''} ===")
 
                 if not active:
                     log("[coordinator] Sem active_vehicles — a saltar.")
@@ -346,7 +366,8 @@ class CoordinatorApp(tk.Tk):
                 log("[coordinator] À espera que todos os veículos estejam prontos…")
                 wait_for_pool_ready(session, POOL, DEFAULT_TIMEOUT_S, log, vehicle_cb)
 
-                payload = json.dumps(scenario).encode()
+                pub_scenario = {**scenario, "demo": True} if demo_mode else scenario
+                payload      = json.dumps(pub_scenario).encode()
 
                 def publish(p=payload):
                     log("[coordinator] A publicar cenário…")
@@ -362,9 +383,6 @@ class CoordinatorApp(tk.Tk):
             log("\n[coordinator] Todos os cenários concluídos.")
         except Exception as e:
             log(f"[coordinator] Erro durante execução: {e}")
-        finally:
-            self._running = False
-            self.after(0, self._set_buttons, True)
 
 
 if __name__ == "__main__":
