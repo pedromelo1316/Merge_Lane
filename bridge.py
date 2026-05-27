@@ -26,10 +26,31 @@ MCM_PENDING           = []  # new events since last broadcast, cleared each cycl
 current_roads             = []
 current_scenario_name     = ""
 current_scenario_vehicles = set()  # IDs dos veículos activos no cenário actual (e.g. {"A","B","C"})
+conflict_zone             = None   # {start:{lat,lon}, end:{lat,lon}} ou None
+merge_point               = None   # {lat, lon} — interseção geométrica main ∩ ramp
 
 _slowdown_sent_to = {}  # {executant_station_id → sender_name} — para SLOWDOWN_GRANTs
 _merge_request_by_mid = {}  # {manoeuvre_id → (sender_name, ts)}
 MERGE_REQUEST_TTL_S = 5.0
+
+
+def _compute_merge_point(roads):
+    """Interseção geométrica entre a estrada principal e a rampa (linha infinita × linha infinita)."""
+    main = next((r for r in roads if r.get("type") == "main"), None)
+    ramp = next((r for r in roads if r.get("type") == "ramp"), None)
+    if not main or not ramp:
+        return None
+    ax, ay = main["start"]["lon"], main["start"]["lat"]
+    bx, by = main["end"]["lon"],   main["end"]["lat"]
+    cx, cy = ramp["start"]["lon"], ramp["start"]["lat"]
+    dx, dy = ramp["end"]["lon"],   ramp["end"]["lat"]
+    rx, ry = bx - ax, by - ay
+    sx, sy = dx - cx, dy - cy
+    rxs = rx * sy - ry * sx
+    if abs(rxs) < 1e-15:
+        return None  # paralelas
+    t = ((cx - ax) * sy - (cy - ay) * sx) / rxs
+    return {"lat": ay + t * ry, "lon": ax + t * rx}
 
 
 def _nearest_road_id(lat, lon):
@@ -158,7 +179,7 @@ def _classify_mcm(mcm_type, its_role, inner):
 
 
 def on_coordinator_scenario(sample):
-    global current_roads, current_scenario_name, current_scenario_vehicles, STATION_IDS
+    global current_roads, current_scenario_name, current_scenario_vehicles, STATION_IDS, conflict_zone, merge_point
     try:
         data = json.loads(bytes(sample.payload).decode())
         current_roads             = data.get("roads", [])
@@ -178,6 +199,8 @@ def on_coordinator_scenario(sample):
         del MCM_PENDING[:]
         _slowdown_sent_to.clear()
         _merge_request_by_mid.clear()
+        conflict_zone = None
+        merge_point   = _compute_merge_point(current_roads)
 
         print(f"[bridge] Cenário recebido: {current_scenario_name!r} ({len(current_roads)} estradas, veículos: {current_scenario_vehicles})")
     except Exception:
@@ -185,6 +208,7 @@ def on_coordinator_scenario(sample):
 
 
 def on_mcm(sample):
+    global conflict_zone
     try:
         payload = json.loads(bytes(sample.payload).decode())
         station_id = payload.get("stationID") or payload.get("stationId")
@@ -202,6 +226,22 @@ def on_mcm(sample):
 
         if label == "MERGE_REQUEST":
             _merge_request_by_mid[manoeuvre_id] = (sender_name, time.time())
+            try:
+                pos = basic["position"]
+                mc_lat, mc_lon = pos["latitude"], pos["longitude"]
+                vmc = inner.get("mcmContainer", {}).get("vehicleManoeuvreContainer", {})
+                wps = (vmc.get("submaneuvres", [{}])[0]
+                           .get("targetRoadResourceIContainer", {})
+                           .get("waypoints", []))
+                if len(wps) >= 2:
+                    d0 = wps[0]["pathPosition"]
+                    d1 = wps[1]["pathPosition"]
+                    conflict_zone = {
+                        "start": {"lat": mc_lat + d0["deltaLatitude"],  "lon": mc_lon + d0["deltaLongitude"]},
+                        "end":   {"lat": mc_lat + d1["deltaLatitude"],  "lon": mc_lon + d1["deltaLongitude"]},
+                    }
+            except Exception:
+                pass
 
         if label.startswith("SLOWDOWN_REQUEST"):
             advice = (inner.get("mcmContainer", {})
@@ -229,6 +269,7 @@ def on_mcm(sample):
             vehicle_protocol_states[sender_name] = "MERGING"
         elif label.startswith("EXECUTION_STATUS"):
             vehicle_protocol_states[sender_name] = "NORMAL"
+            conflict_zone = None
 
         # Extract additional fields for modal enrichment
         extras = {}
@@ -282,16 +323,18 @@ async def broadcast_loop():
         new_events = MCM_PENDING[:]
         del MCM_PENDING[:]
         msg = json.dumps({
-            "t":          round(time.time() - start, 2),
-            "scenario":   current_scenario_name,
-            "roads":      current_roads,
-            "vehicles":   [{**v,
-                             "state": vehicle_protocol_states.get(v["id"], "NORMAL"),
-                             "role": _vehicle_role(v)}
-                           for v in vehicle_states.values()
-                           if (not current_scenario_vehicles or v["id"] in current_scenario_vehicles)
-                           and time.time() - vehicle_last_cam.get(v["id"], 0) <= CAM_TIMEOUT_S],
-            "mcm_events": new_events,
+            "t":            round(time.time() - start, 2),
+            "scenario":     current_scenario_name,
+            "roads":        current_roads,
+            "vehicles":     [{**v,
+                               "state": vehicle_protocol_states.get(v["id"], "NORMAL"),
+                               "role": _vehicle_role(v)}
+                             for v in vehicle_states.values()
+                             if (not current_scenario_vehicles or v["id"] in current_scenario_vehicles)
+                             and time.time() - vehicle_last_cam.get(v["id"], 0) <= CAM_TIMEOUT_S],
+            "mcm_events":    new_events,
+            "conflict_zone": conflict_zone,
+            "merge_point":   merge_point if conflict_zone is not None else None,
         })
         dead = set()
         for ws in ws_clients:

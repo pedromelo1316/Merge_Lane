@@ -468,6 +468,58 @@
       }
     }
 
+    function drawConflictZone(ctx, zone, bounds, W, H) {
+      if (!zone) return;
+      const s = gpsToCanvas(zone.start.lat, zone.start.lon, bounds, W, H);
+      const e = gpsToCanvas(zone.end.lat,   zone.end.lon,   bounds, W, H);
+
+      ctx.save();
+
+      // Glowing band over the road segment
+      ctx.lineCap = 'round';
+      ctx.lineWidth = TARGET_LANE_PX + 8;
+      ctx.strokeStyle = 'rgba(255, 60, 60, 0.25)';
+      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+
+      ctx.lineWidth = TARGET_LANE_PX;
+      ctx.strokeStyle = 'rgba(255, 60, 60, 0.45)';
+      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+
+      // Dashed border
+      ctx.lineWidth = 1.5;
+      ctx.strokeStyle = '#ff3232';
+      ctx.setLineDash([5, 4]);
+      ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.restore();
+    }
+
+    function drawMergePoint(ctx, point, conflictZone, bounds, W, H) {
+      if (!point || !conflictZone) return;
+      const p = gpsToCanvas(point.lat, point.lon, bounds, W, H);
+
+      ctx.save();
+
+      // X marker
+      const sz = 7;
+      ctx.lineWidth   = 2;
+      ctx.strokeStyle = '#ff3232';
+      ctx.beginPath();
+      ctx.moveTo(p.x - sz, p.y - sz); ctx.lineTo(p.x + sz, p.y + sz);
+      ctx.moveTo(p.x + sz, p.y - sz); ctx.lineTo(p.x - sz, p.y + sz);
+      ctx.stroke();
+
+      // Label
+      ctx.font         = 'bold 11px monospace';
+      ctx.fillStyle    = '#ff6060';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('MERGE POINT', p.x, p.y - sz - 4);
+
+      ctx.restore();
+    }
+
     function drawLegend(ctx, W, H) {
       const boxX = W - 140;
       const boxY = 10;
@@ -612,10 +664,12 @@
       const H = canvas.height;
       const info = document.getElementById('info');
 
-      let roads      = [];
-      let bounds     = null;
-      let offscreen  = null;
-      let pxPerMeter = 1;
+      let roads        = [];
+      let bounds       = null;
+      let offscreen    = null;
+      let pxPerMeter   = 1;
+      let conflictZone = null;
+      let mergePoint   = null;
 
       function rebuildRoads(newRoads) {
         roads     = newRoads;
@@ -630,7 +684,11 @@
       function render(vehicles) {
         ctx.clearRect(0, 0, W, H);
         if (offscreen) ctx.drawImage(offscreen, 0, 0);
-        if (bounds)    drawVehicles(ctx, vehicles, roads, bounds, W, H, pxPerMeter);
+        if (bounds) {
+          drawConflictZone(ctx, conflictZone, bounds, W, H);
+          drawMergePoint(ctx, mergePoint, conflictZone, bounds, W, H);
+          drawVehicles(ctx, vehicles, roads, bounds, W, H, pxPerMeter);
+        }
         drawLegend(ctx, W, H);
       }
 
@@ -642,6 +700,8 @@
         currentEvents  = [];
         hiddenSigs     = new Set();
         lastEventCount = 0;
+        conflictZone   = null;
+        mergePoint     = null;
         const panel  = document.getElementById('mcm-panel');
         const header = document.getElementById('mcm-panel-header');
         panel.innerHTML = '';
@@ -660,6 +720,8 @@
           if (msg.roads && msg.roads.length > 0 && msg.roads !== roads) {
             rebuildRoads(msg.roads);
           }
+          if ('conflict_zone' in msg) conflictZone = msg.conflict_zone;
+          if ('merge_point'   in msg) mergePoint   = msg.merge_point;
           render(msg.vehicles);
           updateVehiclePanel(msg.vehicles);
           if (msg.mcm_events && msg.mcm_events.length > 0) {
