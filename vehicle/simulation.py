@@ -14,7 +14,7 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
                vanetza_session, stop_event, label,
                neighbours=None, vehicle_length_m=None,
                protocol=None):
-    """Loop de movimento ao longo de road a partir de t0. Retorna (lat, lon) final."""
+    """Loop de movimento ao longo de road a partir de t0. Retorna (lat, lon, speed) final."""
     s, e = road["start"], road["end"]
     L    = road_length(road)
     bearing = compute_bearing(s["lat"], s["lon"], e["lat"], e["lon"])
@@ -59,7 +59,7 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
     lon = s["lon"] + min(t, 1.0) * (e["lon"] - s["lon"])
     ts = time.strftime("%H:%M:%S")
     print(f"[{ts}] [{label}] chegou ao fim de '{road['id']}' lat={lat:.5f} lon={lon:.5f}")
-    return lat, lon
+    return lat, lon, speed
 
 
 def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
@@ -122,10 +122,10 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
           f"target={target_speed:.1f}m/s length={vehicle_length}m")
 
     try:
-        lat, lon = _move_loop(road, t0, target_speed, target_speed,
-                              station_id, vanetza_session, stop_event, vehicle_id,
-                              neighbours=neighbours,
-                              vehicle_length_m=vehicle_length, protocol=protocol)
+        lat, lon, speed_end = _move_loop(road, t0, target_speed, target_speed,
+                         station_id, vanetza_session, stop_event, vehicle_id,
+                         neighbours=neighbours,
+                         vehicle_length_m=vehicle_length, protocol=protocol)
 
         # transição rampa → main road; só avança se merge foi decidido
         if road.get("type") == "ramp" and road.get("merges_into") and not stop_event.is_set():
@@ -139,7 +139,7 @@ def run(scenario, vehicle_id, station_id, vanetza_session, stop_event):
             print(f"[{ts}] [{vehicle_id}] a transitar para '{main_road['id']}' t={t2:.3f}")
             protocol.on_merge_completed(lat, lon)  # → envia EXECUTION_STATUS
             protocol.set_current_road(main_road, target_speed2)
-            _move_loop(main_road, t2, target_speed, target_speed2,
+            _move_loop(main_road, t2, speed_end, target_speed2,
                        station_id, vanetza_session, stop_event, vehicle_id,
                        neighbours=neighbours,
                        vehicle_length_m=vehicle_length, protocol=protocol)

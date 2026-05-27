@@ -1,7 +1,7 @@
 import math
 
 DECEL_MS2        = 4.0
-ACCEL_MS2        = 2.0
+ACCEL_MS2        = 4.0
 DT               = 0.1   # tick in seconds
 SAFETY_GAP_M     = 10.0  # gap mínimo frente-a-traseira entre veículos (metros)
 LANE_WIDTH_M    = 3.5   # largura de faixa típica (metros)

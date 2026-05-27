@@ -93,6 +93,7 @@ class MergeProtocol:
         self._slowed_down        = False
         self._mc_station_id      = None
         self._mc_eta_s           = None
+        self._mc_request_ts      = None
         self._slowdown_sender_id = None
         self._slowdown_sent_to   = None
         self._ramp_slowdown_sent_to = None
@@ -459,6 +460,7 @@ class MergeProtocol:
             self._slowdown_sender_id = None
             self._slowdown_sent_to   = None
             self._pending_speed      = None
+            self._mc_request_ts      = time.time()
             t       = self._t
             speed   = self._speed_ms
 
@@ -529,6 +531,8 @@ class MergeProtocol:
             if ok:
                 print(f"[{ts}] [{self.vehicle_id}] aceita (dist_trav={brake_d:.1f}m avail={avail:.1f}m) "
                       f"— pendente {own_speed * 3.6:.1f} km/h")
+                with self._lock:
+                    self._slowed_down = True
                 self._send_merge_grant(success=True)
             else:
                 print(f"[{ts}] [{self.vehicle_id}] recusa (dist_trav={brake_d:.1f}m > avail={avail:.1f}m)")
@@ -571,6 +575,8 @@ class MergeProtocol:
                 print(f"[{ts}] [{self.vehicle_id}] aceita fim-de-cadeia "
                       f"(dist_trav={brake_d:.1f}m avail={avail:.1f}m) "
                       f"— pendente {own_speed * 3.6:.1f} km/h")
+                with self._lock:
+                    self._slowed_down = True
                 self._send_slowdown_grant(sender_id, success=True)
             else:
                 print(f"[{ts}] [{self.vehicle_id}] recusa fim-de-cadeia "
@@ -584,6 +590,8 @@ class MergeProtocol:
             sender_ahead = self._slowdown_sender_id
             speed        = self._speed_ms
             pending      = self._pending_speed
+            mc_eta_s     = self._mc_eta_s
+            req_ts       = getattr(self, "_mc_request_ts", None)
 
         ts = time.strftime("%H:%M:%S")
 
@@ -605,6 +613,15 @@ class MergeProtocol:
             print(f"[{ts}] [{self.vehicle_id}] SLOWDOWN_GRANT recebido — própria travagem ok "
                   f"(dist_trav={brake_d:.1f}m avail={avail:.1f}m) "
                   f"— pendente {own_speed * 3.6:.1f} km/h")
+            if mc_eta_s is not None and req_ts is not None:
+                elapsed = time.time() - req_ts
+                remaining = max(0.0, mc_eta_s - elapsed)
+                recomputed = self._calculate_target_speed(remaining)
+                with self._lock:
+                    self._pending_speed = recomputed
+                    pending = recomputed
+            with self._lock:
+                self._slowed_down = True
             if sender_ahead is not None:
                 self._send_slowdown_grant(sender_ahead, success=True)
             else:
@@ -687,16 +704,31 @@ class MergeProtocol:
         dist = max(0.0, (cz_t_start - t) * self.L_current - self.vehicle_length_m / 2)
         return dist
 
+    def _solve_target_speed(self, distance_m, eta_s, cur_speed_ms):
+        """Velocidade alvo que mantem a frente antes da zona no ETA (modelo cinemático)."""
+        if eta_s <= 0.0 or distance_m <= 0.0:
+            return 0.0
+        lo = 0.0
+        hi = max(cur_speed_ms, self.road_speed_ms)
+        for _ in range(24):
+            mid = 0.5 * (lo + hi)
+            dist_pred, _ = predict_motion(cur_speed_ms, mid, eta_s)
+            if dist_pred > distance_m:
+                hi = mid
+            else:
+                lo = mid
+        return hi
+
     def _calculate_target_speed(self, mc_eta_s):
         """Velocidade para chegar ao limite da zona de conflito exatamente no ETA do MC."""
         with self._lock:
             t          = self._t
             cz_t_start = self.cz_t_start
+            cur_speed  = self._speed_ms
         if cz_t_start is None:
             return 0.0
         dist = max(0.0, (cz_t_start - t) * self.L_current - self.vehicle_length_m / 2)
-        v = dist / mc_eta_s if mc_eta_s > 0 else 0.0
-        return v
+        return self._solve_target_speed(dist, mc_eta_s, cur_speed)
 
     def _send_merge_grant(self, success=True):
         with self._lock:
