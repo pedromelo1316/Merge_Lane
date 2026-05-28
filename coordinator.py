@@ -167,7 +167,9 @@ class CoordinatorApp(tk.Tk):
         self._btn_one.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 3))
         self._btn_all = tk.Button(btns, text="Run All",
                                    command=self._run_all, state=tk.DISABLED)
-        self._btn_all.pack(side=tk.LEFT, fill=tk.X, expand=True)
+        self._btn_all.pack(side=tk.LEFT, fill=tk.X, expand=True, padx=(0, 3))
+        tk.Button(btns, text="↺", command=self._refresh_scenarios,
+                  font=("Helvetica", 11), width=3).pack(side=tk.LEFT)
 
         demo_row = tk.Frame(left)
         demo_row.pack(fill=tk.X, pady=(4, 0))
@@ -334,6 +336,11 @@ class CoordinatorApp(tk.Tk):
             self._listbox.insert(tk.END, entry)
         self._append_log(
             f"[coordinator] {len(self._scenarios)} cenário(s) carregado(s).")
+
+    def _refresh_scenarios(self):
+        self._listbox.delete(0, tk.END)
+        self._scenarios = []
+        self._load_scenarios()
 
     def _run_selected(self):
         idx = self._scenario_selected()

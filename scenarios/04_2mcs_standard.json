@@ -22,8 +22,8 @@
     }
   ],
   "vehicles": [
-    {"id": "MC", "station_id": 10, "road": "ramp", "lat": 40.6370, "lon": -8.6510, "length_m": 4.5},
-    {"id": "A",  "station_id": 11, "road": "main", "lat": 40.6380, "lon": -8.6518, "length_m": 4.5},
+    {"id": "MC", "station_id": 10, "road": "ramp", "lat": 40.63725, "lon": -8.650625, "length_m": 4.5},
+    {"id": "A",  "station_id": 11, "road": "ramp", "lat": 40.6370, "lon": -8.6510, "length_m": 4.5},
     {"id": "B",  "station_id": 12, "road": "main", "lat": 40.6380, "lon": -8.6534, "length_m": 4.5},
     {"id": "C",  "station_id": 13, "road": "main", "lat": 40.6380, "lon": -8.6548, "length_m": 4.5}
     
