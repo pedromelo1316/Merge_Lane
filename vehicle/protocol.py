@@ -9,7 +9,7 @@ from geo import (
     road_length, project_t,
     conflict_zone_t, vehicle_in_zone, mc_stop_t, merge_entry_margin,
     find_vehicle_behind, can_brake_in_time,
-    gap_ahead, is_on_road,
+    is_on_road,
     predict_motion, time_to_cover_distance,
 )
 from mcm_builder import (
@@ -249,12 +249,6 @@ class MergeProtocol:
         else:
             eta_s = float("inf")
 
-        has_ahead = False
-        if neighbours_snapshot:
-            gap = gap_ahead(t, self.station_id, self.current_road,
-                            neighbours_snapshot, self.L_current, self.vehicle_length_m)
-            has_ahead = gap != float("inf")
-
         main_peers = {}
         if self.main_road is not None:
             main_peers = {
@@ -263,7 +257,7 @@ class MergeProtocol:
             }
         active_peers = frozenset(main_peers.keys())
 
-        if eta_s <= CONFLICT_HORIZON_S and not has_ahead:
+        if eta_s <= CONFLICT_HORIZON_S:
             if not active_peers and not self.merge_decided:
                 ts = time.strftime("%H:%M:%S")
                 print(f"[{ts}] [{self.vehicle_id}] sem peers na estrada — merge direto")
@@ -274,7 +268,7 @@ class MergeProtocol:
 
         with self._lock:
             granted = frozenset(self.grants_received)
-        if active_peers and active_peers.issubset(granted) and not self.merge_decided and not has_ahead:
+        if active_peers and active_peers.issubset(granted) and not self.merge_decided:
             self._on_all_granted(lat, lon)
 
         dist_to_stop = None
@@ -302,11 +296,7 @@ class MergeProtocol:
             pending = self._pending_speed
 
         if ramp_active:
-            if not has_ahead:
-                with self._lock:
-                    self._ramp_slowdown_active = False
-                    self._pending_speed = None
-            elif pending is not None:
+            if pending is not None:
                 if result["target_speed"] is None or pending < result["target_speed"]:
                     result["target_speed"] = pending
 
@@ -613,13 +603,6 @@ class MergeProtocol:
             print(f"[{ts}] [{self.vehicle_id}] SLOWDOWN_GRANT recebido — própria travagem ok "
                   f"(dist_trav={brake_d:.1f}m avail={avail:.1f}m) "
                   f"— pendente {own_speed * 3.6:.1f} km/h")
-            if mc_eta_s is not None and req_ts is not None:
-                elapsed = time.time() - req_ts
-                remaining = max(0.0, mc_eta_s - elapsed)
-                recomputed = self._calculate_target_speed(remaining)
-                with self._lock:
-                    self._pending_speed = recomputed
-                    pending = recomputed
             with self._lock:
                 self._slowed_down = True
             if sender_ahead is not None:

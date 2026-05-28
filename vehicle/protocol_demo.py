@@ -64,8 +64,7 @@ class DemoMergeProtocol(MergeProtocol):
                         with self._lock:
                             expected = self._slowdown_sent_to
                         will_process = (sender_id == expected)
-                elif mcm_type == 7 and its_role == 1:            # EXECUTION_STATUS
-                    will_process = not self._is_ramp()
+                        print(f"[{time.strftime('%H:%M:%S')}] [{self.vehicle_id}] [DEMO] SLOWDOWN_GRANT received from {sender_id} ")
 
                 # veículos da estrada param ao receber MERGE_REQUEST
                 if is_merge_request:

@@ -5,7 +5,7 @@ from cam_builder import build_cam
 from comms import NeighbourTable, make_cam_callback
 from geo import (
     DT, SAFETY_GAP_M,
-    advance_speed, compute_bearing, gap_ahead, project_t, road_length,
+    advance_speed, compute_bearing, project_t, road_length,
 )
 from protocol import MergeProtocol
 from protocol_demo import DemoMergeProtocol
@@ -39,13 +39,6 @@ def _move_loop(road, t0, speed0, target_speed, station_id,
             if result.get("target_speed") is not None:
                 effective_target = result["target_speed"]
             should_advance = result.get("advance", True)
-
-        # Car-following: manter gap minimo ao veiculo da frente
-        if neighbours:
-            gap = gap_ahead(t, station_id, road, snap, L, vehicle_length_m)
-            if gap < SAFETY_GAP_M:
-                effective_target = min(effective_target,
-                                       speed * max(0.0, gap / SAFETY_GAP_M))
 
         speed, accel = advance_speed(speed, effective_target, DT)
 
