@@ -7,22 +7,12 @@ PROCEDURE VehicleMain:
     session_vanetza ← LigarZenoh(VANETZA_URL, com retry automático)
     session_coord   ← LigarZenoh(COORDINATOR_URL)
 
-    Lançar thread: LOOP EnviarHeartbeat(STATION_ID) a cada 2s
-
-    Subscrever "coordinator/scenario" → on_scenario
+    Subscrever "coordinator/scenario"
 
     LOOP:
         scenario ← AguardarCenário()
-        IF station_id NÃO está em scenario.active_vehicles:
-            PublicarDone(skipped=True)
-            CONTINUE
         IniciarSimulação(scenario)
         PublicarDone()
-
-
-PROCEDURE on_scenario(data):
-    Abortar cenário em curso
-    Enfileirar novo cenário
 
 
 PROCEDURE IniciarSimulação(scenario):
@@ -45,7 +35,7 @@ PROCEDURE IniciarSimulação(scenario):
 
     ExecutarLoop(road, t0, target_speed, protocol)
 
-    IF rampa E merge_decided:
+    IF rampa AND merge_decided:
         Transitar para main road
 
 
@@ -59,7 +49,7 @@ PROCEDURE ExecutarLoop(road, t0, target_speed, protocol):
     t     ← t0
     speed ← target_speed
 
-    WHILE t < 1.0 AND não parar:
+    WHILE t < 1.0:
         lat, lon ← posição por interpolação linear em t
 
         resultado ← protocol.tick(t, speed, lat, lon)
@@ -91,6 +81,6 @@ PROCEDURE protocol.tick(t, speed, lat, lon):  // MC na rampa
     IF todos os peers deram grant:
         on_all_granted()
 
-    IF próximo do stop_t E sem merge_decided:
+    IF próximo do stop_t AND sem merge_decided:
         Parar avanço, target_speed ← 0
 ```

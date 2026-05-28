@@ -19,6 +19,8 @@ COORDINATOR_ZENOH_URL = "tcp/127.0.0.1:7446"
 vehicle_states        = {}
 vehicle_last_cam      = {}   # {name → time.time()} — timestamp do último CAM recebido
 vehicle_protocol_states = {}  # {name → "NORMAL"|"SLOWING"|"SPEEDING"|"MERGING"}
+vehicle_lengths_from_scenario = {}  # {name → length_m} — carregado do cenário
+vehicle_widths_from_scenario  = {}  # {name → width_m}  — carregado do cenário
 
 CAM_TIMEOUT_S = 0.2  # remover veículo da dashboard após este silêncio
 ws_clients            = set()
@@ -29,6 +31,7 @@ current_scenario_vehicles = set()  # IDs dos veículos activos no cenário actua
 conflict_zone             = None   # {start:{lat,lon}, end:{lat,lon}} ou None
 merge_point               = None   # {lat, lon} — interseção geométrica main ∩ ramp
 scenario_reset_counter    = 0      # incrementa em cada reset de cenário
+draw_exag                 = 3      # fator de exageração visual; controlado pelo coordinator
 
 _slowdown_sent_to = {}  # {executant_station_id → sender_name} — para SLOWDOWN_GRANTs
 _merge_request_by_mid = {}  # {manoeuvre_id → (sender_name, ts)}
@@ -110,10 +113,9 @@ def on_cam(sample):
         accel_raw = hfc.get("longitudinalAcceleration", {}).get("value", ACCEL_UNAVAILABLE)
         accel_ms2 = round(accel_raw, 1) if accel_raw != ACCEL_UNAVAILABLE else None
 
-        # Extract vehicle length (vehicleLengthValue in 0.1 m units; 1023 = unavailable)
-        VEHICLE_LENGTH_UNAVAILABLE = 1023
-        veh_len_raw = hfc.get("vehicleLength", {}).get("vehicleLengthValue", VEHICLE_LENGTH_UNAVAILABLE)
-        length_m = round(veh_len_raw / 10, 1) if 0 < veh_len_raw < VEHICLE_LENGTH_UNAVAILABLE else 4.5
+        # Vehicle dimensions come from the scenario definition; fall back to defaults if unknown
+        length_m = vehicle_lengths_from_scenario.get(name, 4.5)
+        width_m  = vehicle_widths_from_scenario.get(name, 1.8)
 
         # Find nearest road
         road_id = _nearest_road_id(ref["latitude"], ref["longitude"])
@@ -127,6 +129,7 @@ def on_cam(sample):
             "accel_ms2": accel_ms2,
             "road_id": road_id,
             "length_m": length_m,
+            "width_m":  width_m,
         }
 
         # Inferir estado físico (SLOWING/SPEEDING) a partir da aceleração longitudinal nas CAMs
@@ -180,12 +183,20 @@ def _classify_mcm(mcm_type, its_role, inner):
 
 
 def on_coordinator_scenario(sample):
-    global current_roads, current_scenario_name, current_scenario_vehicles, STATION_IDS, conflict_zone, merge_point, scenario_reset_counter
+    global current_roads, current_scenario_name, current_scenario_vehicles, STATION_IDS, conflict_zone, merge_point, scenario_reset_counter, draw_exag
     try:
         data = json.loads(bytes(sample.payload).decode())
         current_roads             = data.get("roads", [])
         current_scenario_name     = data.get("name", "")
+        draw_exag                 = int(data.get("draw_exag", 3))
         current_scenario_vehicles = {v["id"] for v in data.get("vehicles", [])}
+
+        vehicle_states.clear()
+        vehicle_last_cam.clear()
+        vehicle_protocol_states.clear()
+        vehicle_lengths_from_scenario.clear()
+        vehicle_widths_from_scenario.clear()
+        del MCM_PENDING[:]
 
         STATION_IDS = dict(STATION_IDS_BASE)
         for v in data.get("vehicles", []):
@@ -193,11 +204,10 @@ def on_coordinator_scenario(sample):
             vid = v.get("id")
             if sid is not None and vid is not None:
                 STATION_IDS[sid] = vid
-
-        vehicle_states.clear()
-        vehicle_last_cam.clear()
-        vehicle_protocol_states.clear()
-        del MCM_PENDING[:]
+                if "length_m" in v:
+                    vehicle_lengths_from_scenario[vid] = v["length_m"]
+                if "width_m" in v:
+                    vehicle_widths_from_scenario[vid] = v["width_m"]
         _slowdown_sent_to.clear()
         _merge_request_by_mid.clear()
         conflict_zone = None
@@ -338,6 +348,7 @@ async def broadcast_loop():
             "mcm_events":    new_events,
             "conflict_zone": conflict_zone,
             "merge_point":   merge_point if conflict_zone is not None else None,
+            "draw_exag":     draw_exag,
         })
         dead = set()
         for ws in ws_clients:

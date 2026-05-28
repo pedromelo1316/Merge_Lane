@@ -123,8 +123,9 @@ class CoordinatorApp(tk.Tk):
         self._session_lock = threading.Lock()
         self._scenarios    = []
         self._vehicle_dots = {}     # sid -> tk.Label
-        self._demo_var     = tk.BooleanVar(value=False)
-        self._pause_var    = tk.StringVar(value="3")
+        self._demo_var      = tk.BooleanVar(value=False)
+        self._pause_var     = tk.StringVar(value="3")
+        self._draw_exag_var = tk.IntVar(value=3)
 
         self._build_ui()
         self._load_scenarios()
@@ -182,6 +183,12 @@ class CoordinatorApp(tk.Tk):
         self._pause_entry = tk.Entry(demo_row, textvariable=self._pause_var,
                                      width=4, font=("Helvetica", 9), state=tk.DISABLED)
         self._pause_entry.pack(side=tk.LEFT)
+
+        exag_row = tk.Frame(left)
+        exag_row.pack(fill=tk.X, pady=(4, 0))
+        tk.Label(exag_row, text="Draw Exag:", font=("Helvetica", 9)).pack(side=tk.LEFT)
+        tk.Spinbox(exag_row, from_=1, to=10, textvariable=self._draw_exag_var,
+                   width=4, font=("Helvetica", 9)).pack(side=tk.LEFT, padx=(4, 0))
 
         # Right: vehicle status
         right = tk.LabelFrame(middle, text="Vehicle Status", padx=6, pady=6, width=210)
@@ -391,7 +398,8 @@ class CoordinatorApp(tk.Tk):
                 log("[coordinator] À espera que todos os veículos estejam prontos…")
                 wait_for_pool_ready(session, POOL, DEFAULT_TIMEOUT_S, log, vehicle_cb)
 
-                pub_scenario = {**scenario, "demo": True, "demo_pause_s": demo_pause_s} if demo_mode else scenario
+                pub_scenario = {**scenario, "demo": True, "demo_pause_s": demo_pause_s} if demo_mode else dict(scenario)
+                pub_scenario["draw_exag"] = self._draw_exag_var.get()
                 payload      = json.dumps(pub_scenario).encode()
 
                 def publish(p=payload):

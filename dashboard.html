@@ -6,30 +6,42 @@
   <style>
     body {
       margin: 0;
-      padding: 0;
+      padding: 0 12px;
+      box-sizing: border-box;
       background: #1a1a2e;
-      display: flex;
-      flex-direction: column;
-      align-items: center; /* Centraliza horizontalmente */
-      justify-content: center; /* Centraliza verticalmente */
-      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto auto;
+      height: 100vh;
+      overflow: hidden;
       font-family: monospace;
       color: #e0e0e0;
     }
     h1 {
-      font-size: 1.2rem;
+      font-size: 1rem;
       letter-spacing: 0.2em;
-      margin: 20px 0;
+      margin: 8px 0 4px;
       color: #aaa;
       text-transform: uppercase;
+      text-align: center;
     }
     .main-row {
       display: flex;
       flex-direction: row;
-      gap: 20px; /* Espaço maior entre os elementos */
-      align-items: flex-start;
+      gap: 12px;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .canvas-col {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      min-height: 0;
     }
     canvas {
+      flex: 1;
+      min-height: 0;
+      width: 100%;
       background: #0f0f1a;
       border: 2px solid #333;
       border-radius: 8px;
@@ -37,14 +49,12 @@
       box-shadow: 0 4px 15px rgba(0,0,0,0.5);
     }
     #info {
-      margin-top: 10px;
+      padding: 4px 0 2px;
       font-size: 0.9rem;
       color: #888;
-      text-align: left;
     }
     #mcm-panel {
-      width: 350px; /* Mais largo */
-      height: 500px; /* Altura igual ao canvas */
+      width: 280px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
@@ -166,19 +176,20 @@
     #vehicle-panel {
       display: flex;
       flex-direction: row;
-      gap: 12px;
-      margin: 16px 0 20px;
-      flex-wrap: wrap;
+      gap: 8px;
+      padding: 8px 0 10px;
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      align-items: flex-start;
       justify-content: center;
-      min-height: 170px;
-      min-width: 1370px;
+      min-height: 182px;
     }
     .vcard {
       background: #0f0f1a;
       border: 2px solid #333;
       border-radius: 8px;
-      padding: 12px 16px;
-      min-width: 155px;
+      padding: 8px 12px;
+      min-width: 145px;
       font-size: 0.78rem;
       transition: border-color 0.3s;
     }
@@ -210,9 +221,8 @@
   <h1>COOPERATIVE LANE MERGE</h1>
   
   <div class="main-row">
-    <div>
-      <canvas id="canvas" width="1000" height="500"></canvas>
-      <div id="info">a ligar...</div>
+    <div class="canvas-col">
+      <canvas id="canvas"></canvas>
     </div>
 
     <div id="mcm-panel">
@@ -223,6 +233,7 @@
     </div>
   </div>
 
+  <div id="info">a ligar...</div>
   <div id="vehicle-panel"></div>
 
   <div id="modal-overlay">
@@ -236,11 +247,11 @@
   </div>
 
   <script>
-    const PADDING        = 80;
-    const WS_URL         = 'ws://localhost:8765';
-    const LANE_WIDTH_M   = 3.5;  // largura de faixa standard (m)
-    const VEH_WIDTH_M    = 1.8;  // largura do veículo (m)
-    const TARGET_LANE_PX = 18;   // largura visual alvo da faixa em píxeis (controla exag)
+    const PADDING      = 80;
+    const WS_URL       = 'ws://localhost:8765';
+    const LANE_WIDTH_M = 3.5;  // largura de faixa standard (m) — fallback sem dados do cenário
+    const VEH_WIDTH_M  = 1.8;  // largura do veículo (m)        — fallback sem dados do cenário
+    let DRAW_EXAG      = 3;    // fator de exageração; atualizado pelo bridge via WebSocket
 
     const MCM_DESCRIPTIONS = {
       'MERGE_REQUEST':          'O MC solicita permissão para entrar na via principal. Inclui a janela temporal estimada de ocupação do ponto de conflito e a velocidade sugerida para cada veículo afetado.',
@@ -283,8 +294,8 @@
         extrasHtml += `<div class="modal-row"><span class="modal-label">ETA conflito</span><span class="modal-value">${ev.eta_start_ms} – ${ev.eta_end_ms} ms</span></div>`;
       if (ev.entry_lat != null)
         extrasHtml +=
-          `<div class="modal-row"><span class="modal-label">Entrada lat</span><span class="modal-value">${ev.entry_lat.toFixed(6)}</span></div>` +
-          `<div class="modal-row"><span class="modal-label">Entrada lon</span><span class="modal-value">${ev.entry_lon.toFixed(6)}</span></div>`;
+          `<div class="modal-row"><span class="modal-label">Entrada lat</span><span class="modal-value">${ev.entry_lat}</span></div>` +
+          `<div class="modal-row"><span class="modal-label">Entrada lon</span><span class="modal-value">${ev.entry_lon}</span></div>`;
       if (ev.target_speed_kmh != null)
         extrasHtml += `<div class="modal-row"><span class="modal-label">Velocidade alvo</span><span class="modal-value">${ev.target_speed_kmh} km/h</span></div>`;
       if (extrasHtml) html += `<div id="modal-extras">${extrasHtml}</div>`;
@@ -378,7 +389,7 @@
         ramp: {color: '#e6a817', label: 'Rampa'},
       };
 
-      const laneWidthPx = TARGET_LANE_PX;
+      const laneWidthPx = LANE_WIDTH_M * pxPerMeter * DRAW_EXAG;
 
       function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
 
@@ -422,15 +433,13 @@
     function drawVehicles(ctx, vehicles, roads, bounds, W, H, pxPerMeter) {
       function toC(lat, lon) { return gpsToCanvas(lat, lon, bounds, W, H); }
 
-      const exag       = TARGET_LANE_PX / (LANE_WIDTH_M * pxPerMeter);
-      const vehWidPx   = VEH_WIDTH_M * pxPerMeter * exag;
-
       for (const v of vehicles) {
         const pt    = toC(v.lat, v.lon);
         const color = stateColor(v.role, v.state || 'NORMAL');
 
         const lenM     = v.length_m ?? 4.5;
-        const vehLenPx = lenM * pxPerMeter * exag;
+        const vehLenPx = lenM * pxPerMeter * DRAW_EXAG;
+        const vehWidPx = (v.width_m ?? VEH_WIDTH_M) * pxPerMeter * DRAW_EXAG;
 
         // Bearing em screen-space a partir da estrada do veículo
         const road = roads.find(r => r.id === v.road_id);
@@ -470,20 +479,22 @@
       }
     }
 
-    function drawConflictZone(ctx, zone, bounds, W, H) {
+    function drawConflictZone(ctx, zone, bounds, W, H, pxPerMeter) {
       if (!zone) return;
       const s = gpsToCanvas(zone.start.lat, zone.start.lon, bounds, W, H);
       const e = gpsToCanvas(zone.end.lat,   zone.end.lon,   bounds, W, H);
+
+      const laneWidthPx = LANE_WIDTH_M * pxPerMeter * DRAW_EXAG;
 
       ctx.save();
 
       // Glowing band over the road segment
       ctx.lineCap = 'round';
-      ctx.lineWidth = TARGET_LANE_PX + 8;
+      ctx.lineWidth = laneWidthPx + 8;
       ctx.strokeStyle = 'rgba(255, 60, 60, 0.25)';
       ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
 
-      ctx.lineWidth = TARGET_LANE_PX;
+      ctx.lineWidth = laneWidthPx;
       ctx.strokeStyle = 'rgba(255, 60, 60, 0.45)';
       ctx.beginPath(); ctx.moveTo(s.x, s.y); ctx.lineTo(e.x, e.y); ctx.stroke();
 
@@ -593,8 +604,8 @@
           `<div class="vcard-id" style="color:${color}">${v.id}</div>` +
           `<div class="vcard-row"><span class="vcard-lbl">speed</span><span class="vcard-val">${v.speed_kmh != null ? v.speed_kmh + ' km/h' : '—'}</span></div>` +
           `<div class="vcard-row"><span class="vcard-lbl">accel</span><span class="vcard-val">${v.accel_ms2 != null ? v.accel_ms2 + ' m/s²' : '—'}</span></div>` +
-          `<div class="vcard-row"><span class="vcard-lbl">lat</span><span class="vcard-val">${v.lat.toFixed(4)}</span></div>` +
-          `<div class="vcard-row"><span class="vcard-lbl">lon</span><span class="vcard-val">${v.lon.toFixed(4)}</span></div>` +
+          `<div class="vcard-row"><span class="vcard-lbl">lat</span><span class="vcard-val">${v.lat != null ? Number(v.lat).toFixed(4) : '—'}</span></div>` +
+          `<div class="vcard-row"><span class="vcard-lbl">lon</span><span class="vcard-val">${v.lon != null ? Number(v.lon).toFixed(4) : '—'}</span></div>` +
           `<div class="vcard-row"><span class="vcard-lbl">road</span><span class="vcard-val">${v.road_id || '—'}</span></div>` +
           `<div><span class="vcard-badge" style="background:${color}22;color:${color};border:1px solid ${color}44">${state}</span></div>`;
       }
@@ -663,16 +674,16 @@
     async function main() {
       const canvas = document.getElementById('canvas');
       const ctx = canvas.getContext('2d');
-      const W = canvas.width;
-      const H = canvas.height;
       const info = document.getElementById('info');
 
+      let W = 0, H = 0;
       let roads        = [];
       let bounds       = null;
       let offscreen    = null;
       let pxPerMeter   = 1;
       let conflictZone = null;
       let mergePoint   = null;
+      let lastVehicles = [];
 
       function rebuildRoads(newRoads) {
         roads     = newRoads;
@@ -688,12 +699,28 @@
         ctx.clearRect(0, 0, W, H);
         if (offscreen) ctx.drawImage(offscreen, 0, 0);
         if (bounds) {
-          drawConflictZone(ctx, conflictZone, bounds, W, H);
+          drawConflictZone(ctx, conflictZone, bounds, W, H, pxPerMeter);
           drawMergePoint(ctx, mergePoint, conflictZone, bounds, W, H);
           drawVehicles(ctx, vehicles, roads, bounds, W, H, pxPerMeter);
         }
         drawLegend(ctx, W, H);
       }
+
+      function resizeCanvas() {
+        const rect = canvas.getBoundingClientRect();
+        const newW = Math.floor(rect.width);
+        const newH = Math.floor(rect.height);
+        if (newW === W && newH === H) return;
+        W = newW; H = newH;
+        canvas.width  = W;
+        canvas.height = H;
+        if (roads.length > 0) rebuildRoads(roads);
+        render(lastVehicles);
+      }
+
+      const ro = new ResizeObserver(resizeCanvas);
+      ro.observe(canvas);
+      resizeCanvas();
 
       render([]);
 
@@ -727,8 +754,13 @@
           }
           if ('conflict_zone' in msg) conflictZone = msg.conflict_zone;
           if ('merge_point'   in msg) mergePoint   = msg.merge_point;
-          render(msg.vehicles);
-          updateVehiclePanel(msg.vehicles);
+          if (msg.draw_exag != null && msg.draw_exag !== DRAW_EXAG) {
+            DRAW_EXAG = msg.draw_exag;
+            rebuildRoads(roads);
+          }
+          lastVehicles = msg.vehicles;
+          render(lastVehicles);
+          updateVehiclePanel(lastVehicles);
           if (msg.mcm_events && msg.mcm_events.length > 0) {
             currentEvents = [...currentEvents, ...msg.mcm_events];
             renderMcmEvents(currentEvents);
