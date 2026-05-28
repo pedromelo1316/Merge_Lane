@@ -457,10 +457,12 @@ class MergeProtocol:
         vmc    = inner["mcmContainer"].get("vehicleManoeuvreContainer", {})
         subs   = vmc.get("submaneuvres", [])
         temporal = subs[0].get("temporalCharateristics", {}) if subs else {}
-        t_start  = temporal.get("tRROccupancyStartTime", 0)
-        mc_eta_s = t_start / 1000.0
+        t_start        = temporal.get("tRROccupancyStartTime", 0)
+        t_end          = temporal.get("tRROccupancyEndTime", 0)
+        mc_eta_start_s = t_start / 1000.0
+        mc_eta_end_s   = t_end   / 1000.0
         with self._lock:
-            self._mc_eta_s = mc_eta_s
+            self._mc_eta_s = mc_eta_start_s
 
         mc_size  = vmc.get("vehicleCurrentStateContainer", {}).get("vehicleSize", {})
         mc_len_m = mc_size["vehicleLenth"]["vehicleLengthValue"]
@@ -486,18 +488,19 @@ class MergeProtocol:
             self.cz_t_start = cz_t_start
             self.cz_t_end   = cz_t_end
 
-        own_speed = self._calculate_target_speed(mc_eta_s)
-        dist_pred, _ = predict_motion(speed, own_speed, mc_eta_s)
-        t_pred = min(t + dist_pred / self.L_current, 1.0)
-        in_zone_pred = vehicle_in_zone(
-            t_pred, self.L_current, self.vehicle_length_m, cz_t_start, cz_t_end
-        )
-        in_conflict = in_zone_pred
+        dist_to_enter = max(0.0, (cz_t_start - t) * self.L_current - self.vehicle_length_m / 2)
+        dist_to_exit  = max(0.0, (cz_t_end   - t) * self.L_current + self.vehicle_length_m / 2)
+        t_enter = time_to_cover_distance(speed, speed, dist_to_enter)
+        t_exit  = time_to_cover_distance(speed, speed, dist_to_exit)
+        in_conflict = t_enter < mc_eta_end_s and t_exit > mc_eta_start_s
+
+        own_speed = self._calculate_target_speed(mc_eta_end_s)
 
         ts = time.strftime("%H:%M:%S")
         print(f"[{ts}] [{self.vehicle_id}] MERGE_REQUEST de MC={sender_id} "
-              f"eta={mc_eta_s:.1f}s in_conflict={in_conflict} "
-              f"v_alvo={own_speed * 3.6:.1f} km/h")
+              f"eta=[{mc_eta_start_s:.1f}s,{mc_eta_end_s:.1f}s] "
+              f"vehicle=[{t_enter:.1f}s,{t_exit:.1f}s] "
+              f"in_conflict={in_conflict} v_alvo={own_speed * 3.6:.1f} km/h")
 
         if not in_conflict:
             self._send_merge_grant(success=True)
