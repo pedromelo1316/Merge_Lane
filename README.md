@@ -1,4 +1,4 @@
-# Fusão cooperativa de via via V2V
+# Fusão cooperativa de via através de V2V
 
 ## Visão geral
 
