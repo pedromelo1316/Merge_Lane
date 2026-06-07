@@ -91,9 +91,15 @@ pip install -r requirements.txt
 ./run.sh
 ```
 
+Para parar tudo:
+
+```bash
+./stop.sh
+```
+
 O script `run.sh`:
-1. Para processos antigos (bridge, HTTP, coordinator)
-2. Faz `docker-compose down` e `docker-compose up -d --build`
+1. Chama `./stop.sh` para parar processos e containers antigos
+2. Faz `docker-compose up -d --build`
 3. Aguarda os brokers Zenoh ficarem disponíveis
 4. Lança `bridge.py` (Zenoh → WebSocket na porta 8765)
 5. Lança um servidor HTTP simples (porta 8000) para servir `dashboard.html`

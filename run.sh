@@ -4,14 +4,8 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-echo "==> A parar processos antigos (bridge, HTTP, coordinator)..."
-pkill -f "python3 bridge.py"      2>/dev/null || true
-pkill -f "python3 coordinator.py" 2>/dev/null || true
-pkill -f "http.server 8000"       2>/dev/null || true
-sleep 0.5
-
-echo "==> A parar containers antigos..."
-docker-compose down
+echo "==> A parar processos e containers antigos..."
+"$SCRIPT_DIR/stop.sh"
 
 echo "==> A arrancar containers (com rebuild das imagens Python)..."
 docker-compose up -d --build
@@ -55,4 +49,4 @@ COORDINATOR_PID=$!
 echo "    coordinator PID: $COORDINATOR_PID"
 
 echo ""
-echo "Pronto. Para parar: kill $BRIDGE_PID $HTTP_PID $COORDINATOR_PID"
+echo "Pronto. Para parar: ./stop.sh"
