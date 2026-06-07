@@ -47,8 +47,7 @@ until nc -z -w 1 127.0.0.1 8765 2>/dev/null; do
 done
 echo " pronto."
 
-echo "==> A abrir dashboard no Firefox..."
-firefox "http://localhost:8000/dashboard.html" &
+echo "==> Dashboard disponível em: http://localhost:8000/dashboard.html"
 
 echo "==> A arrancar coordinator GUI..."
 python3 coordinator.py &

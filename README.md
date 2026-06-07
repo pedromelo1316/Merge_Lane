@@ -83,8 +83,11 @@ merge_lane/
 ## Como arrancar
 
 ```bash
-# Pré-requisitos: Docker, docker-compose, Python 3 com zenoh e websockets, Firefox
+# Pré-requisitos: Docker, docker-compose, Python 3
 
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ./run.sh
 ```
 
@@ -94,7 +97,7 @@ O script `run.sh`:
 3. Aguarda os brokers Zenoh ficarem disponíveis
 4. Lança `bridge.py` (Zenoh → WebSocket na porta 8765)
 5. Lança um servidor HTTP simples (porta 8000) para servir `dashboard.html`
-6. Abre `http://localhost:8000/dashboard.html` no Firefox
+6. Imprime o URL do dashboard: `http://localhost:8000/dashboard.html`
 7. Lança `coordinator.py` (GUI Tkinter)
 
 ## Coordinator GUI
